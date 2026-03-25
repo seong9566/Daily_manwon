@@ -1,3 +1,87 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**하루 만원 (Daily Manwon)** — 하루 1만원 예산 관리 앱. 다람쥐 캐릭터가 남은 잔액에 따라 감정(happy/worried/sad)을 표현하며 절약을 유도한다. 도토리(acorn) 보상 시스템과 업적(achievement) 기능을 포함.
+
+## Common Commands
+
+```bash
+# Run app
+flutter run
+
+# Code generation (freezed, injectable, drift) — 변경 후 반드시 실행
+dart run build_runner build --delete-conflicting-outputs
+
+# Watch mode for code generation
+dart run build_runner watch --delete-conflicting-outputs
+
+# Analyze
+flutter analyze
+
+# Run all tests
+flutter test
+
+# Run single test
+flutter test test/path/to/test_file.dart
+
+# Clean rebuild
+flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
+```
+
+## Architecture
+
+**Clean Architecture + MVVM** with feature-based modularization.
+
+```
+lib/
+├── core/               # 공유 인프라
+│   ├── constants/      # AppConstants, ExpenseCategory, CharacterMood enums
+│   ├── database/       # Drift (SQLite) — AppDatabase, 4 tables
+│   ├── di/             # GetIt + Injectable DI setup
+│   ├── router/         # GoRouter with StatefulShellRoute (bottom nav)
+│   ├── theme/          # AppColors, AppTypography, AppTheme (light + dark)
+│   └── utils/          # currency_formatter, app_date_utils
+├── features/           # Feature modules
+│   ├── home/           # 메인 화면 (잔액, 캐릭터, 지출 목록)
+│   ├── calendar/       # 월별 캘린더 뷰
+│   ├── settings/       # 설정
+│   ├── achievement/    # 업적 시스템
+│   ├── expense/        # 지출 입력
+│   └── onboarding/     # 온보딩 플로우
+```
+
+Each feature follows: `data/models/` (mappers) → `domain/entities/` (freezed) → `presentation/screens/`
+
+## Key Technical Decisions
+
+- **State Management**: flutter_riverpod (Notifier/AsyncNotifier 수동 선언, 코드젠 미사용)
+- **DI**: GetIt + Injectable (`configureDependencies()` in main, `@module` for 3rd-party like AppDatabase)
+- **Database**: Drift (SQLite) with drift_flutter for platform-aware connection. Tables: `Expenses`, `DailyBudgets`, `Acorns`, `Achievements`
+- **Models**: freezed for immutable domain entities, manual mapper classes for DB ↔ Entity conversion
+- **Routing**: GoRouter with `StatefulShellRoute.indexedStack` for bottom navigation (홈/캘린더/설정). Full-screen routes (achievement, onboarding) use `parentNavigatorKey`
+- **Font**: Pretendard (400/500/600/700)
+- **Animation**: flutter_animate
+
+## Code Generation
+
+This project relies heavily on code generation. Files ending in `.g.dart`, `.freezed.dart`, `.config.dart` are generated — never edit them manually. Run `build_runner` after modifying:
+- `@freezed` entities
+- `@DriftDatabase` / table definitions
+- `@injectable` / `@module` DI annotations
+
+## Design System
+
+- Pastel orange primary (`#FFB366`), warm white background (`#FFF8F0`)
+- Character mood colors: comfortable (green `#7EC8A0`), warning (yellow `#FFD966`), danger (red `#FF8B8B`)
+- 5 expense categories each with distinct color: food, transport, cafe, shopping, etc
+- Dark mode is required — uses `AppColors.dark*` variants
+- All Korean UI text (한국어)
+
+---
+
 <!-- OMC:START -->
 <!-- OMC:VERSION:4.9.1 -->
 
