@@ -53,6 +53,28 @@ enum ExpenseCategory {
     };
   }
 
+  /// 카테고리 대표 이모지
+  String get emoji {
+    return switch (this) {
+      ExpenseCategory.food => '🍚',
+      ExpenseCategory.transport => '🚌',
+      ExpenseCategory.cafe => '☕',
+      ExpenseCategory.shopping => '🛍️',
+      ExpenseCategory.etc => '📦',
+    };
+  }
+
+  /// 카테고리 배경 칩 색상 (디자인 가이드 Section 5)
+  Color get chipColor {
+    return switch (this) {
+      ExpenseCategory.food => AppColors.chipFood,
+      ExpenseCategory.transport => AppColors.chipTransport,
+      ExpenseCategory.cafe => AppColors.chipCafe,
+      ExpenseCategory.shopping => AppColors.chipShopping,
+      ExpenseCategory.etc => AppColors.chipEtc,
+    };
+  }
+
   /// 카테고리 대표 색상
   Color get color {
     return switch (this) {
