@@ -1179,6 +1179,209 @@ class AchievementsCompanion extends UpdateCompanion<Achievement> {
   }
 }
 
+class $UserPreferencesTable extends UserPreferences
+    with TableInfo<$UserPreferencesTable, UserPreference> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserPreferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _isDarkModeMeta = const VerificationMeta(
+    'isDarkMode',
+  );
+  @override
+  late final GeneratedColumn<bool> isDarkMode = GeneratedColumn<bool>(
+    'is_dark_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_dark_mode" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, isDarkMode];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_preferences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserPreference> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('is_dark_mode')) {
+      context.handle(
+        _isDarkModeMeta,
+        isDarkMode.isAcceptableOrUnknown(
+          data['is_dark_mode']!,
+          _isDarkModeMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserPreference map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserPreference(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      isDarkMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_dark_mode'],
+      )!,
+    );
+  }
+
+  @override
+  $UserPreferencesTable createAlias(String alias) {
+    return $UserPreferencesTable(attachedDatabase, alias);
+  }
+}
+
+class UserPreference extends DataClass implements Insertable<UserPreference> {
+  final int id;
+  final bool isDarkMode;
+  const UserPreference({required this.id, required this.isDarkMode});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['is_dark_mode'] = Variable<bool>(isDarkMode);
+    return map;
+  }
+
+  UserPreferencesCompanion toCompanion(bool nullToAbsent) {
+    return UserPreferencesCompanion(
+      id: Value(id),
+      isDarkMode: Value(isDarkMode),
+    );
+  }
+
+  factory UserPreference.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserPreference(
+      id: serializer.fromJson<int>(json['id']),
+      isDarkMode: serializer.fromJson<bool>(json['isDarkMode']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'isDarkMode': serializer.toJson<bool>(isDarkMode),
+    };
+  }
+
+  UserPreference copyWith({int? id, bool? isDarkMode}) => UserPreference(
+    id: id ?? this.id,
+    isDarkMode: isDarkMode ?? this.isDarkMode,
+  );
+  UserPreference copyWithCompanion(UserPreferencesCompanion data) {
+    return UserPreference(
+      id: data.id.present ? data.id.value : this.id,
+      isDarkMode: data.isDarkMode.present
+          ? data.isDarkMode.value
+          : this.isDarkMode,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserPreference(')
+          ..write('id: $id, ')
+          ..write('isDarkMode: $isDarkMode')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, isDarkMode);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserPreference &&
+          other.id == this.id &&
+          other.isDarkMode == this.isDarkMode);
+}
+
+class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
+  final Value<int> id;
+  final Value<bool> isDarkMode;
+  const UserPreferencesCompanion({
+    this.id = const Value.absent(),
+    this.isDarkMode = const Value.absent(),
+  });
+  UserPreferencesCompanion.insert({
+    this.id = const Value.absent(),
+    this.isDarkMode = const Value.absent(),
+  });
+  static Insertable<UserPreference> custom({
+    Expression<int>? id,
+    Expression<bool>? isDarkMode,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (isDarkMode != null) 'is_dark_mode': isDarkMode,
+    });
+  }
+
+  UserPreferencesCompanion copyWith({Value<int>? id, Value<bool>? isDarkMode}) {
+    return UserPreferencesCompanion(
+      id: id ?? this.id,
+      isDarkMode: isDarkMode ?? this.isDarkMode,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (isDarkMode.present) {
+      map['is_dark_mode'] = Variable<bool>(isDarkMode.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserPreferencesCompanion(')
+          ..write('id: $id, ')
+          ..write('isDarkMode: $isDarkMode')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1186,6 +1389,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DailyBudgetsTable dailyBudgets = $DailyBudgetsTable(this);
   late final $AcornsTable acorns = $AcornsTable(this);
   late final $AchievementsTable achievements = $AchievementsTable(this);
+  late final $UserPreferencesTable userPreferences = $UserPreferencesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1195,6 +1401,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dailyBudgets,
     acorns,
     achievements,
+    userPreferences,
   ];
 }
 
@@ -1890,6 +2097,142 @@ typedef $$AchievementsTableProcessedTableManager =
       Achievement,
       PrefetchHooks Function()
     >;
+typedef $$UserPreferencesTableCreateCompanionBuilder =
+    UserPreferencesCompanion Function({Value<int> id, Value<bool> isDarkMode});
+typedef $$UserPreferencesTableUpdateCompanionBuilder =
+    UserPreferencesCompanion Function({Value<int> id, Value<bool> isDarkMode});
+
+class $$UserPreferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserPreferencesTable> {
+  $$UserPreferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDarkMode => $composableBuilder(
+    column: $table.isDarkMode,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserPreferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserPreferencesTable> {
+  $$UserPreferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDarkMode => $composableBuilder(
+    column: $table.isDarkMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserPreferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserPreferencesTable> {
+  $$UserPreferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDarkMode => $composableBuilder(
+    column: $table.isDarkMode,
+    builder: (column) => column,
+  );
+}
+
+class $$UserPreferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserPreferencesTable,
+          UserPreference,
+          $$UserPreferencesTableFilterComposer,
+          $$UserPreferencesTableOrderingComposer,
+          $$UserPreferencesTableAnnotationComposer,
+          $$UserPreferencesTableCreateCompanionBuilder,
+          $$UserPreferencesTableUpdateCompanionBuilder,
+          (
+            UserPreference,
+            BaseReferences<
+              _$AppDatabase,
+              $UserPreferencesTable,
+              UserPreference
+            >,
+          ),
+          UserPreference,
+          PrefetchHooks Function()
+        > {
+  $$UserPreferencesTableTableManager(
+    _$AppDatabase db,
+    $UserPreferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserPreferencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserPreferencesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserPreferencesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> isDarkMode = const Value.absent(),
+              }) => UserPreferencesCompanion(id: id, isDarkMode: isDarkMode),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> isDarkMode = const Value.absent(),
+              }) => UserPreferencesCompanion.insert(
+                id: id,
+                isDarkMode: isDarkMode,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserPreferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserPreferencesTable,
+      UserPreference,
+      $$UserPreferencesTableFilterComposer,
+      $$UserPreferencesTableOrderingComposer,
+      $$UserPreferencesTableAnnotationComposer,
+      $$UserPreferencesTableCreateCompanionBuilder,
+      $$UserPreferencesTableUpdateCompanionBuilder,
+      (
+        UserPreference,
+        BaseReferences<_$AppDatabase, $UserPreferencesTable, UserPreference>,
+      ),
+      UserPreference,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1902,4 +2245,6 @@ class $AppDatabaseManager {
       $$AcornsTableTableManager(_db, _db.acorns);
   $$AchievementsTableTableManager get achievements =>
       $$AchievementsTableTableManager(_db, _db.achievements);
+  $$UserPreferencesTableTableManager get userPreferences =>
+      $$UserPreferencesTableTableManager(_db, _db.userPreferences);
 }

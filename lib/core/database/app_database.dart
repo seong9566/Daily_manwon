@@ -42,14 +42,37 @@ class Achievements extends Table {
   DateTimeColumn get achievedAt => dateTime()();
 }
 
+/// 사용자 설정 테이블
+/// - 다크모드, 알림 등 앱 설정을 단일 row로 저장
+/// - id=1 고정 (앱당 하나의 설정 row만 존재)
+class UserPreferences extends Table {
+  IntColumn get id => integer().withDefault(const Constant(1))();
+  BoolColumn get isDarkMode =>
+      boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// 앱 전체에서 사용하는 Drift 데이터베이스 클래스
 /// drift_flutter의 driftDatabase()를 사용하여 플랫폼별 DB 연결을 자동 처리
-@DriftDatabase(tables: [Expenses, DailyBudgets, Acorns, Achievements])
+@DriftDatabase(
+    tables: [Expenses, DailyBudgets, Acorns, Achievements, UserPreferences])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (Migrator m) => m.createAll(),
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            await m.createTable(userPreferences);
+          }
+        },
+      );
 }
 
 /// 플랫폼에 맞는 데이터베이스 연결을 생성

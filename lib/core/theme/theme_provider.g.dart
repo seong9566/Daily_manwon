@@ -9,17 +9,17 @@ part of 'theme_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// 앱 전체 테마 모드를 관리하는 Provider
-/// 설정 화면에서 다크모드 토글 시 이 Provider를 통해 변경된다
+/// DB에서 저장된 다크모드 설정을 로드하고, 변경 시 DB에 저장한다
 
 @ProviderFor(AppThemeMode)
 final appThemeModeProvider = AppThemeModeProvider._();
 
 /// 앱 전체 테마 모드를 관리하는 Provider
-/// 설정 화면에서 다크모드 토글 시 이 Provider를 통해 변경된다
+/// DB에서 저장된 다크모드 설정을 로드하고, 변경 시 DB에 저장한다
 final class AppThemeModeProvider
     extends $NotifierProvider<AppThemeMode, ThemeMode> {
   /// 앱 전체 테마 모드를 관리하는 Provider
-  /// 설정 화면에서 다크모드 토글 시 이 Provider를 통해 변경된다
+  /// DB에서 저장된 다크모드 설정을 로드하고, 변경 시 DB에 저장한다
   AppThemeModeProvider._()
     : super(
         from: null,
@@ -47,10 +47,10 @@ final class AppThemeModeProvider
   }
 }
 
-String _$appThemeModeHash() => r'4c906c83e1b6b2f9d93230781dc7884219ed08c4';
+String _$appThemeModeHash() => r'5094aa02953cccfa50d9cc2ffe642eef856ea9b2';
 
 /// 앱 전체 테마 모드를 관리하는 Provider
-/// 설정 화면에서 다크모드 토글 시 이 Provider를 통해 변경된다
+/// DB에서 저장된 다크모드 설정을 로드하고, 변경 시 DB에 저장한다
 
 abstract class _$AppThemeMode extends $Notifier<ThemeMode> {
   ThemeMode build();

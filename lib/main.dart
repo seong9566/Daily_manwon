@@ -31,6 +31,10 @@ class _DailyManwonAppState extends ConsumerState<DailyManwonApp> {
   void initState() {
     super.initState();
     _router = createRouter();
+    // DB에서 저장된 다크모드 설정을 로드
+    Future.microtask(() {
+      ref.read(appThemeModeProvider.notifier).loadFromDatabase();
+    });
   }
 
   @override

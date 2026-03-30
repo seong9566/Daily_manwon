@@ -34,8 +34,8 @@ class SettingsState {
 class SettingsViewModel extends Notifier<SettingsState> {
   @override
   SettingsState build() {
-    // 초기 다크모드 상태는 appThemeModeProvider 기준으로 동기화
-    final themeMode = ref.read(appThemeModeProvider);
+    // appThemeModeProvider를 watch하여 다크모드 상태를 실시간 동기화
+    final themeMode = ref.watch(appThemeModeProvider);
     return SettingsState(
       isDarkMode: themeMode == ThemeMode.dark,
     );
@@ -52,9 +52,8 @@ class SettingsViewModel extends Notifier<SettingsState> {
     state = state.copyWith(notificationTime: time);
   }
 
-  /// 다크모드 토글 — appThemeModeProvider와 연동하여 앱 전체 테마를 변경
+  /// 다크모드 토글 — appThemeModeProvider를 통해 DB 저장까지 처리
   void toggleDarkMode(bool value) {
-    state = state.copyWith(isDarkMode: value);
     ref.read(appThemeModeProvider.notifier).setMode(
         value ? ThemeMode.dark : ThemeMode.light);
   }

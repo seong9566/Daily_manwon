@@ -35,6 +35,12 @@ import '../../features/home/data/repositories/daily_budget_repository_impl.dart'
 import '../../features/home/domain/repositories/acorn_repository.dart' as _i837;
 import '../../features/home/domain/repositories/daily_budget_repository.dart'
     as _i891;
+import '../../features/settings/data/datasources/settings_local_datasource.dart'
+    as _i723;
+import '../../features/settings/data/repositories/settings_repository_impl.dart'
+    as _i955;
+import '../../features/settings/domain/repositories/settings_repository.dart'
+    as _i674;
 import '../database/app_database.dart' as _i982;
 import 'register_module.dart' as _i291;
 
@@ -58,6 +64,12 @@ _i174.GetIt $initGetIt(
   );
   gh.lazySingleton<_i1053.DailyBudgetLocalDatasource>(
     () => _i1053.DailyBudgetLocalDatasource(gh<_i982.AppDatabase>()),
+  );
+  gh.lazySingleton<_i723.SettingsLocalDatasource>(
+    () => _i723.SettingsLocalDatasource(gh<_i982.AppDatabase>()),
+  );
+  gh.lazySingleton<_i674.SettingsRepository>(
+    () => _i955.SettingsRepositoryImpl(gh<_i723.SettingsLocalDatasource>()),
   );
   gh.lazySingleton<_i891.DailyBudgetRepository>(
     () => _i180.DailyBudgetRepositoryImpl(
