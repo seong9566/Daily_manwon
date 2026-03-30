@@ -19,15 +19,6 @@ class CategorySelector extends StatelessWidget {
     required this.onCategoryChanged,
   });
 
-  /// 카테고리별 이모지 매핑
-  static const Map<ExpenseCategory, String> _emojis = {
-    ExpenseCategory.food: '🍚',
-    ExpenseCategory.transport: '🚌',
-    ExpenseCategory.cafe: '☕',
-    ExpenseCategory.shopping: '🛍️',
-    ExpenseCategory.etc: '📦',
-  };
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -37,7 +28,7 @@ class CategorySelector extends StatelessWidget {
       children: ExpenseCategory.values.map((category) {
         final isSelected = category == selectedCategory;
         return _CategoryItem(
-          emoji: _emojis[category]!,
+          emoji: category.emoji,
           label: category.label,
           isSelected: isSelected,
           isDark: isDark,
@@ -70,42 +61,46 @@ class _CategoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 선택 시 카테고리별 칩 배경색 (디자인 가이드 Section 5)
-    final selectedBg = isDark
-        ? AppColors.darkDivider
-        : chipColor;
+    final selectedBg = isDark ? AppColors.darkDivider : chipColor;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        width: 56,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? selectedBg : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              emoji,
-              style: const TextStyle(fontSize: 26),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTypography.bodySmall.copyWith(
-                color: isSelected
-                    ? (isDark ? AppColors.darkTextMain : AppColors.textMain)
-                    : (isDark ? AppColors.darkTextSub : AppColors.textSub),
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          width: 56,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? selectedBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                emoji,
+                style: const TextStyle(fontSize: 26),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: AppTypography.bodySmall.copyWith(
+                  color: isSelected
+                      ? (isDark ? AppColors.darkTextMain : AppColors.textMain)
+                      : (isDark ? AppColors.darkTextSub : AppColors.textSub),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+

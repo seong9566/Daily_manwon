@@ -68,52 +68,63 @@ class CalendarDayCell extends StatelessWidget {
       bgColor = isDark ? AppColors.darkTextSub : AppColors.textMain;
     }
 
-    return GestureDetector(
-      onTap: isCurrentMonth ? onTap : null,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // ── 날짜 원형 배경 + 숫자 ──────────────────
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              isCurrentMonth ? '${date.day}' : '',
-              style: AppTypography.bodyMedium.copyWith(
-                color: textColor,
-                fontWeight: (isToday || isSelected)
-                    ? FontWeight.w700
-                    : FontWeight.w400,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          const SizedBox(height: 3),
-
-          // ── 성공/실패 dot ─────────────────────────
-          // 미래 또는 다른 달은 dot 없음
-          if (isCurrentMonth && !isFuture && isSuccess != null)
-            Container(
-              width: 5,
-              height: 5,
+    return Semantics(
+      button: isCurrentMonth,
+      selected: isSelected,
+      label: isCurrentMonth
+          ? '${date.month}월 ${date.day}일'
+              '${isToday ? ', 오늘' : ''}'
+              '${isSuccess == true ? ', 성공' : isSuccess == false ? ', 초과' : ', 지출없음'}'
+          : null,
+      excludeSemantics: !isCurrentMonth,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: isCurrentMonth ? onTap : null,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // ── 날짜 원형 배경 + 숫자 ──────────────────
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                // 성공: 검정(다크: 흰색), 실패: 빨강
-                color: isSuccess!
-                    ? (isDark ? Colors.white70 : AppColors.textMain)
-                    : AppColors.statusDanger,
+                color: bgColor,
                 shape: BoxShape.circle,
               ),
-            )
-          else
-            // dot 자리 유지 — 레이아웃 안정을 위해 투명 점 유지
-            const SizedBox(width: 5, height: 5),
-        ],
+              alignment: Alignment.center,
+              child: Text(
+                isCurrentMonth ? '${date.day}' : '',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: textColor,
+                  fontWeight: (isToday || isSelected)
+                      ? FontWeight.w700
+                      : FontWeight.w400,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+
+            // ── 성공/실패 dot ─────────────────────────
+            // 미래 또는 다른 달은 dot 없음
+            if (isCurrentMonth && !isFuture && isSuccess != null)
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  // 성공: 검정(다크: 흰색), 실패: 빨강
+                  color: isSuccess!
+                      ? (isDark ? Colors.white70 : AppColors.textMain)
+                      : AppColors.statusDanger,
+                  shape: BoxShape.circle,
+                ),
+              )
+            else
+              // dot 자리 유지 — 레이아웃 안정을 위해 투명 점 유지
+              const SizedBox(width: 5, height: 5),
+          ],
+        ),
       ),
     );
   }

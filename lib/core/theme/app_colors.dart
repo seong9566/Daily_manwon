@@ -178,4 +178,14 @@ abstract final class AppColors {
 
   /// 다크모드 구분선
   static const Color darkDivider = Color(0xFF3D3D3D);
+
+  // =========================================================================
+  // Confetti 파티클 색상
+  // =========================================================================
+
+  /// 축하 파티클 - 노란색
+  static const Color confettiYellow = Color(0xFFFFE66D);
+
+  /// 축하 파티클 - 빨간색
+  static const Color confettiRed = Color(0xFFFF6B6B);
 }

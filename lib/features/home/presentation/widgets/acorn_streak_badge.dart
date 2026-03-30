@@ -16,16 +16,19 @@ class AcornStreakBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme.bodySmall;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('🌰 $totalAcorns', style: textStyle),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('·', style: textStyle),
-        ),
-        Text('🔥 $streakDays일', style: textStyle),
-      ],
+    return Semantics(
+      label: '도토리 $totalAcorns개, 연속 $streakDays일',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('🌰 $totalAcorns', style: textStyle),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text('·', style: textStyle),
+          ),
+          Text('🔥 $streakDays일', style: textStyle),
+        ],
+      ),
     );
   }
 }

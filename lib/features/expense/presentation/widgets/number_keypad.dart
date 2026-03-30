@@ -44,31 +44,39 @@ class NumberKeypad extends StatelessWidget {
 
         // 빈 셀 — 하단 왼쪽 자리
         if (key == null) {
-          return const SizedBox.shrink();
+          return ExcludeSemantics(child: const SizedBox.shrink());
         }
 
         // 백스페이스 키
         if (key == 'back') {
-          return _KeyCell(
-            isDark: isDark,
-            onTap: onBackspacePressed,
-            child: Icon(
-              Icons.backspace_outlined,
-              size: 24,
-              color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+          return Semantics(
+            button: true,
+            label: '지우기',
+            child: _KeyCell(
+              isDark: isDark,
+              onTap: onBackspacePressed,
+              child: Icon(
+                Icons.backspace_outlined,
+                size: 24,
+                color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+              ),
             ),
           );
         }
 
         // 숫자 키
-        return _KeyCell(
-          isDark: isDark,
-          onTap: () => onNumberPressed(key),
-          child: Text(
-            key,
-            style: AppTypography.titleMedium.copyWith(
-              fontSize: 22,
-              color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+        return Semantics(
+          button: true,
+          label: key,
+          child: _KeyCell(
+            isDark: isDark,
+            onTap: () => onNumberPressed(key),
+            child: Text(
+              key,
+              style: AppTypography.titleMedium.copyWith(
+                fontSize: 22,
+                color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+              ),
             ),
           ),
         );

@@ -13,7 +13,6 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(settingsViewModelProvider);
-    final vm = ref.read(settingsViewModelProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -40,37 +39,41 @@ class SettingsScreen extends ConsumerWidget {
                   _SettingsSwitchTile(
                     label: '매일 알림',
                     value: state.isNotificationEnabled,
-                    onChanged: vm.toggleNotification,
+                    onChanged: ref
+                        .read(settingsViewModelProvider.notifier)
+                        .toggleNotification,
                   ),
                   _divider(isDark),
                   _SettingsTapTile(
                     label: '알림 시간',
                     trailing:
                         '${state.notificationTime.hour.toString().padLeft(2, '0')}:${state.notificationTime.minute.toString().padLeft(2, '0')} >',
-                    onTap: () => _pickTime(context, state, vm),
+                    onTap: () => _pickTime(context, state, ref),
                   ),
                   _divider(isDark),
 
                   // ── 데이터 섹션 ────────────────────────────────────────
-                  _SettingsTapTile(
-                    label: '데이터 백업',
-                    trailing: '>',
-                    onTap: () => _showBackupInfo(context),
-                  ),
-                  _divider(isDark),
-                  _SettingsTapTile(
-                    label: '데이터 초기화',
-                    labelColor: AppColors.statusDanger,
-                    trailing: '>',
-                    onTap: () => _showResetDialog(context),
-                  ),
-                  _divider(isDark),
+                  // _SettingsTapTile(
+                  //   label: '데이터 백업',
+                  //   trailing: '>',
+                  //   onTap: () => _showBackupInfo(context),
+                  // ),
+                  // _divider(isDark),
+                  // _SettingsTapTile(
+                  //   label: '데이터 초기화',
+                  //   labelColor: AppColors.statusDanger,
+                  //   trailing: '>',
+                  //   onTap: () => _showResetDialog(context),
+                  // ),
+                  // _divider(isDark),
 
                   // ── 디스플레이 섹션 ────────────────────────────────────
                   _SettingsSwitchTile(
                     label: '다크 모드',
                     value: state.isDarkMode,
-                    onChanged: vm.toggleDarkMode,
+                    onChanged: ref
+                        .read(settingsViewModelProvider.notifier)
+                        .toggleDarkMode,
                   ),
                   _divider(isDark),
 
@@ -80,22 +83,22 @@ class SettingsScreen extends ConsumerWidget {
                     trailing: '1.0.0',
                     // 탭 불가 항목 — onTap 없음
                   ),
-                  _divider(isDark),
-                  _SettingsTapTile(
-                    label: '개인정보 처리방침',
-                    trailing: '>',
-                    onTap: () => _showPrivacyPolicy(context),
-                  ),
-                  _divider(isDark),
-                  _SettingsTapTile(
-                    label: '오픈소스 라이선스',
-                    trailing: '>',
-                    onTap: () => showLicensePage(
-                      context: context,
-                      applicationName: '하루 만원',
-                      applicationVersion: '1.0.0',
-                    ),
-                  ),
+                  // _divider(isDark),
+                  // _SettingsTapTile(
+                  //   label: '개인정보 처리방침',
+                  //   trailing: '>',
+                  //   onTap: () => _showPrivacyPolicy(context),
+                  // ),
+                  // _divider(isDark),
+                  // _SettingsTapTile(
+                  //   label: '오픈소스 라이선스',
+                  //   trailing: '>',
+                  //   onTap: () => showLicensePage(
+                  //     context: context,
+                  //     applicationName: '하루 만원',
+                  //     applicationVersion: '1.0.0',
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -120,7 +123,7 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _pickTime(
     BuildContext context,
     SettingsState state,
-    SettingsViewModel vm,
+    WidgetRef ref,
   ) async {
     final picked = await showTimePicker(
       context: context,
@@ -130,7 +133,9 @@ class SettingsScreen extends ConsumerWidget {
       cancelText: '취소',
     );
     if (picked != null) {
-      vm.updateNotificationTime(picked);
+      ref
+          .read(settingsViewModelProvider.notifier)
+          .updateNotificationTime(picked);
     }
   }
 
@@ -138,16 +143,49 @@ class SettingsScreen extends ConsumerWidget {
   void _showBackupInfo(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('데이터 백업'),
-        content: const Text('현재 버전에서는 자동 백업을 지원하지 않습니다.\n추후 업데이트를 통해 제공될 예정입니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('확인'),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
-      ),
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '데이터 백업',
+                  style: AppTypography.titleMedium.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextMain
+                        : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '현재 버전에서는 자동 백업을 지원하지 않습니다.\n추후 업데이트를 통해 제공될 예정입니다.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSub
+                        : AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('확인'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -155,29 +193,69 @@ class SettingsScreen extends ConsumerWidget {
   void _showResetDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('데이터 초기화'),
-        content: const Text('모든 지출 내역과 도토리 기록이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('취소'),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          TextButton(
-            onPressed: () {
-              // TODO: 실제 초기화 로직 연결
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('데이터가 초기화되었습니다.')),
-              );
-            },
-            child: Text(
-              '초기화',
-              style: TextStyle(color: AppColors.statusDanger),
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '데이터 초기화',
+                  style: AppTypography.titleMedium.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextMain
+                        : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '모든 지출 내역과 도토리 기록이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSub
+                        : AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('취소'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // TODO: 실제 초기화 로직 연결
+                          Navigator.of(ctx).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('데이터가 초기화되었습니다.')),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.budgetDanger,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('초기화'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -185,16 +263,49 @@ class SettingsScreen extends ConsumerWidget {
   void _showPrivacyPolicy(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('개인정보 처리방침'),
-        content: const Text('하루 만원은 사용자의 개인정보를 수집하지 않습니다.\n모든 데이터는 기기 내에 저장됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('확인'),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
-      ),
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '개인정보 처리방침',
+                  style: AppTypography.titleMedium.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextMain
+                        : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '하루 만원은 사용자의 개인정보를 수집하지 않습니다.\n모든 데이터는 기기 내에 저장됩니다.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSub
+                        : AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('확인'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -232,10 +343,14 @@ class _SettingsSwitchTile extends ConsumerWidget {
                 ),
               ),
             ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeThumbColor: AppColors.primary,
+            Semantics(
+              toggled: value,
+              label: label,
+              child: Switch(
+                value: value,
+                onChanged: onChanged,
+                activeThumbColor: AppColors.primary,
+              ),
             ),
           ],
         ),
@@ -267,29 +382,33 @@ class _SettingsTapTile extends StatelessWidget {
     final effectiveLabelColor =
         labelColor ?? (isDark ? AppColors.darkTextMain : AppColors.textMain);
 
-    return InkWell(
-      onTap: onTap,
-      child: SizedBox(
-        height: 56,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppTypography.bodyLarge.copyWith(
-                    color: effectiveLabelColor,
+    return Semantics(
+      button: onTap != null,
+      label: '$label $trailing',
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          height: 56,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: effectiveLabelColor,
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                trailing,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSub : AppColors.textSub,
+                Text(
+                  trailing,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: isDark ? AppColors.darkTextSub : AppColors.textSub,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

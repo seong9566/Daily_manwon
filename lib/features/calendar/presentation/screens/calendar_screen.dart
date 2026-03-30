@@ -16,7 +16,6 @@ class CalendarScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(calendarViewModelProvider);
-    final vm = ref.read(calendarViewModelProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor =
@@ -31,7 +30,7 @@ class CalendarScreen extends ConsumerWidget {
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
-                onRefresh: vm.loadMonthData,
+                onRefresh: () => ref.read(calendarViewModelProvider.notifier).loadMonthData(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
@@ -44,8 +43,8 @@ class CalendarScreen extends ConsumerWidget {
                         selectedMonth: state.selectedMonth,
                         isDark: isDark,
                         textMainColor: textMainColor,
-                        onPrev: () => vm.changeMonth(-1),
-                        onNext: () => vm.changeMonth(1),
+                        onPrev: () => ref.read(calendarViewModelProvider.notifier).changeMonth(-1),
+                        onNext: () => ref.read(calendarViewModelProvider.notifier).changeMonth(1),
                       ),
                       const SizedBox(height: 8),
 
@@ -68,7 +67,7 @@ class CalendarScreen extends ConsumerWidget {
                       _CalendarGrid(
                         state: state,
                         isDark: isDark,
-                        onDateSelected: vm.selectDate,
+                        onDateSelected: (date) => ref.read(calendarViewModelProvider.notifier).selectDate(date),
                       ),
                       const SizedBox(height: 8),
 
@@ -118,6 +117,7 @@ class _MonthNavigator extends StatelessWidget {
         // 이전 달 버튼
         IconButton(
           onPressed: onPrev,
+          tooltip: '이전 달',
           icon: Icon(
             Icons.chevron_left_rounded,
             color: textMainColor,
@@ -133,6 +133,7 @@ class _MonthNavigator extends StatelessWidget {
         // 다음 달 버튼
         IconButton(
           onPressed: onNext,
+          tooltip: '다음 달',
           icon: Icon(
             Icons.chevron_right_rounded,
             color: textMainColor,
@@ -159,7 +160,8 @@ class _WeekdayHeader extends StatelessWidget {
     final textSubColor =
         isDark ? AppColors.darkTextSub : AppColors.textSub;
 
-    return Padding(
+    return ExcludeSemantics(
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: _weekdays.map((day) {
@@ -182,6 +184,7 @@ class _WeekdayHeader extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
       ),
     );
   }

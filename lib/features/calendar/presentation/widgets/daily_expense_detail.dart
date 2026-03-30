@@ -21,18 +21,6 @@ class DailyExpenseDetail extends StatelessWidget {
     required this.expenses,
   });
 
-  /// 카테고리 이모지 반환
-  String _categoryEmoji(int categoryIndex) {
-    final category = ExpenseCategory.values[categoryIndex];
-    return switch (category) {
-      ExpenseCategory.food => '🍚',
-      ExpenseCategory.transport => '🚌',
-      ExpenseCategory.cafe => '☕',
-      ExpenseCategory.shopping => '🛍️',
-      ExpenseCategory.etc => '📦',
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -106,7 +94,9 @@ class DailyExpenseDetail extends StatelessWidget {
               );
               final category = ExpenseCategory.values[categoryIndex];
 
-              return Padding(
+              return Semantics(
+                label: '${category.label} ${CurrencyFormatter.formatWithWon(expense.amount)}원',
+                child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
@@ -115,7 +105,7 @@ class DailyExpenseDetail extends StatelessWidget {
                   children: [
                     // 카테고리 이모지
                     Text(
-                      _categoryEmoji(categoryIndex),
+                      category.emoji,
                       style: const TextStyle(fontSize: 22),
                     ),
                     const SizedBox(width: 12),
@@ -139,6 +129,7 @@ class DailyExpenseDetail extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
                 ),
               );
             },

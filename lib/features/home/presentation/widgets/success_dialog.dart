@@ -84,7 +84,10 @@ class _SuccessDialogState extends State<_SuccessDialog>
           child: Material(
             color: Colors.transparent,
             child: Container(
-              width: 320,
+              constraints: BoxConstraints(
+              maxWidth: 320,
+              minWidth: MediaQuery.of(context).size.width * 0.8,
+            ),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkCard : AppColors.card,
@@ -103,15 +106,16 @@ class _SuccessDialogState extends State<_SuccessDialog>
                   // X 닫기 버튼 (오른쪽 상단)
                   Align(
                     alignment: Alignment.topRight,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Icon(
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
                         Icons.close,
                         size: 20,
                         color: isDark
                             ? AppColors.darkTextSub
                             : AppColors.textSub,
                       ),
+                      tooltip: '닫기',
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -185,7 +189,10 @@ class _SuccessDialogState extends State<_SuccessDialog>
                   // 확인 버튼
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: Semantics(
+                      button: true,
+                      label: '확인',
+                      child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
@@ -207,6 +214,7 @@ class _SuccessDialogState extends State<_SuccessDialog>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                    ),
                     ),
                   )
                       .animate()
@@ -308,8 +316,8 @@ class _ConfettiPainter extends CustomPainter {
     AppColors.categoryFood,
     AppColors.categoryTransport,
     AppColors.categoryShopping,
-    Color(0xFFFFE66D),
-    Color(0xFFFF6B6B),
+    AppColors.confettiYellow,
+    AppColors.confettiRed,
   ];
 
   // 파티클 고정 설정값 (seed 기반으로 위치/크기/색상 결정)
