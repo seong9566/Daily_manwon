@@ -54,22 +54,52 @@ class UserPreferences extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// 알림 설정 테이블
+/// - 점심/저녁 알림 활성화 여부 및 시간을 단일 row로 저장
+/// - id=1 고정 (앱당 하나의 설정 row만 존재)
+/// - 시간은 'HH:mm' 형식의 문자열로 저장 (TimeOfDay 직렬화 불가)
+class NotificationSettings extends Table {
+  IntColumn get id => integer().withDefault(const Constant(1))();
+  BoolColumn get lunchEnabled =>
+      boolean().withDefault(const Constant(true))();
+  TextColumn get lunchTime =>
+      text().withDefault(const Constant('12:00'))(); // 기본 12:00
+  BoolColumn get dinnerEnabled =>
+      boolean().withDefault(const Constant(true))();
+  TextColumn get dinnerTime =>
+      text().withDefault(const Constant('20:00'))(); // 기본 20:00
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// 앱 전체에서 사용하는 Drift 데이터베이스 클래스
 /// drift_flutter의 driftDatabase()를 사용하여 플랫폼별 DB 연결을 자동 처리
-@DriftDatabase(
-    tables: [Expenses, DailyBudgets, Acorns, Achievements, UserPreferences])
+@DriftDatabase(tables: [
+  Expenses,
+  DailyBudgets,
+  Acorns,
+  Achievements,
+  UserPreferences,
+  NotificationSettings,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) => m.createAll(),
         onUpgrade: (Migrator m, int from, int to) async {
+          // schema v2: UserPreferences 테이블 추가
           if (from < 2) {
             await m.createTable(userPreferences);
+          }
+          // schema v3: NotificationSettings 테이블 추가
+          if (from < 3) {
+            await m.createTable(notificationSettings);
           }
         },
       );

@@ -1382,6 +1382,369 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
   }
 }
 
+class $NotificationSettingsTable extends NotificationSettings
+    with TableInfo<$NotificationSettingsTable, NotificationSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _lunchEnabledMeta = const VerificationMeta(
+    'lunchEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> lunchEnabled = GeneratedColumn<bool>(
+    'lunch_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("lunch_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _lunchTimeMeta = const VerificationMeta(
+    'lunchTime',
+  );
+  @override
+  late final GeneratedColumn<String> lunchTime = GeneratedColumn<String>(
+    'lunch_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('12:00'),
+  );
+  static const VerificationMeta _dinnerEnabledMeta = const VerificationMeta(
+    'dinnerEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> dinnerEnabled = GeneratedColumn<bool>(
+    'dinner_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dinner_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _dinnerTimeMeta = const VerificationMeta(
+    'dinnerTime',
+  );
+  @override
+  late final GeneratedColumn<String> dinnerTime = GeneratedColumn<String>(
+    'dinner_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('20:00'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    lunchEnabled,
+    lunchTime,
+    dinnerEnabled,
+    dinnerTime,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notification_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NotificationSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('lunch_enabled')) {
+      context.handle(
+        _lunchEnabledMeta,
+        lunchEnabled.isAcceptableOrUnknown(
+          data['lunch_enabled']!,
+          _lunchEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('lunch_time')) {
+      context.handle(
+        _lunchTimeMeta,
+        lunchTime.isAcceptableOrUnknown(data['lunch_time']!, _lunchTimeMeta),
+      );
+    }
+    if (data.containsKey('dinner_enabled')) {
+      context.handle(
+        _dinnerEnabledMeta,
+        dinnerEnabled.isAcceptableOrUnknown(
+          data['dinner_enabled']!,
+          _dinnerEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('dinner_time')) {
+      context.handle(
+        _dinnerTimeMeta,
+        dinnerTime.isAcceptableOrUnknown(data['dinner_time']!, _dinnerTimeMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotificationSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      lunchEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}lunch_enabled'],
+      )!,
+      lunchTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lunch_time'],
+      )!,
+      dinnerEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dinner_enabled'],
+      )!,
+      dinnerTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dinner_time'],
+      )!,
+    );
+  }
+
+  @override
+  $NotificationSettingsTable createAlias(String alias) {
+    return $NotificationSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationSetting extends DataClass
+    implements Insertable<NotificationSetting> {
+  final int id;
+  final bool lunchEnabled;
+  final String lunchTime;
+  final bool dinnerEnabled;
+  final String dinnerTime;
+  const NotificationSetting({
+    required this.id,
+    required this.lunchEnabled,
+    required this.lunchTime,
+    required this.dinnerEnabled,
+    required this.dinnerTime,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['lunch_enabled'] = Variable<bool>(lunchEnabled);
+    map['lunch_time'] = Variable<String>(lunchTime);
+    map['dinner_enabled'] = Variable<bool>(dinnerEnabled);
+    map['dinner_time'] = Variable<String>(dinnerTime);
+    return map;
+  }
+
+  NotificationSettingsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationSettingsCompanion(
+      id: Value(id),
+      lunchEnabled: Value(lunchEnabled),
+      lunchTime: Value(lunchTime),
+      dinnerEnabled: Value(dinnerEnabled),
+      dinnerTime: Value(dinnerTime),
+    );
+  }
+
+  factory NotificationSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationSetting(
+      id: serializer.fromJson<int>(json['id']),
+      lunchEnabled: serializer.fromJson<bool>(json['lunchEnabled']),
+      lunchTime: serializer.fromJson<String>(json['lunchTime']),
+      dinnerEnabled: serializer.fromJson<bool>(json['dinnerEnabled']),
+      dinnerTime: serializer.fromJson<String>(json['dinnerTime']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'lunchEnabled': serializer.toJson<bool>(lunchEnabled),
+      'lunchTime': serializer.toJson<String>(lunchTime),
+      'dinnerEnabled': serializer.toJson<bool>(dinnerEnabled),
+      'dinnerTime': serializer.toJson<String>(dinnerTime),
+    };
+  }
+
+  NotificationSetting copyWith({
+    int? id,
+    bool? lunchEnabled,
+    String? lunchTime,
+    bool? dinnerEnabled,
+    String? dinnerTime,
+  }) => NotificationSetting(
+    id: id ?? this.id,
+    lunchEnabled: lunchEnabled ?? this.lunchEnabled,
+    lunchTime: lunchTime ?? this.lunchTime,
+    dinnerEnabled: dinnerEnabled ?? this.dinnerEnabled,
+    dinnerTime: dinnerTime ?? this.dinnerTime,
+  );
+  NotificationSetting copyWithCompanion(NotificationSettingsCompanion data) {
+    return NotificationSetting(
+      id: data.id.present ? data.id.value : this.id,
+      lunchEnabled: data.lunchEnabled.present
+          ? data.lunchEnabled.value
+          : this.lunchEnabled,
+      lunchTime: data.lunchTime.present ? data.lunchTime.value : this.lunchTime,
+      dinnerEnabled: data.dinnerEnabled.present
+          ? data.dinnerEnabled.value
+          : this.dinnerEnabled,
+      dinnerTime: data.dinnerTime.present
+          ? data.dinnerTime.value
+          : this.dinnerTime,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationSetting(')
+          ..write('id: $id, ')
+          ..write('lunchEnabled: $lunchEnabled, ')
+          ..write('lunchTime: $lunchTime, ')
+          ..write('dinnerEnabled: $dinnerEnabled, ')
+          ..write('dinnerTime: $dinnerTime')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, lunchEnabled, lunchTime, dinnerEnabled, dinnerTime);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationSetting &&
+          other.id == this.id &&
+          other.lunchEnabled == this.lunchEnabled &&
+          other.lunchTime == this.lunchTime &&
+          other.dinnerEnabled == this.dinnerEnabled &&
+          other.dinnerTime == this.dinnerTime);
+}
+
+class NotificationSettingsCompanion
+    extends UpdateCompanion<NotificationSetting> {
+  final Value<int> id;
+  final Value<bool> lunchEnabled;
+  final Value<String> lunchTime;
+  final Value<bool> dinnerEnabled;
+  final Value<String> dinnerTime;
+  const NotificationSettingsCompanion({
+    this.id = const Value.absent(),
+    this.lunchEnabled = const Value.absent(),
+    this.lunchTime = const Value.absent(),
+    this.dinnerEnabled = const Value.absent(),
+    this.dinnerTime = const Value.absent(),
+  });
+  NotificationSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.lunchEnabled = const Value.absent(),
+    this.lunchTime = const Value.absent(),
+    this.dinnerEnabled = const Value.absent(),
+    this.dinnerTime = const Value.absent(),
+  });
+  static Insertable<NotificationSetting> custom({
+    Expression<int>? id,
+    Expression<bool>? lunchEnabled,
+    Expression<String>? lunchTime,
+    Expression<bool>? dinnerEnabled,
+    Expression<String>? dinnerTime,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (lunchEnabled != null) 'lunch_enabled': lunchEnabled,
+      if (lunchTime != null) 'lunch_time': lunchTime,
+      if (dinnerEnabled != null) 'dinner_enabled': dinnerEnabled,
+      if (dinnerTime != null) 'dinner_time': dinnerTime,
+    });
+  }
+
+  NotificationSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<bool>? lunchEnabled,
+    Value<String>? lunchTime,
+    Value<bool>? dinnerEnabled,
+    Value<String>? dinnerTime,
+  }) {
+    return NotificationSettingsCompanion(
+      id: id ?? this.id,
+      lunchEnabled: lunchEnabled ?? this.lunchEnabled,
+      lunchTime: lunchTime ?? this.lunchTime,
+      dinnerEnabled: dinnerEnabled ?? this.dinnerEnabled,
+      dinnerTime: dinnerTime ?? this.dinnerTime,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (lunchEnabled.present) {
+      map['lunch_enabled'] = Variable<bool>(lunchEnabled.value);
+    }
+    if (lunchTime.present) {
+      map['lunch_time'] = Variable<String>(lunchTime.value);
+    }
+    if (dinnerEnabled.present) {
+      map['dinner_enabled'] = Variable<bool>(dinnerEnabled.value);
+    }
+    if (dinnerTime.present) {
+      map['dinner_time'] = Variable<String>(dinnerTime.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('lunchEnabled: $lunchEnabled, ')
+          ..write('lunchTime: $lunchTime, ')
+          ..write('dinnerEnabled: $dinnerEnabled, ')
+          ..write('dinnerTime: $dinnerTime')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1392,6 +1755,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserPreferencesTable userPreferences = $UserPreferencesTable(
     this,
   );
+  late final $NotificationSettingsTable notificationSettings =
+      $NotificationSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1402,6 +1767,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     acorns,
     achievements,
     userPreferences,
+    notificationSettings,
   ];
 }
 
@@ -2233,6 +2599,222 @@ typedef $$UserPreferencesTableProcessedTableManager =
       UserPreference,
       PrefetchHooks Function()
     >;
+typedef $$NotificationSettingsTableCreateCompanionBuilder =
+    NotificationSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> lunchEnabled,
+      Value<String> lunchTime,
+      Value<bool> dinnerEnabled,
+      Value<String> dinnerTime,
+    });
+typedef $$NotificationSettingsTableUpdateCompanionBuilder =
+    NotificationSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> lunchEnabled,
+      Value<String> lunchTime,
+      Value<bool> dinnerEnabled,
+      Value<String> dinnerTime,
+    });
+
+class $$NotificationSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationSettingsTable> {
+  $$NotificationSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get lunchEnabled => $composableBuilder(
+    column: $table.lunchEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lunchTime => $composableBuilder(
+    column: $table.lunchTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get dinnerEnabled => $composableBuilder(
+    column: $table.dinnerEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dinnerTime => $composableBuilder(
+    column: $table.dinnerTime,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NotificationSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationSettingsTable> {
+  $$NotificationSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get lunchEnabled => $composableBuilder(
+    column: $table.lunchEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lunchTime => $composableBuilder(
+    column: $table.lunchTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get dinnerEnabled => $composableBuilder(
+    column: $table.dinnerEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dinnerTime => $composableBuilder(
+    column: $table.dinnerTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NotificationSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationSettingsTable> {
+  $$NotificationSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get lunchEnabled => $composableBuilder(
+    column: $table.lunchEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lunchTime =>
+      $composableBuilder(column: $table.lunchTime, builder: (column) => column);
+
+  GeneratedColumn<bool> get dinnerEnabled => $composableBuilder(
+    column: $table.dinnerEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dinnerTime => $composableBuilder(
+    column: $table.dinnerTime,
+    builder: (column) => column,
+  );
+}
+
+class $$NotificationSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NotificationSettingsTable,
+          NotificationSetting,
+          $$NotificationSettingsTableFilterComposer,
+          $$NotificationSettingsTableOrderingComposer,
+          $$NotificationSettingsTableAnnotationComposer,
+          $$NotificationSettingsTableCreateCompanionBuilder,
+          $$NotificationSettingsTableUpdateCompanionBuilder,
+          (
+            NotificationSetting,
+            BaseReferences<
+              _$AppDatabase,
+              $NotificationSettingsTable,
+              NotificationSetting
+            >,
+          ),
+          NotificationSetting,
+          PrefetchHooks Function()
+        > {
+  $$NotificationSettingsTableTableManager(
+    _$AppDatabase db,
+    $NotificationSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationSettingsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$NotificationSettingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> lunchEnabled = const Value.absent(),
+                Value<String> lunchTime = const Value.absent(),
+                Value<bool> dinnerEnabled = const Value.absent(),
+                Value<String> dinnerTime = const Value.absent(),
+              }) => NotificationSettingsCompanion(
+                id: id,
+                lunchEnabled: lunchEnabled,
+                lunchTime: lunchTime,
+                dinnerEnabled: dinnerEnabled,
+                dinnerTime: dinnerTime,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> lunchEnabled = const Value.absent(),
+                Value<String> lunchTime = const Value.absent(),
+                Value<bool> dinnerEnabled = const Value.absent(),
+                Value<String> dinnerTime = const Value.absent(),
+              }) => NotificationSettingsCompanion.insert(
+                id: id,
+                lunchEnabled: lunchEnabled,
+                lunchTime: lunchTime,
+                dinnerEnabled: dinnerEnabled,
+                dinnerTime: dinnerTime,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NotificationSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NotificationSettingsTable,
+      NotificationSetting,
+      $$NotificationSettingsTableFilterComposer,
+      $$NotificationSettingsTableOrderingComposer,
+      $$NotificationSettingsTableAnnotationComposer,
+      $$NotificationSettingsTableCreateCompanionBuilder,
+      $$NotificationSettingsTableUpdateCompanionBuilder,
+      (
+        NotificationSetting,
+        BaseReferences<
+          _$AppDatabase,
+          $NotificationSettingsTable,
+          NotificationSetting
+        >,
+      ),
+      NotificationSetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2247,4 +2829,6 @@ class $AppDatabaseManager {
       $$AchievementsTableTableManager(_db, _db.achievements);
   $$UserPreferencesTableTableManager get userPreferences =>
       $$UserPreferencesTableTableManager(_db, _db.userPreferences);
+  $$NotificationSettingsTableTableManager get notificationSettings =>
+      $$NotificationSettingsTableTableManager(_db, _db.notificationSettings);
 }
