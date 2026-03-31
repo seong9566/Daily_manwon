@@ -83,7 +83,10 @@ class HomeViewModel extends Notifier<HomeState> {
       final acornRepo = getIt<AcornRepository>();
       final expenseRepo = getIt<ExpenseRepository>();
 
-      // 오늘 예산 확보
+      // 전날 결과 평가 → 도토리 지급 (중복 방지 포함)
+      await _evaluateYesterdayAndAwardAcorn(budgetRepo, acornRepo);
+
+      // 오늘 예산 확보 (carryOver 반영)
       final budget = await budgetRepo.getOrCreateTodayBudget();
       final totalBudget = budget.baseAmount + budget.carryOver;
 
@@ -108,6 +111,36 @@ class HomeViewModel extends Notifier<HomeState> {
       );
     } catch (e) {
       state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// 전날 예산 결과를 평가하고 조건 충족 시 도토리를 지급한다 (S-20a).
+  ///
+  /// - 전날 예산 row가 없으면 스킵 (첫날 또는 공백일)
+  /// - 전날 도토리가 이미 기록됐으면 스킵 (중복 방지)
+  /// - remaining ≥ 0: 만원 이내 성공 → 도토리 1개
+  /// - remaining ≥ 5000: 5천원 이상 절약 보너스 → 추가 1개
+  Future<void> _evaluateYesterdayAndAwardAcorn(
+    DailyBudgetRepository budgetRepo,
+    AcornRepository acornRepo,
+  ) async {
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+
+    // 전날 예산 row가 없으면 평가 불필요
+    final yesterdayBudget = await budgetRepo.getBudgetByDate(yesterday);
+    if (yesterdayBudget == null) return;
+
+    // 중복 방지: 전날 도토리가 이미 지급됐으면 스킵
+    final existingAcorns = await acornRepo.getAcornsByDate(yesterday);
+    if (existingAcorns.isNotEmpty) return;
+
+    final remaining = await budgetRepo.getRemainingBudget(yesterday);
+
+    if (remaining >= 0) {
+      await acornRepo.addAcorn(1, '하루 만원 달성', date: yesterday);
+      if (remaining >= 5000) {
+        await acornRepo.addAcorn(1, '5천원 이상 절약 보너스', date: yesterday);
+      }
     }
   }
 
