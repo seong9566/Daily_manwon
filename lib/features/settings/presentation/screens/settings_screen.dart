@@ -94,10 +94,7 @@ class SettingsScreen extends ConsumerWidget {
 
                   // ── 앱 정보 섹션 ───────────────────────────────────────
                   _SectionHeader(label: '앱 정보', isDark: isDark),
-                  _SettingsTapTile(
-                    label: '버전',
-                    trailing: '1.0.0',
-                  ),
+                  _SettingsTapTile(label: '버전', trailing: '1.0.0'),
                 ],
               ),
             ),
@@ -118,24 +115,24 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  /// TimePicker를 표시하고 선택된 시간을 콜백으로 전달한다
+  /// 시간 선택 BottomSheet를 표시하고 선택된 시간을 콜백으로 전달한다
   Future<void> _pickTime(
     BuildContext context,
     TimeOfDay initialTime,
     Future<void> Function(TimeOfDay) onPicked,
   ) async {
-    final picked = await showTimePicker(
+    final picked = await showModalBottomSheet<TimeOfDay>(
       context: context,
-      initialTime: initialTime,
-      helpText: '알림 시간 선택',
-      confirmText: '확인',
-      cancelText: '취소',
+      backgroundColor: Colors.transparent,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _TimePickerBottomSheet(initialTime: initialTime),
     );
     if (picked != null) {
       await onPicked(picked);
     }
   }
-
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -283,6 +280,250 @@ class _TimePickerTile extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 내부 위젯: 시간 선택 BottomSheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TimePickerBottomSheet extends StatefulWidget {
+  final TimeOfDay initialTime;
+
+  const _TimePickerBottomSheet({required this.initialTime});
+
+  @override
+  State<_TimePickerBottomSheet> createState() => _TimePickerBottomSheetState();
+}
+
+class _TimePickerBottomSheetState extends State<_TimePickerBottomSheet> {
+  late int _selectedHour;
+  late int _selectedMinute;
+
+  late final FixedExtentScrollController _hourController;
+  late final FixedExtentScrollController _minuteController;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedHour = widget.initialTime.hour;
+    _selectedMinute = widget.initialTime.minute;
+    _hourController = FixedExtentScrollController(initialItem: _selectedHour);
+    _minuteController = FixedExtentScrollController(
+      initialItem: _selectedMinute,
+    );
+  }
+
+  @override
+  void dispose() {
+    _hourController.dispose();
+    _minuteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkSurface : Colors.white;
+    final textMain = isDark ? AppColors.darkTextMain : AppColors.textMain;
+    final textSub = isDark ? AppColors.darkTextSub : AppColors.textSub;
+    final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 드래그 핸들
+          const SizedBox(height: 12),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: dividerColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 헤더
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Text(
+                  '알림 시간 선택',
+                  style: AppTypography.titleMedium.copyWith(color: textMain),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 시/분 휠 선택기
+          SizedBox(
+            height: 200,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // 선택 영역 강조 배경
+                Container(
+                  height: 44,
+                  margin: const EdgeInsets.symmetric(horizontal: 40),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkBackground
+                        : AppColors.background,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 시 휠
+                    SizedBox(
+                      width: 80,
+                      child: ListWheelScrollView.useDelegate(
+                        controller: _hourController,
+                        itemExtent: 44,
+                        perspective: 0.003,
+                        diameterRatio: 2.0,
+                        physics: const FixedExtentScrollPhysics(),
+                        onSelectedItemChanged: (i) =>
+                            setState(() => _selectedHour = i),
+                        childDelegate: ListWheelChildBuilderDelegate(
+                          builder: (_, i) => Center(
+                            child: Text(
+                              i.toString().padLeft(2, '0'),
+                              style: AppTypography.titleMedium.copyWith(
+                                color: i == _selectedHour ? textMain : textSub,
+                                fontWeight: i == _selectedHour
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                          childCount: 24,
+                        ),
+                      ),
+                    ),
+                    // 구분자
+                    Text(
+                      ':',
+                      style: AppTypography.titleMedium.copyWith(
+                        color: textMain,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    // 분 휠
+                    SizedBox(
+                      width: 80,
+                      child: ListWheelScrollView.useDelegate(
+                        controller: _minuteController,
+                        itemExtent: 44,
+                        perspective: 0.003,
+                        diameterRatio: 2.0,
+                        physics: const FixedExtentScrollPhysics(),
+                        onSelectedItemChanged: (i) =>
+                            setState(() => _selectedMinute = i),
+                        childDelegate: ListWheelChildBuilderDelegate(
+                          builder: (_, i) => Center(
+                            child: Text(
+                              i.toString().padLeft(2, '0'),
+                              style: AppTypography.titleMedium.copyWith(
+                                color: i == _selectedMinute
+                                    ? textMain
+                                    : textSub,
+                                fontWeight: i == _selectedMinute
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                          childCount: 60,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 취소 / 확인 버튼
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              0,
+              20,
+              MediaQuery.of(context).padding.bottom + 16,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: dividerColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        '취소',
+                        style: AppTypography.bodyLarge.copyWith(
+                          color: textSub,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(
+                        context,
+                        TimeOfDay(hour: _selectedHour, minute: _selectedMinute),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark
+                            ? AppColors.darkTextMain
+                            : AppColors.textMain,
+                        foregroundColor: isDark
+                            ? AppColors.darkBackground
+                            : Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        '확인',
+                        style: AppTypography.bodyLarge.copyWith(
+                          color: isDark
+                              ? AppColors.darkBackground
+                              : Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 내부 위젯: 탭 가능한 일반 항목
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -290,10 +531,7 @@ class _SettingsTapTile extends StatelessWidget {
   final String label;
   final String trailing;
 
-  const _SettingsTapTile({
-    required this.label,
-    required this.trailing,
-  });
+  const _SettingsTapTile({required this.label, required this.trailing});
 
   @override
   Widget build(BuildContext context) {
