@@ -3,13 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../domain/entities/expense.dart';
-import '../../domain/repositories/expense_repository.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/number_keypad.dart';
@@ -91,15 +88,14 @@ class _ExpenseAddBottomSheetState extends ConsumerState<_ExpenseAddBottomSheet> 
   }
 
   /// 지출 저장 처리
-  /// Repository를 통해 저장 후 바텀시트를 닫는다
+  /// HomeViewModel.addExpense()를 통해 저장 후 바텀시트를 닫는다
   Future<void> _onSave() async {
     if (!_canSave) return;
 
     setState(() => _isSaving = true);
 
     try {
-      final repo = getIt<ExpenseRepository>();
-      await repo.addExpense(
+      await ref.read(homeViewModelProvider.notifier).addExpense(
         ExpenseEntity(
           id: 0,
           amount: _amount,
@@ -108,9 +104,8 @@ class _ExpenseAddBottomSheetState extends ConsumerState<_ExpenseAddBottomSheet> 
         ),
       );
 
-      // 데이터 저장 성공 후 홈 화면 및 캘린더 화면 데이터 동기화
+      // 홈 화면 데이터 동기화 (캘린더 invalidate는 HomeViewModel.addExpense에서 처리)
       ref.read(homeViewModelProvider.notifier).refresh();
-      ref.read(calendarViewModelProvider.notifier).loadMonthData();
 
       if (mounted) {
         Navigator.pop(context, true);

@@ -5,9 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
-import '../../../expense/domain/repositories/expense_repository.dart';
-import '../../domain/repositories/acorn_repository.dart';
-import '../../domain/repositories/daily_budget_repository.dart';
+import '../../../expense/domain/usecases/add_expense_use_case.dart';
+import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
+import '../../domain/usecases/check_and_award_title_use_case.dart';
+import '../../domain/usecases/delete_expense_use_case.dart';
+import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
+import '../../domain/usecases/get_acorn_stats_use_case.dart';
+import '../../domain/usecases/get_today_budget_use_case.dart';
+import '../../domain/usecases/get_today_expenses_use_case.dart';
 
 /// 홈 화면 상태
 class HomeState {
@@ -19,6 +24,9 @@ class HomeState {
   final int streakDays;
   final bool isLoading;
 
+  /// 방금 획득한 칭호 이름 — null이면 신규 칭호 없음 (S-26g)
+  final String? newlyAchievedTitle;
+
   const HomeState({
     this.remainingBudget = 10000,
     this.totalBudget = 10000,
@@ -27,6 +35,7 @@ class HomeState {
     this.totalAcorns = 0,
     this.streakDays = 0,
     this.isLoading = true,
+    this.newlyAchievedTitle,
   });
 
   HomeState copyWith({
@@ -37,6 +46,9 @@ class HomeState {
     int? totalAcorns,
     int? streakDays,
     bool? isLoading,
+    String? newlyAchievedTitle,
+    // null로 명시적 초기화가 필요할 때 사용하는 플래그 (S-26g)
+    bool clearTitle = false,
   }) {
     return HomeState(
       remainingBudget: remainingBudget ?? this.remainingBudget,
@@ -46,6 +58,7 @@ class HomeState {
       totalAcorns: totalAcorns ?? this.totalAcorns,
       streakDays: streakDays ?? this.streakDays,
       isLoading: isLoading ?? this.isLoading,
+      newlyAchievedTitle: clearTitle ? null : (newlyAchievedTitle ?? this.newlyAchievedTitle),
     );
   }
 }
@@ -54,6 +67,10 @@ class HomeState {
 class HomeViewModel extends Notifier<HomeState> {
   StreamSubscription<List<ExpenseEntity>>? _expenseSubscription;
   DateTime _lastActiveDate = DateTime.now();
+
+  /// _loadData 동시 실행 방지 플래그
+  bool _loadDataInProgress = false;
+  bool _loadDataPending = false;
 
   @override
   HomeState build() {
@@ -76,29 +93,37 @@ class HomeViewModel extends Notifier<HomeState> {
     }
   }
 
-  /// 초기 데이터 로드
+  /// 초기 데이터 로드 — 동시 호출 시 현재 실행이 끝난 후 한 번만 재실행한다
   Future<void> _loadData() async {
+    if (_loadDataInProgress) {
+      _loadDataPending = true;
+      return;
+    }
+    _loadDataInProgress = true;
     try {
-      final budgetRepo = getIt<DailyBudgetRepository>();
-      final acornRepo = getIt<AcornRepository>();
-      final expenseRepo = getIt<ExpenseRepository>();
+      final budgetUseCase = getIt<GetTodayBudgetUseCase>();
+      final acornUseCase = getIt<GetAcornStatsUseCase>();
+      final expenseUseCase = getIt<GetTodayExpensesUseCase>();
 
       // 전날 결과 평가 → 도토리 지급 (중복 방지 포함)
-      await _evaluateYesterdayAndAwardAcorn(budgetRepo, acornRepo);
+      await getIt<EvaluateAndAwardAcornUseCase>().execute();
 
       // 오늘 예산 확보 (carryOver 반영)
-      final budget = await budgetRepo.getOrCreateTodayBudget();
+      final budget = await budgetUseCase.getOrCreateTodayBudget();
       final totalBudget = budget.baseAmount + budget.carryOver;
 
       // 오늘 지출 목록
-      final expenses = await expenseRepo.getExpensesByDate(DateTime.now());
+      final expenses = await expenseUseCase.getExpensesByDate(DateTime.now());
 
       // 남은 예산
-      final remaining = await budgetRepo.getRemainingBudget(DateTime.now());
+      final remaining = await budgetUseCase.getRemainingBudget(DateTime.now());
 
       // 도토리 + 스트릭
-      final acorns = await acornRepo.getTotalAcorns();
-      final streak = await acornRepo.getStreakDays();
+      final acorns = await acornUseCase.getTotalAcorns();
+      final streak = await acornUseCase.getStreakDays();
+
+      // 스트릭 마일스톤 달성 시 칭호 수여 (S-26g)
+      final newTitle = await getIt<CheckAndAwardTitleUseCase>().execute(streak);
 
       state = state.copyWith(
         remainingBudget: remaining,
@@ -108,38 +133,15 @@ class HomeViewModel extends Notifier<HomeState> {
         totalAcorns: acorns,
         streakDays: streak,
         isLoading: false,
+        newlyAchievedTitle: newTitle,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false);
-    }
-  }
-
-  /// 전날 예산 결과를 평가하고 조건 충족 시 도토리를 지급한다 (S-20a).
-  ///
-  /// - 전날 예산 row가 없으면 스킵 (첫날 또는 공백일)
-  /// - 전날 도토리가 이미 기록됐으면 스킵 (중복 방지)
-  /// - remaining ≥ 0: 만원 이내 성공 → 도토리 1개
-  /// - remaining ≥ 5000: 5천원 이상 절약 보너스 → 추가 1개
-  Future<void> _evaluateYesterdayAndAwardAcorn(
-    DailyBudgetRepository budgetRepo,
-    AcornRepository acornRepo,
-  ) async {
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-
-    // 전날 예산 row가 없으면 평가 불필요
-    final yesterdayBudget = await budgetRepo.getBudgetByDate(yesterday);
-    if (yesterdayBudget == null) return;
-
-    // 중복 방지: 전날 도토리가 이미 지급됐으면 스킵
-    final existingAcorns = await acornRepo.getAcornsByDate(yesterday);
-    if (existingAcorns.isNotEmpty) return;
-
-    final remaining = await budgetRepo.getRemainingBudget(yesterday);
-
-    if (remaining >= 0) {
-      await acornRepo.addAcorn(1, '하루 만원 달성', date: yesterday);
-      if (remaining >= 5000) {
-        await acornRepo.addAcorn(1, '5천원 이상 절약 보너스', date: yesterday);
+    } finally {
+      _loadDataInProgress = false;
+      if (_loadDataPending) {
+        _loadDataPending = false;
+        await _loadData();
       }
     }
   }
@@ -150,17 +152,22 @@ class HomeViewModel extends Notifier<HomeState> {
   void _watchExpenses() {
     _expenseSubscription?.cancel();
 
-    final budgetRepo = getIt<DailyBudgetRepository>();
-    final expenseRepo = getIt<ExpenseRepository>();
+    final budgetUseCase = getIt<GetTodayBudgetUseCase>();
+    final expenseUseCase = getIt<GetTodayExpensesUseCase>();
 
     _expenseSubscription =
-        expenseRepo.watchExpensesByDate(DateTime.now()).listen((expenses) async {
-      final remaining = await budgetRepo.getRemainingBudget(DateTime.now());
+        expenseUseCase.watchExpensesByDate(DateTime.now()).listen((expenses) async {
+      final remaining = await budgetUseCase.getRemainingBudget(DateTime.now());
       state = state.copyWith(
         expenses: expenses,
         remainingBudget: remaining,
       );
     });
+  }
+
+  /// 칭호 Snackbar 표시 후 상태를 초기화한다 (S-26g)
+  void clearAchievedTitle() {
+    state = state.copyWith(clearTitle: true);
   }
 
   /// 수동 새로고침
@@ -169,11 +176,17 @@ class HomeViewModel extends Notifier<HomeState> {
     await _loadData();
   }
 
-  /// 지출 삭제
+  /// 지출 추가 — AddExpenseUseCase 경유, 캘린더 동기화 포함
+  Future<void> addExpense(ExpenseEntity expense) async {
+    await getIt<AddExpenseUseCase>().execute(expense);
+    ref.invalidate(calendarViewModelProvider);
+  }
+
+  /// 지출 삭제 — 홈 스트림은 watchExpenses가 자동 갱신, 캘린더는 invalidate로 동기화
   Future<void> deleteExpense(int id) async {
-    final expenseRepo = getIt<ExpenseRepository>();
-    await expenseRepo.deleteExpense(id);
-    // watchExpenses가 자동으로 상태를 갱신함
+    await getIt<DeleteExpenseUseCase>().execute(id);
+    // 캘린더 화면 데이터 동기화 (활성 상태면 즉시 재로드, 미방문이면 다음 진입 시 갱신)
+    ref.invalidate(calendarViewModelProvider);
   }
 }
 

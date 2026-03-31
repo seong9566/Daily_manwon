@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../expense/domain/entities/expense.dart';
-import '../../domain/repositories/calendar_repository.dart';
+import '../../domain/usecases/get_monthly_calendar_data_use_case.dart';
 
 /// 캘린더 화면 상태 모델
 class CalendarState {
@@ -72,7 +72,8 @@ class CalendarState {
 /// 캘린더 화면 ViewModel
 /// 월 이동, 날짜 선택, 월별 데이터 로드를 담당한다
 class CalendarViewModel extends Notifier<CalendarState> {
-  CalendarRepository get _repository => getIt<CalendarRepository>();
+  GetMonthlyCalendarDataUseCase get _useCase =>
+      getIt<GetMonthlyCalendarDataUseCase>();
 
   @override
   CalendarState build() {
@@ -117,12 +118,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
     try {
       // 월별 지출과 통계를 병렬로 조회
       final results = await Future.wait([
-        _repository.getMonthlyExpenses(
+        _useCase.getMonthlyExpenses(
           year: state.selectedMonth.year,
           month: state.selectedMonth.month,
         ),
-        _repository.getStreakDays(),
-        _repository.getTotalSuccessCount(),
+        _useCase.getStreakDays(),
+        _useCase.getTotalSuccessCount(),
       ]);
 
       final monthlyExpenses =
