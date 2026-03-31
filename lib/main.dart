@@ -1,17 +1,32 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/di/injection.dart';
 import 'core/router/app_router.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // GetIt DI 초기화 — NotificationService를 포함한 모든 의존성 등록
   await configureDependencies();
 
+  // 알림 서비스 초기화 — Android/iOS/macOS에서만 실행 (Linux/Windows 미지원)
+  const notifPlatforms = {
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+    TargetPlatform.macOS,
+  };
+  if (notifPlatforms.contains(defaultTargetPlatform)) {
+    await GetIt.instance<NotificationService>().init();
+  }
+
+  // ProviderScope는 Riverpod 상태관리를 위해 반드시 유지
   runApp(const ProviderScope(child: DailyManwonApp()));
 }
 
