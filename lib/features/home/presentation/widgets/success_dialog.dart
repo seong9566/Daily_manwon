@@ -304,24 +304,26 @@ class _ConfettiLayer extends StatelessWidget {
 }
 
 /// confetti 파티클을 그리는 CustomPainter
-/// 여러 색상의 작은 원/사각형이 위에서 아래로 떨어지며 3초 후 페이드아웃된다
+/// 여러 색상의 원/직사각형/슬림 직사각형이 위에서 아래로 떨어지며 3초 후 페이드아웃된다
 class _ConfettiPainter extends CustomPainter {
   final double progress;
 
-  // 파티클 색상 팔레트
+  // 파티클 색상 팔레트 (10색 — sky blue, mint green 추가)
   static const _colors = [
     AppColors.primary,
-    AppColors.statusComfortable,
-    AppColors.statusWarning,
+    AppColors.budgetComfortable, // mint green
+    AppColors.budgetWarning,
     AppColors.categoryFood,
     AppColors.categoryTransport,
     AppColors.categoryShopping,
     AppColors.confettiYellow,
     AppColors.confettiRed,
+    AppColors.accent, // sky blue
+    AppColors.categoryCafe,
   ];
 
-  // 파티클 고정 설정값 (seed 기반으로 위치/크기/색상 결정)
-  static const int _particleCount = 60;
+  // 파티클 수: 80개로 확대
+  static const int _particleCount = 80;
 
   _ConfettiPainter({required this.progress});
 
@@ -334,34 +336,60 @@ class _ConfettiPainter extends CustomPainter {
 
     for (int i = 0; i < _particleCount; i++) {
       final color = _colors[i % _colors.length];
+
+      // RNG 소비 순서를 파티클마다 일정하게 유지
       final x = rng.nextDouble() * size.width;
-      // 시간 경과에 따라 아래로 이동 (각 파티클마다 속도 다름)
       final speed = 0.3 + rng.nextDouble() * 0.7;
+      final particleSize = 4.0 + rng.nextDouble() * 7.0; // 상한 6→7 확대
+      final initialRotation = rng.nextDouble() * math.pi * 2; // 초기 회전각
+      final rotationSpeed = (rng.nextDouble() - 0.5) * math.pi * 8; // 회전 속도
+
+      // 시간 경과에 따라 아래로 이동
       final y = -30 + (size.height + 60) * (progress * speed);
-      final particleSize = 4.0 + rng.nextDouble() * 6.0;
-      // 파티클 흔들림 효과 (sin 파형)
-      final sway = math.sin(progress * math.pi * 4 + i) * 20;
+      // 흔들림 진폭 20 → 12 로 줄여 자연스러운 낙하 연출
+      final sway = math.sin(progress * math.pi * 4 + i) * 12;
 
       final paint = Paint()
         ..color = color.withValues(alpha: opacity.clamp(0.0, 1.0))
         ..style = PaintingStyle.fill;
 
-      // 짝수 파티클 → 원형, 홀수 파티클 → 사각형
-      if (i % 2 == 0) {
+      final shapeType = i % 3;
+
+      if (shapeType == 0) {
+        // 원형
         canvas.drawCircle(
           Offset(x + sway, y),
           particleSize / 2,
           paint,
         );
-      } else {
+      } else if (shapeType == 1) {
+        // 직사각형 + 회전
+        canvas.save();
+        canvas.translate(x + sway, y);
+        canvas.rotate(initialRotation + rotationSpeed * progress);
         canvas.drawRect(
           Rect.fromCenter(
-            center: Offset(x + sway, y),
+            center: Offset.zero,
             width: particleSize,
-            height: particleSize * 0.6,
+            height: particleSize * 0.5,
           ),
           paint,
         );
+        canvas.restore();
+      } else {
+        // 슬림 직사각형 + 회전
+        canvas.save();
+        canvas.translate(x + sway, y);
+        canvas.rotate(initialRotation + rotationSpeed * progress);
+        canvas.drawRect(
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: particleSize * 0.8,
+            height: particleSize * 0.35,
+          ),
+          paint,
+        );
+        canvas.restore();
       }
     }
   }

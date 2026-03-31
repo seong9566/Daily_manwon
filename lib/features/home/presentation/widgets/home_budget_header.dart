@@ -47,12 +47,9 @@ class HomeBudgetHeader extends StatelessWidget {
         const SizedBox(height: 4),
         // 히어로 금액 (디자인 가이드 Section 1)
         HeroBudgetNumber(remainingBudget: remainingBudget),
-        // 이월 금액 표시 (디자인 가이드 Section 1.5)
-        if (carryOver > 0)
-          Text(
-            '+ 어제 이월 ₩${NumberFormat('#,###').format(carryOver)}',
-            style: AppTypography.bodySmall.copyWith(color: subTextColor),
-          )
+        // 이월 금액 표시 (S-18: 양수/음수 carryOver 모두 처리)
+        if (carryOver != 0)
+          _CarryOverBadge(carryOver: carryOver)
               .animate()
               .fadeIn(duration: 300.ms, delay: 200.ms)
               .slideY(begin: 0.3, duration: 300.ms, curve: Curves.easeOut),
@@ -71,6 +68,38 @@ class HomeBudgetHeader extends StatelessWidget {
         ),
         const SizedBox(height: 32),
       ],
+    );
+  }
+}
+
+/// 이월 금액 뱃지 — 양수(절약 이월)는 초록, 음수(초과 이월)는 빨강
+class _CarryOverBadge extends StatelessWidget {
+  final int carryOver;
+
+  const _CarryOverBadge({required this.carryOver});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPositive = carryOver > 0;
+    final color =
+        isPositive ? AppColors.budgetComfortable : AppColors.budgetDanger;
+    final sign = isPositive ? '+' : '−';
+    final absAmount = NumberFormat('#,###').format(carryOver.abs());
+    final label = isPositive ? '어제 이월' : '어제 초과';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        '$sign ₩$absAmount  $label',
+        style: AppTypography.bodySmall.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
