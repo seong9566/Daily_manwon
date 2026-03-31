@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/repositories/expense_repository.dart';
 import '../../domain/repositories/acorn_repository.dart';
@@ -49,11 +52,28 @@ class HomeState {
 
 /// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
 class HomeViewModel extends Notifier<HomeState> {
+  StreamSubscription<List<ExpenseEntity>>? _expenseSubscription;
+  DateTime _lastActiveDate = DateTime.now();
+
   @override
   HomeState build() {
+    ref.onDispose(() => _expenseSubscription?.cancel());
+    _lastActiveDate = DateTime.now();
     _loadData();
     _watchExpenses();
     return const HomeState();
+  }
+
+  /// 날짜 변경 여부를 확인하고 변경됐으면 데이터를 갱신한다.
+  ///
+  /// Screen의 AppLifecycleState.resumed 콜백에서 호출한다.
+  void checkDateChange() {
+    final now = DateTime.now();
+    if (!AppDateUtils.isSameDay(now, _lastActiveDate)) {
+      _lastActiveDate = now;
+      _watchExpenses(); // 새 날짜 기준으로 스트림 재구독
+      _loadData(); // 이월된 오늘 예산 로드
+    }
   }
 
   /// 초기 데이터 로드
@@ -92,11 +112,16 @@ class HomeViewModel extends Notifier<HomeState> {
   }
 
   /// 지출 변동을 실시간으로 감지하여 상태 갱신
+  ///
+  /// 재호출 시 이전 구독을 cancel하고 새 날짜 기준으로 재구독한다.
   void _watchExpenses() {
+    _expenseSubscription?.cancel();
+
     final budgetRepo = getIt<DailyBudgetRepository>();
     final expenseRepo = getIt<ExpenseRepository>();
 
-    expenseRepo.watchExpensesByDate(DateTime.now()).listen((expenses) async {
+    _expenseSubscription =
+        expenseRepo.watchExpensesByDate(DateTime.now()).listen((expenses) async {
       final remaining = await budgetRepo.getRemainingBudget(DateTime.now());
       state = state.copyWith(
         expenses: expenses,

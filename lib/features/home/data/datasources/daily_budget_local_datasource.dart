@@ -26,18 +26,37 @@ class DailyBudgetLocalDatasource {
     return row?.toEntity();
   }
 
-  /// 오늘 예산을 조회하거나 없으면 기본값으로 생성
+  /// 오늘 예산을 조회하거나 없으면 이월 계산 후 생성
+  ///
+  /// 전날 남은 예산을 carryOver로 반영한다.
+  /// - 양수 잔액: 전액 이월
+  /// - 음수 잔액(초과 지출): 최대 -5,000원 한도
+  /// - 전날 예산 row가 없으면(첫날 또는 공백일) carryOver = 0
   Future<DailyBudgetEntity> getOrCreateTodayBudget() async {
     final today = DateTime.now();
     final existing = await getBudgetByDate(today);
     if (existing != null) return existing;
 
-    // 기본 예산 생성
+    // 이월 계산: 전날 남은 예산 조회
+    final yesterday = today.subtract(const Duration(days: 1));
+    final yesterdayBudget = await getBudgetByDate(yesterday);
+    int carryOver = 0;
+    if (yesterdayBudget != null) {
+      final remaining = await getRemainingBudget(yesterday);
+      if (remaining >= 0) {
+        carryOver = remaining; // 절약한 금액 전액 이월
+      } else {
+        // 초과 지출: 최대 -5,000원 한도
+        carryOver = remaining < -5000 ? -5000 : remaining;
+      }
+    }
+
+    // 오늘 예산 생성
     final id = await _db.into(_db.dailyBudgets).insert(
           DailyBudgetsCompanion.insert(
             date: DateTime(today.year, today.month, today.day),
             baseAmount: const Value(AppConstants.dailyBudget),
-            carryOver: const Value(0),
+            carryOver: Value(carryOver),
           ),
         );
 
