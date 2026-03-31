@@ -9,17 +9,24 @@ import '../widgets/calendar_day_cell.dart';
 import '../widgets/daily_expense_detail.dart';
 
 /// 월간 캘린더 화면
-/// 월 네비게이션, 날짜 그리드, 선택일 지출 내역을 표시한다
-class CalendarScreen extends ConsumerWidget {
+class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+  void _onMonthChange(int delta) {
+    ref.read(calendarViewModelProvider.notifier).changeMonth(delta);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(calendarViewModelProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgColor =
-        isDark ? AppColors.darkBackground : AppColors.background;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
     final textMainColor =
         isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
@@ -30,7 +37,9 @@ class CalendarScreen extends ConsumerWidget {
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
-                onRefresh: () => ref.read(calendarViewModelProvider.notifier).loadMonthData(),
+                onRefresh: () => ref
+                    .read(calendarViewModelProvider.notifier)
+                    .loadMonthData(forceRefresh: true),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
@@ -43,8 +52,8 @@ class CalendarScreen extends ConsumerWidget {
                         selectedMonth: state.selectedMonth,
                         isDark: isDark,
                         textMainColor: textMainColor,
-                        onPrev: () => ref.read(calendarViewModelProvider.notifier).changeMonth(-1),
-                        onNext: () => ref.read(calendarViewModelProvider.notifier).changeMonth(1),
+                        onPrev: () => _onMonthChange(-1),
+                        onNext: () => _onMonthChange(1),
                       ),
                       const SizedBox(height: 8),
 
@@ -59,15 +68,19 @@ class CalendarScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // ── 요일 헤더 ────────────────────────────────
+                      // ── 요일 헤더 — 고정 앵커 ────────────────────
                       _WeekdayHeader(isDark: isDark),
                       const SizedBox(height: 4),
 
-                      // ── 날짜 그리드 ──────────────────────────────
-                      _CalendarGrid(
+                      // ── ±2달 프리렌더링 + 실시간 드래그 슬라이드 ─
+                      // 손가락 움직임에 즉시 반응하고 뗄 때 스냅한다
+                      _SlidingCalendarGrid(
                         state: state,
+                        onMonthChange: _onMonthChange,
                         isDark: isDark,
-                        onDateSelected: (date) => ref.read(calendarViewModelProvider.notifier).selectDate(date),
+                        onDateSelected: (date) => ref
+                            .read(calendarViewModelProvider.notifier)
+                            .selectDate(date),
                       ),
                       const SizedBox(height: 8),
 
@@ -84,6 +97,199 @@ class CalendarScreen extends ConsumerWidget {
                 ),
               ),
       ),
+    );
+  }
+}
+
+// ── 실시간 드래그 슬라이드 위젯 ─────────────────────────────────
+//
+// ±2달 그리드를 미리 렌더링하고 손가락 위치를 실시간으로 추적한다.
+// 각 달의 x 위치 = i * width + _dragOffset
+// 어떤 t에서도 인접 달 간격이 정확히 1 width이므로 겹침이 없다.
+
+class _SlidingCalendarGrid extends ConsumerStatefulWidget {
+  final CalendarState state;
+  final void Function(int delta) onMonthChange;
+  final bool isDark;
+  final void Function(DateTime) onDateSelected;
+
+  const _SlidingCalendarGrid({
+    required this.state,
+    required this.onMonthChange,
+    required this.isDark,
+    required this.onDateSelected,
+  });
+
+  @override
+  ConsumerState<_SlidingCalendarGrid> createState() =>
+      _SlidingCalendarGridState();
+}
+
+class _SlidingCalendarGridState extends ConsumerState<_SlidingCalendarGrid>
+    with SingleTickerProviderStateMixin {
+  /// 드래그 / 스냅 오프셋 (픽셀 단위)
+  double _dragOffset = 0.0;
+
+  /// LayoutBuilder에서 측정된 가용 너비 — 드래그 핸들러에서 참조
+  double _width = 300.0;
+
+  // 스냅 애니메이션 파라미터
+  double _snapStart = 0.0;
+  double _snapEnd = 0.0;
+
+  /// 스냅 완료 후 실행할 월 이동 방향 (0이면 스냅백)
+  int _snapDelta = 0;
+
+  /// 드래그 중일 때 true — 컨트롤러 리스너와 충돌 방지
+  bool _isDragging = false;
+
+  late final AnimationController _snapController;
+  late final CurvedAnimation _snapCurved;
+
+  @override
+  void initState() {
+    super.initState();
+    _snapController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _snapCurved = CurvedAnimation(
+      parent: _snapController,
+      curve: Curves.easeOutCubic,
+    );
+    _snapController.addListener(_onSnapTick);
+    _snapController.addStatusListener(_onSnapStatus);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SlidingCalendarGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // VM이 selectedMonth를 업데이트한 뒤 드래그 오프셋을 초기화한다.
+    // 스냅 애니메이션 완료 → onMonthChange → VM 업데이트 → 여기서 리셋 순서로
+    // 시각적 점프 없이 자연스럽게 전환된다.
+    if (oldWidget.state.selectedMonth != widget.state.selectedMonth) {
+      setState(() => _dragOffset = 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _snapCurved.dispose();
+    _snapController.dispose();
+    super.dispose();
+  }
+
+  /// 스냅 애니메이션 틱 — 드래그 중이 아닐 때만 _dragOffset을 업데이트한다
+  void _onSnapTick() {
+    if (!_isDragging && mounted) {
+      setState(() {
+        // lerp: _snapStart → _snapEnd (곡선 적용)
+        _dragOffset =
+            _snapStart + (_snapEnd - _snapStart) * _snapCurved.value;
+      });
+    }
+  }
+
+  /// 스냅 완료 처리
+  void _onSnapStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+
+    if (_snapDelta != 0) {
+      // 인접 달로 이동 — didUpdateWidget에서 _dragOffset을 리셋한다
+      widget.onMonthChange(_snapDelta);
+    } else {
+      // 스냅백 (원위치) — VM 업데이트 없으므로 즉시 리셋
+      if (mounted) setState(() => _dragOffset = 0.0);
+    }
+    _snapDelta = 0;
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    _isDragging = true;
+    _snapController.stop();
+    _snapDelta = 0; // 진행 중이던 스냅 취소
+
+    setState(() {
+      // ±2달 경계(±2 * width)에서 추가 저항
+      final maxOffset = _width * 2.1;
+      _dragOffset =
+          (_dragOffset + details.delta.dx).clamp(-maxOffset, maxOffset);
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    _isDragging = false;
+    final velocity = details.primaryVelocity ?? 0;
+
+    _snapStart = _dragOffset;
+
+    if (_dragOffset < -_width / 3 || velocity < -600) {
+      _snapEnd = -_width;
+      _snapDelta = 1; // 다음 달
+    } else if (_dragOffset > _width / 3 || velocity > 600) {
+      _snapEnd = _width;
+      _snapDelta = -1; // 이전 달
+    } else {
+      _snapEnd = 0.0; // 스냅백
+      _snapDelta = 0;
+    }
+
+    _snapController.forward(from: 0.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final notifier = ref.read(calendarViewModelProvider.notifier);
+    final currentMonth = widget.state.selectedMonth;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _width = constraints.maxWidth;
+
+        // 셀 크기 계산 — _CalendarGrid의 패딩(12*2)과 childAspectRatio(0.85)에 맞춤
+        final cellWidth = (_width - 24) / 7;
+        final cellHeight = cellWidth / 0.85;
+        final gridHeight = cellHeight * 6; // 6행 고정 (42칸)
+
+        return GestureDetector(
+          onHorizontalDragUpdate: _onDragUpdate,
+          onHorizontalDragEnd: _onDragEnd,
+          // 드래그 중 자식 위젯의 포인터 이벤트 차단
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox(
+            height: gridHeight,
+            child: ClipRect(
+              child: Stack(
+                children: [
+                  // ±2달 그리드를 나란히 배치하여 PageView 방식으로 슬라이드
+                  for (int i = -2; i <= 2; i++)
+                    Transform.translate(
+                      offset: Offset(i * _width + _dragOffset, 0),
+                      child: _CalendarGrid(
+                        state: CalendarState(
+                          selectedMonth: DateTime(
+                            currentMonth.year,
+                            currentMonth.month + i,
+                          ),
+                          // 현재 달만 선택 날짜 표시, 나머지는 생략
+                          selectedDate: i == 0 ? widget.state.selectedDate : null,
+                          monthlyExpenses: notifier.getCachedExpenses(
+                            DateTime(currentMonth.year, currentMonth.month + i).year,
+                            DateTime(currentMonth.year, currentMonth.month + i).month,
+                          ),
+                        ),
+                        isDark: widget.isDark,
+                        // 현재 달만 날짜 선택 활성화
+                        onDateSelected:
+                            i == 0 ? widget.onDateSelected : (_) {},
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -107,22 +313,16 @@ class _MonthNavigator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // "2026. 03" 형식 — 월은 2자리 패딩
     final monthLabel =
         '${selectedMonth.year}. ${selectedMonth.month.toString().padLeft(2, '0')}';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // 이전 달 버튼
         IconButton(
           onPressed: onPrev,
           tooltip: '이전 달',
-          icon: Icon(
-            Icons.chevron_left_rounded,
-            color: textMainColor,
-            size: 28,
-          ),
+          icon: Icon(Icons.chevron_left_rounded, color: textMainColor, size: 28),
         ),
         const SizedBox(width: 8),
         Text(
@@ -130,15 +330,10 @@ class _MonthNavigator extends StatelessWidget {
           style: AppTypography.titleMedium.copyWith(color: textMainColor),
         ),
         const SizedBox(width: 8),
-        // 다음 달 버튼
         IconButton(
           onPressed: onNext,
           tooltip: '다음 달',
-          icon: Icon(
-            Icons.chevron_right_rounded,
-            color: textMainColor,
-            size: 28,
-          ),
+          icon: Icon(Icons.chevron_right_rounded, color: textMainColor, size: 28),
         ),
       ],
     );
@@ -152,39 +347,35 @@ class _WeekdayHeader extends StatelessWidget {
 
   const _WeekdayHeader({required this.isDark});
 
-  // 일~토 순서 — DateTime.weekday: 월=1, 일=7
   static const _weekdays = ['일', '월', '화', '수', '목', '금', '토'];
 
   @override
   Widget build(BuildContext context) {
-    final textSubColor =
-        isDark ? AppColors.darkTextSub : AppColors.textSub;
+    final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
     return ExcludeSemantics(
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: _weekdays.map((day) {
-          // 일요일은 빨강, 토요일은 파랑 강조
-          final isWeekend =
-              day == '일' || day == '토';
-          return Expanded(
-            child: Center(
-              child: Text(
-                day,
-                style: AppTypography.bodySmall.copyWith(
-                  color: isWeekend
-                      ? (day == '일'
-                          ? AppColors.statusDanger.withAlpha(200)
-                          : AppColors.categoryTransport.withAlpha(200))
-                      : textSubColor,
-                  fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: _weekdays.map((day) {
+            final isWeekend = day == '일' || day == '토';
+            return Expanded(
+              child: Center(
+                child: Text(
+                  day,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: isWeekend
+                        ? (day == '일'
+                            ? AppColors.statusDanger.withAlpha(200)
+                            : AppColors.categoryTransport.withAlpha(200))
+                        : textSubColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
-      ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -208,17 +399,12 @@ class _CalendarGrid extends StatelessWidget {
     final year = state.selectedMonth.year;
     final month = state.selectedMonth.month;
 
-    // 해당 월의 1일 요일 (0=일, 1=월, ... 6=토)
-    // DateTime.weekday: 월=1 ... 일=7 → 일요일 시작 그리드에 맞게 변환
     final firstDayOfMonth = DateTime(year, month, 1);
-    // weekday를 일요일=0 기준으로 변환
-    final startOffset = firstDayOfMonth.weekday % 7;
-
-    // 해당 월의 마지막 날
+    final startOffset = firstDayOfMonth.weekday % 7; // 일요일=0 기준
     final daysInMonth = DateTime(year, month + 1, 0).day;
 
-    // 그리드 총 셀 수 = offset + 일수, 7의 배수로 올림
-    final totalCells = ((startOffset + daysInMonth) / 7).ceil() * 7;
+    // 항상 42칸(6행) 고정 — _SlidingCalendarGrid의 SizedBox height와 일치
+    const totalCells = 42;
 
     final today = DateTime(
       DateTime.now().year,
@@ -233,32 +419,24 @@ class _CalendarGrid extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 7,
-          // 셀 높이를 너비보다 약간 크게 — dot 공간 확보
           childAspectRatio: 0.85,
         ),
         itemCount: totalCells,
         itemBuilder: (context, index) {
-          // 날짜 계산: offset 이전과 월 마지막 이후는 빈 셀
           final dayNumber = index - startOffset + 1;
-          final isCurrentMonth =
-              dayNumber >= 1 && dayNumber <= daysInMonth;
+          final isCurrentMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
 
-          if (!isCurrentMonth) {
-            // 다른 달 날짜 — 빈 셀로 처리
-            return const SizedBox.shrink();
-          }
+          if (!isCurrentMonth) return const SizedBox.shrink();
 
           final cellDate = DateTime(year, month, dayNumber);
           final isToday = cellDate == today;
           final isFuture = cellDate.isAfter(today);
           final isSelected = state.selectedDate == cellDate;
 
-          // 해당일 지출 존재 시 성공/실패 판별
           final expenses = state.monthlyExpenses[cellDate];
           bool? isSuccess;
           if (expenses != null && expenses.isNotEmpty) {
-            final total =
-                expenses.fold<int>(0, (sum, e) => sum + e.amount);
+            final total = expenses.fold<int>(0, (sum, e) => sum + e.amount);
             isSuccess = total <= AppConstants.dailyBudget;
           }
 

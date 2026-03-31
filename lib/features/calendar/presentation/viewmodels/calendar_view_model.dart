@@ -13,7 +13,6 @@ class CalendarState {
   final DateTime? selectedDate;
 
   /// 현재 월의 일별 지출 데이터
-  /// 키: 날짜(시분초=0), 값: 해당일 지출 목록
   final Map<DateTime, List<ExpenseEntity>> monthlyExpenses;
 
   /// 오늘까지 연속 성공일 수
@@ -22,11 +21,14 @@ class CalendarState {
   /// 전체 성공 횟수
   final int successCount;
 
-  /// 데이터 로딩 중 여부
+  /// 데이터 로딩 중 여부 — 최초 캐시 미스 시에만 true
   final bool isLoading;
 
   /// 오류 메시지 (없으면 null)
   final String? errorMessage;
+
+  /// 인접 달 캐시 갱신 시 증가 — UI 재빌드 유발용
+  final int cacheVersion;
 
   const CalendarState({
     required this.selectedMonth,
@@ -36,6 +38,7 @@ class CalendarState {
     this.successCount = 0,
     this.isLoading = false,
     this.errorMessage,
+    this.cacheVersion = 0,
   });
 
   /// 선택된 날짜의 지출 목록 — 편의 getter
@@ -54,6 +57,7 @@ class CalendarState {
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
+    int? cacheVersion,
   }) {
     return CalendarState(
       selectedMonth: selectedMonth ?? this.selectedMonth,
@@ -65,29 +69,44 @@ class CalendarState {
       successCount: successCount ?? this.successCount,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      cacheVersion: cacheVersion ?? this.cacheVersion,
     );
   }
 }
 
 /// 캘린더 화면 ViewModel
-/// 월 이동, 날짜 선택, 월별 데이터 로드를 담당한다
+/// 월 이동, 날짜 선택, 월별 데이터 로드 및 ±2달 프리패치를 담당한다
 class CalendarViewModel extends Notifier<CalendarState> {
   GetMonthlyCalendarDataUseCase get _useCase =>
       getIt<GetMonthlyCalendarDataUseCase>();
 
+  /// 월별 지출 캐시: key = "year-month"
+  final Map<String, Map<DateTime, List<ExpenseEntity>>> _expenseCache = {};
+
+  /// 전체 기간 통계 캐시 — 1회 로드 후 재사용
+  int? _cachedStreak;
+  int? _cachedSuccessCount;
+
+  /// 현재 fetch 중인 캐시 키 집합 — 중복 요청 방지
+  final Set<String> _inFlightLoads = {};
+
+  String _cacheKey(int year, int month) => '$year-$month';
+
   @override
   CalendarState build() {
     final now = DateTime.now();
-    // 초기 상태: 이번 달, 오늘 선택
     final initialState = CalendarState(
       selectedMonth: DateTime(now.year, now.month, 1),
       selectedDate: DateTime(now.year, now.month, now.day),
     );
-
-    // 빌드 직후 이번 달 데이터 로드
     Future.microtask(loadMonthData);
-
     return initialState;
+  }
+
+  /// 특정 월의 지출 캐시를 반환한다.
+  /// 캐시 미스 시 빈 Map을 반환한다 (UI 프리렌더링용).
+  Map<DateTime, List<ExpenseEntity>> getCachedExpenses(int year, int month) {
+    return _expenseCache[_cacheKey(year, month)] ?? const {};
   }
 
   /// 월을 delta만큼 이동한다 (양수 = 다음 달, 음수 = 이전 달)
@@ -97,7 +116,6 @@ class CalendarViewModel extends Notifier<CalendarState> {
 
     state = state.copyWith(
       selectedMonth: newMonth,
-      // 월 이동 시 선택된 날짜 초기화
       clearSelectedDate: true,
     );
 
@@ -110,44 +128,100 @@ class CalendarViewModel extends Notifier<CalendarState> {
     state = state.copyWith(selectedDate: dayKey);
   }
 
-  /// 현재 선택된 월의 데이터를 로드한다
-  /// 월별 지출 + 연속 성공일 + 전체 성공 횟수를 함께 갱신한다
-  Future<void> loadMonthData() async {
+  /// 현재 선택된 월의 데이터를 로드한다.
+  ///
+  /// [forceRefresh] true이면 캐시를 우회하여 새로 로드한다 (RefreshIndicator용).
+  Future<void> loadMonthData({bool forceRefresh = false}) async {
+    final year = state.selectedMonth.year;
+    final month = state.selectedMonth.month;
+    final key = _cacheKey(year, month);
+
+    if (!forceRefresh && _inFlightLoads.contains(key)) return;
+
+    // 캐시 히트 — 깜빡임 없이 즉시 전환
+    if (!forceRefresh && _expenseCache.containsKey(key)) {
+      state = state.copyWith(
+        monthlyExpenses: _expenseCache[key]!,
+        streakDays: _cachedStreak ?? state.streakDays,
+        successCount: _cachedSuccessCount ?? state.successCount,
+        isLoading: false,
+      );
+      _prefetchAdjacentMonths(year, month);
+      return;
+    }
+
+    // 캐시 미스 또는 forceRefresh — 로딩 표시 후 fetch
+    _inFlightLoads.add(key);
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // 월별 지출과 통계를 병렬로 조회
-      final results = await Future.wait([
-        _useCase.getMonthlyExpenses(
-          year: state.selectedMonth.year,
-          month: state.selectedMonth.month,
-        ),
-        _useCase.getStreakDays(),
-        _useCase.getTotalSuccessCount(),
-      ]);
+      final (expenses, streak, successCount) = await (
+        _useCase.getMonthlyExpenses(year: year, month: month),
+        _cachedStreak != null
+            ? Future.value(_cachedStreak!)
+            : _useCase.getStreakDays(),
+        _cachedSuccessCount != null
+            ? Future.value(_cachedSuccessCount!)
+            : _useCase.getTotalSuccessCount(),
+      ).wait;
 
-      final monthlyExpenses =
-          results[0] as Map<DateTime, List<ExpenseEntity>>;
-      final streakDays = results[1] as int;
-      final successCount = results[2] as int;
+      _expenseCache[key] = expenses;
+      if (state.selectedMonth.year != year ||
+          state.selectedMonth.month != month) {
+        return;
+      }
+
+      _cachedStreak = streak;
+      _cachedSuccessCount = successCount;
 
       state = state.copyWith(
-        monthlyExpenses: monthlyExpenses,
-        streakDays: streakDays,
+        monthlyExpenses: expenses,
+        streakDays: streak,
         successCount: successCount,
         isLoading: false,
       );
+
+      _prefetchAdjacentMonths(year, month);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: '데이터를 불러오지 못했습니다.',
-      );
+      if (state.selectedMonth.year == year &&
+          state.selectedMonth.month == month) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: '데이터를 불러오지 못했습니다.',
+        );
+      }
+    } finally {
+      _inFlightLoads.remove(key);
+    }
+  }
+
+  /// ±2달 데이터를 백그라운드에서 미리 로드한다.
+  /// 캐시 완료 시 cacheVersion을 증가시켜 UI 재빌드를 유발한다.
+  void _prefetchAdjacentMonths(int year, int month) {
+    for (final offset in [-2, -1, 1, 2]) {
+      final dt = DateTime(year, month + offset);
+      final key = _cacheKey(dt.year, dt.month);
+      if (_expenseCache.containsKey(key) || _inFlightLoads.contains(key)) {
+        continue;
+      }
+
+      _inFlightLoads.add(key);
+      _useCase
+          .getMonthlyExpenses(year: dt.year, month: dt.month)
+          .then((expenses) {
+            _expenseCache[key] = expenses;
+            // 인접 달 그리드에 데이터가 반영되도록 state 변경 유발
+            state = state.copyWith(cacheVersion: state.cacheVersion + 1);
+          })
+          .whenComplete(() {
+            _inFlightLoads.remove(key);
+          })
+          .ignore();
     }
   }
 }
 
-/// 캘린더 ViewModel Provider — 전역 선언
-/// Riverpod 코드젠 미사용, 수동 선언
+/// 캘린더 ViewModel Provider
 final calendarViewModelProvider =
     NotifierProvider<CalendarViewModel, CalendarState>(
   CalendarViewModel.new,
