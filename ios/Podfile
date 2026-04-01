@@ -36,8 +36,38 @@ target 'Runner' do
   end
 end
 
+# 위젯 익스텐션 타깃 — 별도 Pod 없음, CocoaPods 빌드 페이즈 순서 교정용
+target 'DailyHomeWidgetExtension' do
+  use_frameworks!
+end
+
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+  end
+
+  # [CP] Embed Pods Frameworks ↔ DailyHomeWidgetExtension 빌드 사이클 수정
+  # [CP] Embed Pods Frameworks를 Embed Foundation Extensions 앞으로 이동
+  installer.aggregate_targets.each do |agg|
+    next unless agg.name.start_with?('Pods-Runner')
+
+    agg.user_project.targets.each do |native|
+      next unless native.name == 'Runner'
+
+      phases       = native.build_phases
+      cp_embed     = phases.find { |p| p.respond_to?(:name) && p.name == '[CP] Embed Pods Frameworks' }
+      embed_ext    = phases.find { |p| p.respond_to?(:name) && p.name == 'Embed Foundation Extensions' }
+
+      next unless cp_embed && embed_ext
+
+      cp_idx  = phases.index(cp_embed)
+      ext_idx = phases.index(embed_ext)
+
+      if cp_idx > ext_idx
+        phases.delete(cp_embed)
+        phases.insert(ext_idx, cp_embed)
+        native.project.save
+      end
+    end
   end
 end
