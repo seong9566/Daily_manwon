@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
@@ -135,6 +138,21 @@ class HomeViewModel extends Notifier<HomeState> {
         isLoading: false,
         newlyAchievedTitle: newTitle,
       );
+
+      // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
+      unawaited(getIt<WidgetService>().updateWidget(
+        total: totalBudget,
+        used: totalBudget - remaining,
+        remaining: remaining,
+        streak: streak,
+        expenses: expenses
+            .map((e) => {
+                  'category': ExpenseCategory.values[e.category].label,
+                  'time': DateFormat('HH:mm').format(e.createdAt),
+                  'amount': e.amount,
+                })
+            .toList(),
+      ));
     } catch (e) {
       state = state.copyWith(isLoading: false);
     } finally {
@@ -162,6 +180,21 @@ class HomeViewModel extends Notifier<HomeState> {
         expenses: expenses,
         remainingBudget: remaining,
       );
+
+      // 지출 변동 시 홈 위젯 실시간 갱신
+      unawaited(getIt<WidgetService>().updateWidget(
+        total: state.totalBudget,
+        used: state.totalBudget - remaining,
+        remaining: remaining,
+        streak: state.streakDays,
+        expenses: expenses
+            .map((e) => {
+                  'category': ExpenseCategory.values[e.category].label,
+                  'time': DateFormat('HH:mm').format(e.createdAt),
+                  'amount': e.amount,
+                })
+            .toList(),
+      ));
     });
   }
 

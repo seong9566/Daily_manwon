@@ -75,6 +75,7 @@ import '../../features/settings/domain/usecases/save_notification_settings_use_c
     as _i836;
 import '../database/app_database.dart' as _i982;
 import '../services/notification_service.dart' as _i941;
+import '../services/widget_service.dart' as _i511;
 import 'register_module.dart' as _i291;
 
 // initializes the registration of main-scope dependencies inside of GetIt
@@ -89,6 +90,7 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i941.NotificationService>(
     () => _i941.NotificationService(),
   );
+  gh.lazySingleton<_i511.WidgetService>(() => _i511.WidgetService());
   gh.lazySingleton<_i484.AchievementLocalDatasource>(
     () => _i484.AchievementLocalDatasource(gh<_i982.AppDatabase>()),
   );
