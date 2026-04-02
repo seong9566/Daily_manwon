@@ -7,31 +7,28 @@ import 'package:go_router/go_router.dart';
 import 'core/di/injection.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/widget_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // GetIt DI 초기화 — NotificationService를 포함한 모든 의존성 등록
+  // GetIt DI 초기화
   await configureDependencies();
 
-  // 알림 서비스 초기화 — Android/iOS/macOS에서만 실행 (Linux/Windows 미지원)
-  const notifPlatforms = {
-    TargetPlatform.android,
-    TargetPlatform.iOS,
-    TargetPlatform.macOS,
-  };
+  // 알림 서비스 초기화 — Android/iOS에서만 실행 (Linux/Windows/macOS 미지원)
+  const notifPlatforms = {TargetPlatform.android, TargetPlatform.iOS};
   if (notifPlatforms.contains(defaultTargetPlatform)) {
     await GetIt.instance<NotificationService>().init();
   }
 
-  // ProviderScope는 Riverpod 상태관리를 위해 반드시 유지
+  // 홈 위젯 서비스 초기화 — App Group 접근 가능 여부 검증
+  await GetIt.instance<WidgetService>().init();
+
   runApp(const ProviderScope(child: DailyManwonApp()));
 }
 
-/// appThemeModeProvider를 구독하여 다크모드 전환을 실시간 반영한다
-/// 라우터는 한 번만 생성하여 GlobalKey 중복 방지
 class DailyManwonApp extends ConsumerStatefulWidget {
   const DailyManwonApp({super.key});
 
