@@ -17,6 +17,10 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		81BF62B66C73A8B349498A95 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DCDD1307732B3095B02B479E /* Pods_RunnerTests.framework */; };
+		A1B2C3D42F7D000100000021 /* DailyHomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F7D000100000011 /* DailyHomeWidget.swift */; };
+		A1B2C3D42F7D000100000022 /* DailyHomeWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F7D000100000012 /* DailyHomeWidgetBundle.swift */; };
+		A1B2C3D42F7D000100000023 /* DailyHomeWidgetControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F7D000100000013 /* DailyHomeWidgetControl.swift */; };
+		A1B2C3D42F7D000100000024 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F7D000100000014 /* Assets.xcassets */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -83,6 +87,10 @@
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		86F1FC5AF7F87DBFC8465FBA /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		878927FAA6698793F5CABE80 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D42F7D000100000011 /* DailyHomeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHomeWidget.swift; sourceTree = "<group>"; };
+		A1B2C3D42F7D000100000012 /* DailyHomeWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHomeWidgetBundle.swift; sourceTree = "<group>"; };
+		A1B2C3D42F7D000100000013 /* DailyHomeWidgetControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHomeWidgetControl.swift; sourceTree = "<group>"; };
+		A1B2C3D42F7D000100000014 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -97,31 +105,6 @@
 		F961FE97E6944A79A847C6FC /* Pods_DailyHomeWidgetExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DailyHomeWidgetExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FCADD87B4F09E3E49EA8AC66 /* Pods-DailyHomeWidgetExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DailyHomeWidgetExtension.debug.xcconfig"; path = "Target Support Files/Pods-DailyHomeWidgetExtension/Pods-DailyHomeWidgetExtension.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1C78EED52F7CABA300329366 /* Exceptions for "DailyHomeWidget" folder in "DailyHomeWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 1C78EEC42F7CABA200329366 /* DailyHomeWidgetExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		1C78EEC82F7CABA200329366 /* DailyHomeWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				1C78EED52F7CABA300329366 /* Exceptions for "DailyHomeWidget" folder in "DailyHomeWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = DailyHomeWidget;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1C78EEC22F7CABA200329366 /* Frameworks */ = {
@@ -153,6 +136,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1C78EEC82F7CABA200329366 /* DailyHomeWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D42F7D000100000014 /* Assets.xcassets */,
+				A1B2C3D42F7D000100000011 /* DailyHomeWidget.swift */,
+				A1B2C3D42F7D000100000012 /* DailyHomeWidgetBundle.swift */,
+				A1B2C3D42F7D000100000013 /* DailyHomeWidgetControl.swift */,
+			);
+			path = DailyHomeWidget;
+			sourceTree = "<group>";
+		};
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -256,9 +250,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				1C78EEC82F7CABA200329366 /* DailyHomeWidget */,
-			);
 			name = DailyHomeWidgetExtension;
 			productName = DailyHomeWidgetExtension;
 			productReference = 1C78EEC52F7CABA200329366 /* DailyHomeWidgetExtension.appex */;
@@ -356,6 +347,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D42F7D000100000024 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -501,6 +493,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D42F7D000100000021 /* DailyHomeWidget.swift in Sources */,
+				A1B2C3D42F7D000100000022 /* DailyHomeWidgetBundle.swift in Sources */,
+				A1B2C3D42F7D000100000023 /* DailyHomeWidgetControl.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

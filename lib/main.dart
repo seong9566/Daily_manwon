@@ -23,7 +23,7 @@ void main() async {
     await GetIt.instance<NotificationService>().init();
   }
 
-  // 홈 위젯 서비스 초기화 — App Group 접근 가능 여부 검증
+  // 홈 위젯 서비스 초기화
   await GetIt.instance<WidgetService>().init();
 
   runApp(const ProviderScope(child: DailyManwonApp()));
