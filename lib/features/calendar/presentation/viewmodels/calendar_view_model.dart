@@ -83,6 +83,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 월별 지출 캐시: key = "year-month"
   final Map<String, Map<DateTime, List<ExpenseEntity>>> _expenseCache = {};
 
+  /// 월별 선택 날짜 캐시: 월 이동 후 복귀 시 이전 선택 날짜 복원용
+  final Map<String, DateTime> _selectedDateCache = {};
+
   /// 전체 기간 통계 캐시 — 1회 로드 후 재사용
   int? _cachedStreak;
   int? _cachedSuccessCount;
@@ -94,6 +97,13 @@ class CalendarViewModel extends Notifier<CalendarState> {
 
   @override
   CalendarState build() {
+    // invalidate 재호출 시 stale 캐시가 남지 않도록 항상 초기화
+    _expenseCache.clear();
+    _selectedDateCache.clear();
+    _cachedStreak = null;
+    _cachedSuccessCount = null;
+    _inFlightLoads.clear();
+
     final now = DateTime.now();
     final initialState = CalendarState(
       selectedMonth: DateTime(now.year, now.month, 1),
@@ -112,11 +122,23 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 월을 delta만큼 이동한다 (양수 = 다음 달, 음수 = 이전 달)
   Future<void> changeMonth(int delta) async {
     final current = state.selectedMonth;
+    final currentKey = _cacheKey(current.year, current.month);
+
+    // 현재 월의 선택 날짜를 캐시에 저장
+    if (state.selectedDate != null) {
+      _selectedDateCache[currentKey] = state.selectedDate!;
+    }
+
     final newMonth = DateTime(current.year, current.month + delta, 1);
+    final newKey = _cacheKey(newMonth.year, newMonth.month);
+
+    // 새 월의 캐시된 선택 날짜 복원 (없으면 null)
+    final restoredDate = _selectedDateCache[newKey];
 
     state = state.copyWith(
       selectedMonth: newMonth,
-      clearSelectedDate: true,
+      selectedDate: restoredDate,
+      clearSelectedDate: restoredDate == null,
     );
 
     await loadMonthData();
@@ -125,6 +147,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 날짜를 선택한다
   void selectDate(DateTime date) {
     final dayKey = DateTime(date.year, date.month, date.day);
+    // 월별 선택 날짜 캐시에도 저장
+    final monthKey = _cacheKey(dayKey.year, dayKey.month);
+    _selectedDateCache[monthKey] = dayKey;
     state = state.copyWith(selectedDate: dayKey);
   }
 

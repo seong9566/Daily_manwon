@@ -19,8 +19,11 @@ class HeroBudgetNumber extends StatelessWidget {
   }
 
   /// 상태별 색상
-  Color _getColor(int value) {
-    if (value >= 5000) return AppColors.budgetComfortable;
+  Color _getColor(BuildContext context, int value) {
+    if (value >= 5000) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable;
+    }
     if (value >= 1000) return AppColors.budgetWarning;
     if (value >= 0) return AppColors.budgetDanger;
     return AppColors.budgetOver;
@@ -60,7 +63,7 @@ class HeroBudgetNumber extends StatelessWidget {
               fontFamily: 'Pretendard',
               fontSize: 60, // 폰트 크기를 고정하여 카운팅 시 레이아웃 흔들림 방지
               fontWeight: _getFontWeight(value),
-              color: _getColor(value),
+              color: _getColor(context, value),
               height: 1.2,
               letterSpacing: -0.5,
               fontFeatures: const [FontFeature.tabularFigures()],

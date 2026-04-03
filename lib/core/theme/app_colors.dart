@@ -21,15 +21,18 @@ abstract final class AppColors {
   // =========================================================================
 
   /// 앱 배경 - 웜 화이트
-  static const Color background = Color(0xFFFFF8F0);
+  static const Color background = Color(0xFFFFFFFF);
 
   // =========================================================================
   // 숫자 감정 상태 색상 (ui_design_guide Section 1.2)
   // HeroBudgetNumber, 프로그레스 바, 캘린더 dot에 사용
   // =========================================================================
 
-  /// 여유 상태 (≥5,000원) — 민트 그린
-  static const Color budgetComfortable = Color(0xFF2DBD8E);
+  /// 여유 상태 (≥5,000원) [Light] — Black
+  static const Color budgetComfortable = Color(0xFF000000);
+
+  /// 여유 상태 (≥5,000원) [Dark] — White
+  static const Color budgetComfortableDark = Color(0xFFFFFFFF);
 
   /// 주의 상태 (1,000~4,999원) — 앰버 오렌지
   static const Color budgetWarning = Color(0xFFF5A623);

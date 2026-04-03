@@ -81,8 +81,10 @@ class _CarryOverBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPositive = carryOver > 0;
-    final color =
-        isPositive ? AppColors.budgetComfortable : AppColors.budgetDanger;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isPositive
+        ? (isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable)
+        : AppColors.budgetDanger;
     final sign = isPositive ? '+' : '−';
     final absAmount = NumberFormat('#,###').format(carryOver.abs());
     final label = isPositive ? '어제 이월' : '어제 초과';
@@ -122,7 +124,7 @@ class _BudgetProgressBar extends StatelessWidget {
 
     Color barColor;
     if (remaining >= 5000) {
-      barColor = AppColors.budgetComfortable;
+      barColor = isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable;
     } else if (remaining >= 1000) {
       barColor = AppColors.budgetWarning;
     } else {

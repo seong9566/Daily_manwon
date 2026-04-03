@@ -97,11 +97,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             content: Text(
               '새 칭호 획득! ${next.newlyAchievedTitle}',
               style: AppTypography.bodyMedium.copyWith(
-                color: Colors.white,
+                color: isDark ? Colors.black : Colors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            backgroundColor: AppColors.budgetComfortable,
+            backgroundColor: isDark ? Colors.white : AppColors.budgetComfortable,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(

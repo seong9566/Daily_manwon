@@ -89,8 +89,8 @@ class WidgetPreviewCard extends StatelessWidget {
               value: _progress,
               minHeight: 6,
               backgroundColor: progressTrackColor,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.budgetComfortable,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable,
               ),
             ),
           ),
@@ -100,7 +100,7 @@ class WidgetPreviewCard extends StatelessWidget {
           Text(
             '오늘도 잘 하고 있어요',
             style: AppTypography.bodySmall.copyWith(
-              color: AppColors.budgetComfortable,
+              color: isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable,
               fontWeight: FontWeight.w500,
             ),
           ),
