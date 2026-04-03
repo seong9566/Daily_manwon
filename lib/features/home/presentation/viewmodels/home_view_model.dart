@@ -182,19 +182,22 @@ class HomeViewModel extends Notifier<HomeState> {
       );
 
       // 지출 변동 시 홈 위젯 실시간 갱신
-      unawaited(getIt<WidgetService>().updateWidget(
-        total: state.totalBudget,
-        used: state.totalBudget - remaining,
-        remaining: remaining,
-        streak: state.streakDays,
-        expenses: expenses
-            .map((e) => {
-                  'category': ExpenseCategory.values[e.category].label,
-                  'time': DateFormat('HH:mm').format(e.createdAt),
-                  'amount': e.amount,
-                })
-            .toList(),
-      ));
+      // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
+      if (!state.isLoading) {
+        unawaited(getIt<WidgetService>().updateWidget(
+          total: state.totalBudget,
+          used: state.totalBudget - remaining,
+          remaining: remaining,
+          streak: state.streakDays,
+          expenses: expenses
+              .map((e) => {
+                    'category': ExpenseCategory.values[e.category].label,
+                    'time': DateFormat('HH:mm').format(e.createdAt),
+                    'amount': e.amount,
+                  })
+              .toList(),
+        ));
+      }
     });
   }
 

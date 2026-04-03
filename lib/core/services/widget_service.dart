@@ -9,7 +9,7 @@ import 'package:injectable/injectable.dart';
 /// App Group 미설정 환경(Xcode 설정 전, 시뮬레이터 등)에서는 안전하게 no-op 처리한다.
 @lazySingleton
 class WidgetService {
-  static const _appGroupId = 'group.dailyManWon.dailyHomeWidget';
+  static const _appGroupId = 'group.dailyManWon.homeWidget';
 
   /// App Group 접근 가능 여부 — init() 호출 전까지 false
   bool _appGroupAvailable = false;
@@ -22,6 +22,7 @@ class WidgetService {
       await HomeWidget.setAppGroupId(_appGroupId);
       await HomeWidget.saveWidgetData<int>('_ping', 1);
       _appGroupAvailable = true;
+      debugPrint('WidgetService: App Group 초기화 성공 ($_appGroupId)');
     } catch (e) {
       debugPrint('WidgetService: App Group 접근 불가 — Xcode 설정을 확인하세요. ($e)');
     }
@@ -34,7 +35,13 @@ class WidgetService {
     required int streak,
     required List<Map<String, dynamic>> expenses,
   }) async {
-    if (!_appGroupAvailable) return;
+    if (!_appGroupAvailable) {
+      debugPrint('WidgetService: updateWidget 스킵 — App Group 미초기화');
+      return;
+    }
+    debugPrint(
+      'WidgetService: updateWidget 호출 — total=$total, used=$used, remaining=$remaining, streak=$streak',
+    );
     try {
       await HomeWidget.saveWidgetData<int>('totalKey', total);
       await HomeWidget.saveWidgetData<int>('usedKey', used);
@@ -42,6 +49,7 @@ class WidgetService {
       await HomeWidget.saveWidgetData<int>('streakKey', streak);
       await HomeWidget.saveWidgetData<String>('expensesKey', jsonEncode(expenses));
       await HomeWidget.updateWidget(iOSName: 'DailyHomeWidget');
+      debugPrint('WidgetService: 위젯 갱신 완료');
     } catch (e) {
       debugPrint('WidgetService: 위젯 갱신 실패 — $e');
     }

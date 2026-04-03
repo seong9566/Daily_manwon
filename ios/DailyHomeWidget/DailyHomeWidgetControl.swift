@@ -9,6 +9,7 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
+@available(iOSApplicationExtension 18.0, *)
 struct DailyHomeWidgetControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
@@ -28,6 +29,7 @@ struct DailyHomeWidgetControl: ControlWidget {
     }
 }
 
+@available(iOSApplicationExtension 18.0, *)
 extension DailyHomeWidgetControl {
     struct Provider: ControlValueProvider {
         var previewValue: Bool {
@@ -41,6 +43,7 @@ extension DailyHomeWidgetControl {
     }
 }
 
+@available(iOSApplicationExtension 18.0, *)
 struct StartTimerIntent: SetValueIntent {
     static let title: LocalizedStringResource = "Start a timer"
 
