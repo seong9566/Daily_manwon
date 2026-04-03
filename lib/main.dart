@@ -25,7 +25,6 @@ void main() async {
 
   // 홈 위젯 서비스 초기화
   await GetIt.instance<WidgetService>().init();
-
   runApp(const ProviderScope(child: DailyManwonApp()));
 }
 

@@ -6,11 +6,11 @@
 
 ---
 
-### 전체 진행 현황 (2026-04-01 기준)
+### 전체 진행 현황 (2026-04-03 기준)
 
 > **범례**: ✅ 완료 / 🔶 부분 완료 (일부 작업 잔여) / ⬜ 미착수
 
-> **업데이트**: 2026-04-01 — UX-06(알림 실기기 테스트 iOS+Android) 완료; UX-09~11(홈 위젯 미리보기) Backlog에서 스프린트 범위로 복원
+> **업데이트**: 2026-04-03 — UX-09~11(홈 위젯 미리보기) ✅ 완료; iOS 네이티브 홈 위젯(Small/Medium/Large) + Flutter 데이터 연동 ✅ 완료 (Backlog 앞당겨 구현); 버그픽스: App Group ID 불일치, 캘린더 동기화(ref.invalidate 캐시 미초기화), CalendarGrid ValueKey 슬롯 문제
 
 | 구분 | ✅ 완료 | 🔶 부분 | ⬜ 미착수 | 전체 | 완료율 |
 |------|---------|---------|----------|------|--------|
@@ -18,9 +18,9 @@
 | Phase 2: 메인 화면 & 지출 | 7 | 0 | 0 | 7 | ✅ 100% |
 | Phase 3: 캘린더 | 2 | 0 | 0 | 2 | ✅ 100% |
 | Phase 4: 비즈니스 로직 | 7 | 0 | 0 | 7 | ✅ 100% |
-| Phase 5: UX 완성 & 폴리싱 | 11 | 2 | 5 | 18 | 🔶 61% |
+| Phase 5: UX 완성 & 폴리싱 | 14 | 2 | 2 | 18 | 🔶 78% |
 | Phase 6: 테스트 & 배포 | 0 | 0 | 6 | 6 | ⬜ 0% |
-| **합계** | **32** | **2** | **11** | **45** | **71%** |
+| **합계** | **35** | **2** | **8** | **45** | **78%** |
 
 ---
 
@@ -116,13 +116,13 @@ lib/features/settings/presentation/viewmodels/  → NotificationService 호출
 | UX-07 | Confetti 실기기 렌더링 검증 (60fps, 파티클 수/크기 튜닝) | 1h | ✅ | 파티클 80개, 10색 팔레트 |
 | UX-08 | Confetti 폴리싱 — 파티클 회전, 색상 다양화, 감속 곡선 | 1h | ✅ | 회전 애니메이션, 3가지 모양 |
 
-#### 5-C: 홈 위젯 미리보기 (5h) — ⬜ 미착수 (Backlog → 스프린트 복원)
+#### 5-C: 홈 위젯 미리보기 (5h) — ✅ 완료
 
 | # | 스토리 | 예상 시간 | 상태 | 비고 |
 |---|--------|----------|------|------|
-| UX-09 | 홈 위젯 미리보기 설계 (소형 2x2 / 중형 4x2, 라이트+다크) | 1h | ⬜ | widget_preview.dart 삭제됨, 신규 작성 |
-| UX-10 | `WidgetPreviewCard` 구현 — 목업 UI (잔액, 프로그레스 바, 상태 텍스트) | 2.5h | ⬜ | |
-| UX-11 | 설정 화면에 "홈 위젯" 섹션 추가 | 1.5h | ⬜ | |
+| UX-09 | 홈 위젯 미리보기 설계 (소형 2x2 / 중형 4x2, 라이트+다크) | 1h | ✅ | `8efb2cb` |
+| UX-10 | `WidgetPreviewCard` 구현 — 목업 UI (잔액, 프로그레스 바, 상태 텍스트) | 2.5h | ✅ | `8efb2cb` |
+| UX-11 | 설정 화면에 "홈 위젯" 섹션 추가 | 1.5h | ✅ | `8efb2cb` |
 
 #### 5-D: 기타 폴리싱
 
@@ -131,10 +131,10 @@ lib/features/settings/presentation/viewmodels/  → NotificationService 호출
 | S-21 | 설정 화면 UI (알림, 다크모드, 데이터 관리, 앱 정보) | 3h | ✅ | `cf079b3` |
 | S-21a | 다크모드 설정 DB 영속화 | 1h | ✅ | `cf6ca59` |
 | S-22 | 마이크로 인터랙션 강화 (지출 금액별 숫자 진동/색상 세분화) | 2h | ⬜ | |
-| S-23 | 전체 UI 폴리싱 (간격, 색상, 폰트 통일) | 3h | 🔶 | 디자인 토큰화 완료 (`223a3e3`), 세부 잔여 |
+| S-23 | 전체 UI 폴리싱 (간격, 색상, 폰트 통일) | 3h | 🔶 | 홈 화면 hero/header 개선 진행 중 (미커밋) |
 | S-24 | 온보딩 화면 완성 (3-step 플로우 + 예산 설정 입력) | 2h | 🔶 | placeholder만 존재 |
 | S-26g | 칭호 시스템 (3/7/14/30일 달성 시 칭호 부여 + 축하 트리거) | 1.5h | ✅ | AchievementRepository + HomeViewModel 연동 |
-| UX-12 | 다크모드 전체 화면 점검 | 2h | ⬜ | AppColors.dark* 토큰 정의 완료 |
+| UX-12 | 다크모드 전체 화면 점검 | 2h | ⬜ | app_colors.dart 부분 수정 진행 중 (미커밋) |
 
 **Phase 5 예상 소요**: 32h
 
@@ -185,7 +185,7 @@ lib/features/settings/presentation/viewmodels/  → NotificationService 호출
 | Day 2 | 4/01 (수) | S-20a 도토리(2h) + S-25g 스트릭(2h) + S-28g 실데이터(1h) + **UX-06** 알림 실기기 테스트(2h) | 7h | ✅ 완료 |
 | Day 3 | 4/02 (목) | S-18 이월 UI(2h) + UX-07~08 confetti(2h) + S-26g 칭호(1.5h) | 5.5h | ✅ 완료 |
 | Day 4 | 4/03 (금) | UX-01~05 알림 기능(8h) + 알림 버그픽스 3건 | 8h | ✅ 완료 |
-| Day 5 | 4/04 (토) | **UX-09~11** 홈 위젯 미리보기(5h) | 5h | ⬜ |
+| Day 5 | 4/04 (토) | **UX-09~11** 홈 위젯 미리보기(5h) | 5h | ✅ 앞당겨 완료 (4/01~02) |
 | Day 6 | 4/05 (일) | **S-23** UI 폴리싱(2h) + **UX-12** 다크모드 점검(2h) + **S-24** 온보딩(2h) | 6h | ⬜ |
 | Day 7 | 4/06 (월) | **S-22** 마이크로 인터랙션(2h) + T-01~T-04 통합테스트+버그(7h) | 9h | ⬜ |
 | Day 8 | 4/07 (화) | T-05 아이콘+스크린샷(2h) + T-06 배포 제출(2h) | 4h | ⬜ |
@@ -193,7 +193,7 @@ lib/features/settings/presentation/viewmodels/  → NotificationService 호출
 
 > Week 2 가용 캐패시티 ~30h(4/04~4/07) 대비 잔여 24h = **80%** (6h 버퍼)
 
-> **다음 작업 우선순위 (2026-04-01 기준)**: UX-09~11 홈 위젯 미리보기 → S-23 UI 폴리싱 + UX-12 다크모드 → S-24 온보딩 → T-01~T-06 테스트 & 배포
+> **다음 작업 우선순위 (2026-04-03 기준)**: S-23 UI 폴리싱 + UX-12 다크모드 점검 → S-24 온보딩 완성 → S-22 마이크로 인터랙션 → T-01~T-06 테스트 & 배포
 
 ---
 
@@ -315,7 +315,7 @@ lib/features/settings/presentation/viewmodels/  → NotificationService 호출
 
 | 항목 | 비고 |
 |------|------|
-| 홈 위젯 (네이티브 iOS/Android) | 목업 UI(UX-09~11)만 구현, 실제 네이티브 위젯은 다음 스프린트 |
+| 홈 위젯 네이티브 Android | iOS WidgetKit 구현 완료 (`7c2632b`, `8ce8907`), Flutter 연동 완료 (`aba21ae`); Android 위젯은 다음 스프린트 |
 | 업적 배지 화면 | MVP 제외 결정 (S-27g) |
 | 데이터 백업/복원 | 설정 화면에 UI 주석 처리, 로직 미구현 |
 | 공유 챌린지 | 향후 소셜 기능으로 검토 |
@@ -357,3 +357,12 @@ lib/features/settings/presentation/viewmodels/  → NotificationService 호출
 | `f61fb0b` | feat(home): 도토리 수집 및 Acorns 기반 스트릭 구현 (S-20a, S-25g, S-28g) | 4 |
 | `dfbfb70` | docs(sprint): S-20a, S-25g, S-28g 완료 상태 업데이트 | - |
 | *(pending)* | fix(notification): Android 14+ exact alarm 권한, 스위치 롤백, 기본값 버그 3건 수정 | 5 |
+| `9bb6c53` | feat(calendar): 캘린더 화면 UI 및 ViewModel 개선 | 3 |
+| `7c2632b` | feat(widget): iOS WidgetKit 확장 프로젝트 구성 및 권한 설정 | Backlog |
+| `8efb2cb` | feat(settings): 홈 위젯 미리보기 섹션 및 UI 컴포넌트 추가 (UX-09~11) | 5 |
+| `8ce8907` | feat: Medium(4×2)/Large(4×4) 홈 위젯 구현 | Backlog |
+| `aba21ae` | feat(widget): Flutter → iOS 홈 위젯 데이터 연동 구현 | Backlog |
+| `a948910` | fix(widget): App Group 미설정 환경 크래시 방지 및 init() 가드 추가 | Backlog |
+| *(pending)* | fix(widget): App Group ID 불일치 수정 (dailyHomeWidget → homeWidget) | Backlog |
+| *(pending)* | fix(calendar): ref.invalidate 캐시 미초기화 버그 수정 (CalendarViewModel.build) | 3 |
+| *(pending)* | fix(calendar): CalendarGrid ValueKey 슬롯+currentMonth 기반으로 변경 | 3 |
