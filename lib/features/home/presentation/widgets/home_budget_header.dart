@@ -62,10 +62,7 @@ class HomeBudgetHeader extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         // 도토리 + 스트릭
-        AcornStreakBadge(
-          totalAcorns: totalAcorns,
-          streakDays: streakDays,
-        ),
+        AcornStreakBadge(totalAcorns: totalAcorns, streakDays: streakDays),
         const SizedBox(height: 32),
       ],
     );
@@ -83,7 +80,9 @@ class _CarryOverBadge extends StatelessWidget {
     final isPositive = carryOver > 0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isPositive
-        ? (isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable)
+        ? (isDark
+              ? AppColors.budgetComfortableDark
+              : AppColors.budgetComfortable)
         : AppColors.budgetDanger;
     final sign = isPositive ? '+' : '−';
     final absAmount = NumberFormat('#,###').format(carryOver.abs());
@@ -124,7 +123,9 @@ class _BudgetProgressBar extends StatelessWidget {
 
     Color barColor;
     if (remaining >= 5000) {
-      barColor = isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable;
+      barColor = isDark
+          ? AppColors.budgetComfortableDark
+          : AppColors.budgetComfortable;
     } else if (remaining >= 1000) {
       barColor = AppColors.budgetWarning;
     } else {
@@ -145,7 +146,9 @@ class _BudgetProgressBar extends StatelessWidget {
             return LinearProgressIndicator(
               value: value,
               minHeight: 4,
-              backgroundColor: isDark ? AppColors.darkDivider : AppColors.border,
+              backgroundColor: isDark
+                  ? AppColors.darkDivider
+                  : AppColors.border,
               valueColor: AlwaysStoppedAnimation<Color>(barColor),
             );
           },

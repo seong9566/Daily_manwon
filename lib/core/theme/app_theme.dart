@@ -86,9 +86,9 @@ abstract final class AppTheme {
       fontFamily: 'Pretendard',
 
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
+        seedColor: Colors.white,
         brightness: Brightness.dark,
-        primary: AppColors.primary,
+        primary: Colors.white,
         onPrimary: Colors.black,
         surface: AppColors.darkSurface,
         onSurface: AppColors.darkTextMain,
@@ -108,11 +108,11 @@ abstract final class AppTheme {
 
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
-        indicatorColor: AppColors.primaryDark.withValues(alpha: 0.3),
+        indicatorColor: Colors.white.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return AppTypography.bodySmall.copyWith(
-              color: AppColors.primary,
+              color: Colors.white,
               fontWeight: FontWeight.w600,
             );
           }
@@ -122,7 +122,7 @@ abstract final class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.primary);
+            return const IconThemeData(color: Colors.white);
           }
           return const IconThemeData(color: AppColors.darkTextSub);
         }),
@@ -138,7 +138,7 @@ abstract final class AppTheme {
       ),
 
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
+        backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         shape: CircleBorder(),
       ),

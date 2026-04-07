@@ -273,7 +273,7 @@ class _RewardRow extends StatelessWidget {
         Text(
           value,
           style: AppTypography.bodyLarge.copyWith(
-            color: AppColors.primary,
+            color: isDark ? Colors.white : AppColors.primary,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -308,18 +308,16 @@ class _ConfettiLayer extends StatelessWidget {
 class _ConfettiPainter extends CustomPainter {
   final double progress;
 
-  // 파티클 색상 팔레트 (10색 — sky blue, mint green 추가)
+  // 파티클 색상 팔레트 (8색 — 감정색 + 카테고리색)
   static const _colors = [
-    AppColors.primary,
-    AppColors.budgetComfortable, // mint green
     AppColors.budgetWarning,
+    AppColors.budgetDanger,
     AppColors.categoryFood,
     AppColors.categoryTransport,
     AppColors.categoryShopping,
     AppColors.confettiYellow,
     AppColors.confettiRed,
-    AppColors.accent, // sky blue
-    AppColors.categoryCafe,
+    AppColors.accent,
   ];
 
   // 파티클 수: 80개로 확대

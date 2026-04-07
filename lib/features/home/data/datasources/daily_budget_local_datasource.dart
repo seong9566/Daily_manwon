@@ -79,7 +79,9 @@ class DailyBudgetLocalDatasource {
     final end = start.add(const Duration(days: 1));
 
     final expenses = await (_db.select(_db.expenses)
-          ..where((e) => e.createdAt.isBetweenValues(start, end)))
+          ..where((e) =>
+              e.createdAt.isBiggerOrEqualValue(start) &
+              e.createdAt.isSmallerThanValue(end)))
         .get();
 
     final spent = expenses.fold(0, (sum, e) => sum + e.amount);
@@ -93,7 +95,9 @@ class DailyBudgetLocalDatasource {
 
     // 지출 변동 시 자동 재계산
     return (_db.select(_db.expenses)
-          ..where((e) => e.createdAt.isBetweenValues(start, end)))
+          ..where((e) =>
+              e.createdAt.isBiggerOrEqualValue(start) &
+              e.createdAt.isSmallerThanValue(end)))
         .watch()
         .asyncMap((_) => getRemainingBudget(date));
   }

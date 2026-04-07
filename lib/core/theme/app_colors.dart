@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 /// 디자인 가이드(ui_design_guide.md) 기반 토큰 시스템
 abstract final class AppColors {
   // =========================================================================
-  // Primary - 파스텔 오렌지
+  // Primary - Black / White
   // =========================================================================
 
-  /// 주 브랜드 컬러
-  static const Color primary = Color(0xFFFFB366);
+  /// 라이트 모드 주 브랜드 컬러 — Black
+  static const Color primary = Color(0xFF000000);
 
-  /// 주 컬러 다크 변형 (버튼 눌림, 강조)
-  static const Color primaryDark = Color(0xFFE6944D);
+  /// 라이트 모드 네비게이션 선택 강조 — Black
+  static const Color primaryDark = Color(0xFF000000);
 
-  /// 주 컬러 라이트 변형 (배경 강조, 칩)
-  static const Color primaryLight = Color(0xFFFFD9B3);
+  /// 라이트 모드 네비게이션 인디케이터 배경 — 연회색
+  static const Color primaryLight = Color(0xFFEEEEEE);
 
   // =========================================================================
   // Background - 기본 배경
@@ -96,50 +96,6 @@ abstract final class AppColors {
 
   /// 기타 칩 배경
   static const Color chipEtc = Color(0xFFF0F0F0);
-
-  // =========================================================================
-  // 시간대별 배경색 (ui_design_guide Section 2)
-  // =========================================================================
-
-  /// 새벽 (00:00~04:59) — 딥 블루그레이
-  static const Color bgDawn = Color(0xFF1A1D2E);
-
-  /// 아침 (05:00~08:59) — 따뜻한 크림
-  static const Color bgMorning = Color(0xFFFFF8E7);
-
-  /// 오전 (09:00~11:59) — 밝은 화이트
-  static const Color bgForenoon = Color(0xFFF8F9FA);
-
-  /// 점심 (12:00~13:59) — 연한 민트 화이트
-  static const Color bgNoon = Color(0xFFF0FAF6);
-
-  /// 오후 (14:00~16:59) — 밝은 화이트
-  static const Color bgAfternoon = Color(0xFFF8F9FA);
-
-  /// 저녁 (17:00~20:59) — 따뜻한 앰버
-  static const Color bgEvening = Color(0xFFFFF3E0);
-
-  /// 밤 (21:00~23:59) — 차분한 블루그레이
-  static const Color bgNight = Color(0xFFEEF0F8);
-
-  /// 예산 초과 시 배경 — 핑크 틴트
-  static const Color bgOverBudget = Color(0xFFFFF0F0);
-
-  // =========================================================================
-  // 시간대별 텍스트 색상 (ui_design_guide Section 2.2)
-  // =========================================================================
-
-  /// 라이트 모드 주 텍스트 (새벽 외)
-  static const Color textPrimary = Color(0xFF1A1A2E);
-
-  /// 라이트 모드 보조 텍스트 (새벽 외)
-  static const Color textSecondary = Color(0xFF6B7280);
-
-  /// 새벽 시간대 주 텍스트 (밝은 색)
-  static const Color textDawn = Color(0xFFFFFFFF);
-
-  /// 새벽 시간대 보조 텍스트
-  static const Color textDawnSub = Color(0xFFA0A8C0);
 
   // =========================================================================
   // Neutral - 텍스트 및 구조 요소 (레거시)
