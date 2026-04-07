@@ -34,6 +34,8 @@ import '../../features/expense/domain/repositories/expense_repository.dart'
     as _i31;
 import '../../features/expense/domain/usecases/add_expense_use_case.dart'
     as _i367;
+import '../../features/expense/domain/usecases/update_expense_use_case.dart'
+    as _i920;
 import '../../features/home/data/datasources/acorn_local_datasource.dart'
     as _i717;
 import '../../features/home/data/datasources/daily_budget_local_datasource.dart'
@@ -159,6 +161,9 @@ _i174.GetIt $initGetIt(
   );
   gh.lazySingleton<_i367.AddExpenseUseCase>(
     () => _i367.AddExpenseUseCase(gh<_i31.ExpenseRepository>()),
+  );
+  gh.lazySingleton<_i920.UpdateExpenseUseCase>(
+    () => _i920.UpdateExpenseUseCase(gh<_i31.ExpenseRepository>()),
   );
   gh.lazySingleton<_i1008.DeleteExpenseUseCase>(
     () => _i1008.DeleteExpenseUseCase(gh<_i31.ExpenseRepository>()),

@@ -174,50 +174,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 final expense = state.expenses[index];
                                 final category =
                                     ExpenseCategory.values[expense.category];
-                                return Dismissible(
-                                  key: ValueKey(expense.id),
-                                  direction: DismissDirection.horizontal,
-                                  dismissThresholds: const {
-                                    DismissDirection.endToStart: 0.5,
-                                    DismissDirection.startToEnd: 0.5,
-                                  },
-                                  // 왼쪽→오른쪽: 수정 (스카이 블루)
-                                  background: Container(
-                                    alignment: Alignment.centerLeft,
-                                    padding: const EdgeInsets.only(left: 24),
-                                    color: AppColors.accent,
-                                    child: const Icon(
-                                      Icons.edit_outlined,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  // 오른쪽→왼쪽: 삭제 (코랄 레드)
-                                  secondaryBackground: Container(
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.only(right: 24),
-                                    color: AppColors.budgetDanger,
-                                    child: const Icon(
-                                      Icons.delete_outline,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  confirmDismiss: (direction) async {
-                                    if (direction ==
-                                        DismissDirection.endToStart) {
-                                      return await _showDeleteDialog(context);
-                                    } else {
-                                      // TODO: 수정 화면 연결
-                                      return false;
-                                    }
-                                  },
-                                  onDismissed: (_) {
-                                    ref
-                                        .read(homeViewModelProvider.notifier)
-                                        .deleteExpense(expense.id);
-                                  },
-                                  child: Semantics(
-                                    label: '${category.label} ${expense.amount}원',
-                                    child: ExpenseListItem(expense: expense),
+                                return Semantics(
+                                  label: '${category.label} ${expense.amount}원',
+                                  child: ExpenseListItem(
+                                    expense: expense,
+                                    onTap: () => showExpenseAddBottomSheet(context, expense: expense),
                                   ),
                                 );
                               },
@@ -226,12 +187,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ],
                 ),
               ),
-        // FAB — 검정 배경 + 흰색 아이콘
+        // FAB — 라이트: black(primary) + white 아이콘, 다크: white + black 아이콘
         floatingActionButton: FloatingActionButton(
           tooltip: '지출 추가',
-          backgroundColor:
-              isDark ? AppColors.darkTextMain : AppColors.textPrimary,
-          foregroundColor: isDark ? AppColors.darkBackground : Colors.white,
+          backgroundColor: isDark ? Colors.white : AppColors.primary,
+          foregroundColor: isDark ? Colors.black : Colors.white,
           shape: const CircleBorder(),
           onPressed: () => showExpenseAddBottomSheet(context),
           child: const Icon(Icons.add, size: 28),
@@ -240,104 +200,5 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  /// 앱 무드에 맞는 삭제 확인 다이얼로그
-  Future<bool?> _showDeleteDialog(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🗑️', style: TextStyle(fontSize: 36)),
-              const SizedBox(height: 12),
-              Text(
-                '정말 삭제할까요?',
-                style: AppTypography.titleMedium.copyWith(
-                  color:
-                      isDark ? AppColors.darkTextMain : AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '이 지출 기록이 사라져요',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: isDark
-                      ? AppColors.darkTextSub
-                      : AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: Semantics(
-                        button: true,
-                        label: '삭제 취소',
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: isDark
-                                  ? AppColors.darkDivider
-                                  : AppColors.border,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            '아니요',
-                            style: AppTypography.labelMedium.copyWith(
-                              color: isDark
-                                  ? AppColors.darkTextSub
-                                  : AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: Semantics(
-                        button: true,
-                        label: '삭제 확인',
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.budgetDanger,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            '삭제할게요',
-                            style: AppTypography.labelMedium.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

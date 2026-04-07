@@ -9,6 +9,7 @@ import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
+import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../domain/usecases/check_and_award_title_use_case.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
@@ -215,6 +216,12 @@ class HomeViewModel extends Notifier<HomeState> {
   /// 지출 추가 — AddExpenseUseCase 경유, 캘린더 동기화 포함
   Future<void> addExpense(ExpenseEntity expense) async {
     await getIt<AddExpenseUseCase>().execute(expense);
+    ref.invalidate(calendarViewModelProvider);
+  }
+
+  /// 지출 수정
+  Future<void> updateExpense(ExpenseEntity expense) async {
+    await getIt<UpdateExpenseUseCase>().execute(expense);
     ref.invalidate(calendarViewModelProvider);
   }
 
