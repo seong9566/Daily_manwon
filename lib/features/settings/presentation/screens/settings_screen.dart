@@ -94,9 +94,9 @@ class SettingsScreen extends ConsumerWidget {
                   _divider(isDark),
 
                   // ── 홈 위젯 섹션 ───────────────────────────────────────
-                  _SectionHeader(label: '홈 위젯', isDark: isDark),
-                  _WidgetPreviewSection(isDark: isDark),
-                  _divider(isDark),
+                  // _SectionHeader(label: '홈 위젯', isDark: isDark),
+                  // _WidgetPreviewSection(isDark: isDark),
+                  // _divider(isDark),
 
                   // ── 앱 정보 섹션 ───────────────────────────────────────
                   _SectionHeader(label: '앱 정보', isDark: isDark),
@@ -205,7 +205,13 @@ class _SettingsSwitchTile extends ConsumerWidget {
               child: Switch(
                 value: value,
                 onChanged: onChanged,
-                activeThumbColor: AppColors.primary,
+                activeThumbColor: isDark ? Colors.black : Colors.white,
+                activeTrackColor: isDark ? Colors.white : Colors.black,
+                inactiveThumbColor: isDark ? Colors.grey[400] : Colors.white,
+                inactiveTrackColor: isDark
+                    ? Colors.grey[800]
+                    : Colors.grey[300],
+                trackOutlineColor: WidgetStatePropertyAll(Colors.transparent),
               ),
             ),
           ],
@@ -267,12 +273,12 @@ class _TimePickerTile extends StatelessWidget {
                 style: TextButton.styleFrom(
                   minimumSize: const Size(48, 48),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  foregroundColor: AppColors.primary,
+                  foregroundColor: isDark ? Colors.white : AppColors.primary,
                 ),
                 child: Text(
                   '변경',
                   style: AppTypography.labelMedium.copyWith(
-                    color: AppColors.primary,
+                    color: isDark ? Colors.white : AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -553,7 +559,9 @@ class _WidgetPreviewSectionState extends State<_WidgetPreviewSection> {
     final isDark = widget.isDark;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
     final selectedBg = isDark ? AppColors.darkSurface : AppColors.primaryLight;
-    final unselectedBg = isDark ? AppColors.darkBackground : AppColors.background;
+    final unselectedBg = isDark
+        ? AppColors.darkBackground
+        : AppColors.background;
     final borderColor = isDark ? AppColors.darkDivider : AppColors.divider;
 
     return Padding(
@@ -593,19 +601,14 @@ class _WidgetPreviewSectionState extends State<_WidgetPreviewSection> {
 
           // 선택된 사이즈의 위젯 미리보기 — 가운데 정렬
           Center(
-            child: WidgetPreviewCard(
-              size: _selectedSize,
-              isDark: isDark,
-            ),
+            child: WidgetPreviewCard(size: _selectedSize, isDark: isDark),
           ),
           const SizedBox(height: 12),
 
           // 안내 문구
           Text(
             '홈 화면에 위젯을 추가하면 잔액을 바로 확인할 수 있어요',
-            style: AppTypography.bodySmall.copyWith(
-              color: textSubColor,
-            ),
+            style: AppTypography.bodySmall.copyWith(color: textSubColor),
             textAlign: TextAlign.center,
           ),
         ],
