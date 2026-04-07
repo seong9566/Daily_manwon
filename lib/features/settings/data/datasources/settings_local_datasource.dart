@@ -26,4 +26,21 @@ class SettingsLocalDatasource {
           ),
         );
   }
+
+  /// 온보딩 완료 여부를 조회한다 (row가 없으면 false 반환)
+  Future<bool> getIsOnboardingCompleted() async {
+    final row = await (_db.select(_db.userPreferences)
+          ..where((t) => t.id.equals(1)))
+        .getSingleOrNull();
+    return row?.isOnboardingCompleted ?? false;
+  }
+
+  /// 온보딩 완료 여부를 upsert한다
+  Future<void> setIsOnboardingCompleted({required bool value}) async {
+    await _db.into(_db.userPreferences).insertOnConflictUpdate(
+          UserPreferencesCompanion.insert(
+            isOnboardingCompleted: Value(value),
+          ),
+        );
+  }
 }

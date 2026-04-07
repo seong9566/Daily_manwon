@@ -24,23 +24,25 @@ class AppShell extends StatelessWidget {
           // 상태에 따른 아이콘 색상 설정
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return const IconThemeData(color: AppColors.primary);
+              return IconThemeData(
+                color: isDark ? Colors.white : AppColors.primary,
+              );
             }
             return IconThemeData(
-              color: isDark ? AppColors.darkTextSub : AppColors.textSecondary,
+              color: isDark ? AppColors.darkTextSub : AppColors.textSub,
             );
           }),
           // 상태에 따른 라벨 색상 설정
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return const TextStyle(
-                color: AppColors.primary,
+              return TextStyle(
+                color: isDark ? Colors.white : AppColors.primary,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               );
             }
             return TextStyle(
-              color: isDark ? AppColors.darkTextSub : AppColors.textSecondary,
+              color: isDark ? AppColors.darkTextSub : AppColors.textSub,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             );

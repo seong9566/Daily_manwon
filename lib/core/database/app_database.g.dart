@@ -1210,8 +1210,23 @@ class $UserPreferencesTable extends UserPreferences
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isOnboardingCompletedMeta =
+      const VerificationMeta('isOnboardingCompleted');
   @override
-  List<GeneratedColumn> get $columns => [id, isDarkMode];
+  late final GeneratedColumn<bool> isOnboardingCompleted =
+      GeneratedColumn<bool>(
+        'is_onboarding_completed',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_onboarding_completed" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  @override
+  List<GeneratedColumn> get $columns => [id, isDarkMode, isOnboardingCompleted];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1236,6 +1251,15 @@ class $UserPreferencesTable extends UserPreferences
         ),
       );
     }
+    if (data.containsKey('is_onboarding_completed')) {
+      context.handle(
+        _isOnboardingCompletedMeta,
+        isOnboardingCompleted.isAcceptableOrUnknown(
+          data['is_onboarding_completed']!,
+          _isOnboardingCompletedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1253,6 +1277,10 @@ class $UserPreferencesTable extends UserPreferences
         DriftSqlType.bool,
         data['${effectivePrefix}is_dark_mode'],
       )!,
+      isOnboardingCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_onboarding_completed'],
+      )!,
     );
   }
 
@@ -1265,12 +1293,18 @@ class $UserPreferencesTable extends UserPreferences
 class UserPreference extends DataClass implements Insertable<UserPreference> {
   final int id;
   final bool isDarkMode;
-  const UserPreference({required this.id, required this.isDarkMode});
+  final bool isOnboardingCompleted;
+  const UserPreference({
+    required this.id,
+    required this.isDarkMode,
+    required this.isOnboardingCompleted,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['is_dark_mode'] = Variable<bool>(isDarkMode);
+    map['is_onboarding_completed'] = Variable<bool>(isOnboardingCompleted);
     return map;
   }
 
@@ -1278,6 +1312,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     return UserPreferencesCompanion(
       id: Value(id),
       isDarkMode: Value(isDarkMode),
+      isOnboardingCompleted: Value(isOnboardingCompleted),
     );
   }
 
@@ -1289,6 +1324,9 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     return UserPreference(
       id: serializer.fromJson<int>(json['id']),
       isDarkMode: serializer.fromJson<bool>(json['isDarkMode']),
+      isOnboardingCompleted: serializer.fromJson<bool>(
+        json['isOnboardingCompleted'],
+      ),
     );
   }
   @override
@@ -1297,12 +1335,18 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'isDarkMode': serializer.toJson<bool>(isDarkMode),
+      'isOnboardingCompleted': serializer.toJson<bool>(isOnboardingCompleted),
     };
   }
 
-  UserPreference copyWith({int? id, bool? isDarkMode}) => UserPreference(
+  UserPreference copyWith({
+    int? id,
+    bool? isDarkMode,
+    bool? isOnboardingCompleted,
+  }) => UserPreference(
     id: id ?? this.id,
     isDarkMode: isDarkMode ?? this.isDarkMode,
+    isOnboardingCompleted: isOnboardingCompleted ?? this.isOnboardingCompleted,
   );
   UserPreference copyWithCompanion(UserPreferencesCompanion data) {
     return UserPreference(
@@ -1310,6 +1354,9 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       isDarkMode: data.isDarkMode.present
           ? data.isDarkMode.value
           : this.isDarkMode,
+      isOnboardingCompleted: data.isOnboardingCompleted.present
+          ? data.isOnboardingCompleted.value
+          : this.isOnboardingCompleted,
     );
   }
 
@@ -1317,46 +1364,60 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
   String toString() {
     return (StringBuffer('UserPreference(')
           ..write('id: $id, ')
-          ..write('isDarkMode: $isDarkMode')
+          ..write('isDarkMode: $isDarkMode, ')
+          ..write('isOnboardingCompleted: $isOnboardingCompleted')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, isDarkMode);
+  int get hashCode => Object.hash(id, isDarkMode, isOnboardingCompleted);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserPreference &&
           other.id == this.id &&
-          other.isDarkMode == this.isDarkMode);
+          other.isDarkMode == this.isDarkMode &&
+          other.isOnboardingCompleted == this.isOnboardingCompleted);
 }
 
 class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
   final Value<int> id;
   final Value<bool> isDarkMode;
+  final Value<bool> isOnboardingCompleted;
   const UserPreferencesCompanion({
     this.id = const Value.absent(),
     this.isDarkMode = const Value.absent(),
+    this.isOnboardingCompleted = const Value.absent(),
   });
   UserPreferencesCompanion.insert({
     this.id = const Value.absent(),
     this.isDarkMode = const Value.absent(),
+    this.isOnboardingCompleted = const Value.absent(),
   });
   static Insertable<UserPreference> custom({
     Expression<int>? id,
     Expression<bool>? isDarkMode,
+    Expression<bool>? isOnboardingCompleted,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (isDarkMode != null) 'is_dark_mode': isDarkMode,
+      if (isOnboardingCompleted != null)
+        'is_onboarding_completed': isOnboardingCompleted,
     });
   }
 
-  UserPreferencesCompanion copyWith({Value<int>? id, Value<bool>? isDarkMode}) {
+  UserPreferencesCompanion copyWith({
+    Value<int>? id,
+    Value<bool>? isDarkMode,
+    Value<bool>? isOnboardingCompleted,
+  }) {
     return UserPreferencesCompanion(
       id: id ?? this.id,
       isDarkMode: isDarkMode ?? this.isDarkMode,
+      isOnboardingCompleted:
+          isOnboardingCompleted ?? this.isOnboardingCompleted,
     );
   }
 
@@ -1369,6 +1430,11 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     if (isDarkMode.present) {
       map['is_dark_mode'] = Variable<bool>(isDarkMode.value);
     }
+    if (isOnboardingCompleted.present) {
+      map['is_onboarding_completed'] = Variable<bool>(
+        isOnboardingCompleted.value,
+      );
+    }
     return map;
   }
 
@@ -1376,7 +1442,8 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
   String toString() {
     return (StringBuffer('UserPreferencesCompanion(')
           ..write('id: $id, ')
-          ..write('isDarkMode: $isDarkMode')
+          ..write('isDarkMode: $isDarkMode, ')
+          ..write('isOnboardingCompleted: $isOnboardingCompleted')
           ..write(')'))
         .toString();
   }
@@ -2464,9 +2531,17 @@ typedef $$AchievementsTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$UserPreferencesTableCreateCompanionBuilder =
-    UserPreferencesCompanion Function({Value<int> id, Value<bool> isDarkMode});
+    UserPreferencesCompanion Function({
+      Value<int> id,
+      Value<bool> isDarkMode,
+      Value<bool> isOnboardingCompleted,
+    });
 typedef $$UserPreferencesTableUpdateCompanionBuilder =
-    UserPreferencesCompanion Function({Value<int> id, Value<bool> isDarkMode});
+    UserPreferencesCompanion Function({
+      Value<int> id,
+      Value<bool> isDarkMode,
+      Value<bool> isOnboardingCompleted,
+    });
 
 class $$UserPreferencesTableFilterComposer
     extends Composer<_$AppDatabase, $UserPreferencesTable> {
@@ -2484,6 +2559,11 @@ class $$UserPreferencesTableFilterComposer
 
   ColumnFilters<bool> get isDarkMode => $composableBuilder(
     column: $table.isDarkMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isOnboardingCompleted => $composableBuilder(
+    column: $table.isOnboardingCompleted,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2506,6 +2586,11 @@ class $$UserPreferencesTableOrderingComposer
     column: $table.isDarkMode,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isOnboardingCompleted => $composableBuilder(
+    column: $table.isOnboardingCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserPreferencesTableAnnotationComposer
@@ -2522,6 +2607,11 @@ class $$UserPreferencesTableAnnotationComposer
 
   GeneratedColumn<bool> get isDarkMode => $composableBuilder(
     column: $table.isDarkMode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isOnboardingCompleted => $composableBuilder(
+    column: $table.isOnboardingCompleted,
     builder: (column) => column,
   );
 }
@@ -2565,14 +2655,21 @@ class $$UserPreferencesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<bool> isDarkMode = const Value.absent(),
-              }) => UserPreferencesCompanion(id: id, isDarkMode: isDarkMode),
+                Value<bool> isOnboardingCompleted = const Value.absent(),
+              }) => UserPreferencesCompanion(
+                id: id,
+                isDarkMode: isDarkMode,
+                isOnboardingCompleted: isOnboardingCompleted,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<bool> isDarkMode = const Value.absent(),
+                Value<bool> isOnboardingCompleted = const Value.absent(),
               }) => UserPreferencesCompanion.insert(
                 id: id,
                 isDarkMode: isDarkMode,
+                isOnboardingCompleted: isOnboardingCompleted,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

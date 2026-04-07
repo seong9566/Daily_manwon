@@ -49,6 +49,8 @@ class UserPreferences extends Table {
   IntColumn get id => integer().withDefault(const Constant(1))();
   BoolColumn get isDarkMode =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get isOnboardingCompleted =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -87,7 +89,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -100,6 +102,11 @@ class AppDatabase extends _$AppDatabase {
           // schema v3: NotificationSettings 테이블 추가
           if (from < 3) {
             await m.createTable(notificationSettings);
+          }
+          // schema v4: isOnboardingCompleted 컬럼 추가
+          if (from < 4) {
+            await m.addColumn(
+                userPreferences, userPreferences.isOnboardingCompleted);
           }
         },
       );

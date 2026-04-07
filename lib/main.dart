@@ -10,6 +10,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/widget_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'features/settings/data/datasources/settings_local_datasource.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,11 +26,20 @@ void main() async {
 
   // 홈 위젯 서비스 초기화
   await GetIt.instance<WidgetService>().init();
-  runApp(const ProviderScope(child: DailyManwonApp()));
+
+  // 온보딩 완료 여부 확인
+  final isOnboardingCompleted = await GetIt.instance<SettingsLocalDatasource>()
+      .getIsOnboardingCompleted();
+
+  runApp(ProviderScope(
+    child: DailyManwonApp(isOnboardingCompleted: isOnboardingCompleted),
+  ));
 }
 
 class DailyManwonApp extends ConsumerStatefulWidget {
-  const DailyManwonApp({super.key});
+  const DailyManwonApp({super.key, required this.isOnboardingCompleted});
+
+  final bool isOnboardingCompleted;
 
   @override
   ConsumerState<DailyManwonApp> createState() => _DailyManwonAppState();
@@ -41,7 +51,8 @@ class _DailyManwonAppState extends ConsumerState<DailyManwonApp> {
   @override
   void initState() {
     super.initState();
-    _router = createRouter();
+    _router = createRouter(
+        isOnboardingCompleted: widget.isOnboardingCompleted);
     // DB에서 저장된 다크모드 설정을 로드
     Future.microtask(() {
       ref.read(appThemeModeProvider.notifier).loadFromDatabase();

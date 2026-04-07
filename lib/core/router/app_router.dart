@@ -21,10 +21,11 @@ abstract class AppRoutes {
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-GoRouter createRouter() {
+GoRouter createRouter({bool isOnboardingCompleted = true}) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoutes.home,
+    initialLocation:
+        isOnboardingCompleted ? AppRoutes.home : AppRoutes.onboarding,
     routes: [
       // 바텀 네비게이션 탭 (ShellRoute)
       StatefulShellRoute.indexedStack(
