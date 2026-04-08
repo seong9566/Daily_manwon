@@ -83,4 +83,28 @@ abstract final class AppDateUtils {
 
   /// 주어진 날짜가 오늘인지 확인한다
   static bool isToday(DateTime date) => isSameDay(date, DateTime.now());
+
+  // -------------------------
+  // 주간 계산
+  // -------------------------
+
+  /// 주어진 날짜가 속한 주의 시작일(일요일)을 반환한다
+  static DateTime weekStartOf(DateTime date) {
+    final day = DateTime(date.year, date.month, date.day);
+    return day.subtract(Duration(days: day.weekday % 7));
+  }
+
+  /// 주간 뷰에 표시할 7일 리스트 (일요일 시작)
+  static List<DateTime> weekDaysFrom(DateTime weekStart) {
+    return List.generate(7, (i) => weekStart.add(Duration(days: i)));
+  }
+
+  /// 주간 범위 레이블 반환 (예: "4. 1 ~ 4. 7", "3. 29 ~ 4. 4")
+  static String weekRangeLabel(DateTime weekStart) {
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    if (weekStart.month == weekEnd.month) {
+      return '${weekStart.month}. ${weekStart.day} ~ ${weekEnd.day}';
+    }
+    return '${weekStart.month}. ${weekStart.day} ~ ${weekEnd.month}. ${weekEnd.day}';
+  }
 }

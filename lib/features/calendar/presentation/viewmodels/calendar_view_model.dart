@@ -1,8 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../domain/usecases/get_monthly_calendar_data_use_case.dart';
+
+/// 캘린더 뷰 모드
+enum CalendarViewMode { monthly, weekly }
 
 /// 캘린더 화면 상태 모델
 class CalendarState {
@@ -30,6 +36,12 @@ class CalendarState {
   /// 인접 달 캐시 갱신 시 증가 — UI 재빌드 유발용
   final int cacheVersion;
 
+  /// 현재 뷰 모드 (월간/주간)
+  final CalendarViewMode viewMode;
+
+  /// 주간 뷰에서 현재 표시 중인 주의 시작일 (일요일)
+  final DateTime selectedWeekStart;
+
   const CalendarState({
     required this.selectedMonth,
     this.selectedDate,
@@ -39,6 +51,8 @@ class CalendarState {
     this.isLoading = false,
     this.errorMessage,
     this.cacheVersion = 0,
+    this.viewMode = CalendarViewMode.monthly,
+    required this.selectedWeekStart,
   });
 
   /// 선택된 날짜의 지출 목록 — 편의 getter
@@ -58,6 +72,8 @@ class CalendarState {
     String? errorMessage,
     bool clearError = false,
     int? cacheVersion,
+    CalendarViewMode? viewMode,
+    DateTime? selectedWeekStart,
   }) {
     return CalendarState(
       selectedMonth: selectedMonth ?? this.selectedMonth,
@@ -70,6 +86,8 @@ class CalendarState {
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       cacheVersion: cacheVersion ?? this.cacheVersion,
+      viewMode: viewMode ?? this.viewMode,
+      selectedWeekStart: selectedWeekStart ?? this.selectedWeekStart,
     );
   }
 }
@@ -108,8 +126,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
     final initialState = CalendarState(
       selectedMonth: DateTime(now.year, now.month, 1),
       selectedDate: DateTime(now.year, now.month, now.day),
+      selectedWeekStart: AppDateUtils.weekStartOf(now),
     );
-    Future.microtask(loadMonthData);
+    Future.microtask(() async {
+      await _restoreViewMode();
+      await loadMonthData();
+    });
     return initialState;
   }
 
@@ -215,6 +237,95 @@ class CalendarViewModel extends Notifier<CalendarState> {
           errorMessage: '데이터를 불러오지 못했습니다.',
         );
       }
+    } finally {
+      _inFlightLoads.remove(key);
+    }
+  }
+
+  /// monthly ↔ weekly 전환
+  void toggleViewMode() {
+    final newMode = state.viewMode == CalendarViewMode.monthly
+        ? CalendarViewMode.weekly
+        : CalendarViewMode.monthly;
+    final weekStart = state.selectedDate != null
+        ? AppDateUtils.weekStartOf(state.selectedDate!)
+        : AppDateUtils.weekStartOf(DateTime.now());
+    state = state.copyWith(viewMode: newMode, selectedWeekStart: weekStart);
+    _saveViewMode(newMode);
+  }
+
+  /// 주 단위 이동 (delta: +1 다음 주, -1 이전 주)
+  Future<void> changeWeek(int delta) async {
+    final newWeekStart = state.selectedWeekStart.add(Duration(days: delta * 7));
+    final weekEnd = newWeekStart.add(const Duration(days: 6));
+    final key1 = _cacheKey(newWeekStart.year, newWeekStart.month);
+    final key2 = _cacheKey(weekEnd.year, weekEnd.month);
+    if (!_expenseCache.containsKey(key1)) {
+      await _loadMonth(newWeekStart.year, newWeekStart.month);
+    }
+    if (key1 != key2 && !_expenseCache.containsKey(key2)) {
+      await _loadMonth(weekEnd.year, weekEnd.month);
+    }
+    state = state.copyWith(
+      selectedWeekStart: newWeekStart,
+      selectedDate: newWeekStart,
+    );
+  }
+
+  /// 현재 주의 지출 요약 계산 (캐시 활용, 별도 DB 쿼리 없음)
+  ({int totalSpent, int dailyAverage, int savingDays, int totalDays})
+      getWeeklySummary() {
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final weekDays = AppDateUtils.weekDaysFrom(state.selectedWeekStart);
+    int totalSpent = 0, savingDays = 0, countedDays = 0;
+    for (final day in weekDays) {
+      if (day.isAfter(today)) continue;
+      countedDays++;
+      final expenses = _expenseCache[_cacheKey(day.year, day.month)]?[day] ?? [];
+      final dayTotal = expenses.fold<int>(0, (s, e) => s + e.amount);
+      totalSpent += dayTotal;
+      if (dayTotal == 0 || dayTotal <= AppConstants.dailyBudget) savingDays++;
+    }
+    return (
+      totalSpent: totalSpent,
+      dailyAverage: countedDays > 0 ? totalSpent ~/ countedDays : 0,
+      savingDays: savingDays,
+      totalDays: countedDays,
+    );
+  }
+
+  /// 뷰 모드를 SharedPreferences에 저장한다
+  Future<void> _saveViewMode(CalendarViewMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('calendar_view_mode', mode.name);
+  }
+
+  /// 저장된 뷰 모드를 복원한다
+  Future<void> _restoreViewMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('calendar_view_mode');
+    if (saved != null) {
+      final savedMode = CalendarViewMode.values.firstWhere(
+        (m) => m.name == saved,
+        orElse: () => CalendarViewMode.monthly,
+      );
+      state = state.copyWith(viewMode: savedMode);
+    }
+  }
+
+  /// 특정 월 데이터를 캐시에 로드한다 (changeWeek 내부 사용)
+  Future<void> _loadMonth(int year, int month) async {
+    final key = _cacheKey(year, month);
+    if (_inFlightLoads.contains(key)) return;
+    _inFlightLoads.add(key);
+    try {
+      final expenses =
+          await _useCase.getMonthlyExpenses(year: year, month: month);
+      _expenseCache[key] = expenses;
     } finally {
       _inFlightLoads.remove(key);
     }
