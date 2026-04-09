@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_constants.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../expense/domain/entities/expense.dart';
+import '../../../home/presentation/widgets/expense_list_item.dart';
 
 /// 선택된 날짜의 지출 내역 섹션
 /// 캘린더 하단에 표시되며, 날짜 헤더 + 총액 + 지출 리스트로 구성된다
@@ -92,55 +93,9 @@ class DailyExpenseDetail extends StatelessWidget {
             ),
             itemBuilder: (context, index) {
               final expense = expenses[index];
-              final categoryIndex = expense.category.clamp(
-                0,
-                ExpenseCategory.values.length - 1,
-              );
-              final category = ExpenseCategory.values[categoryIndex];
-
-              return Semantics(
-                label: '${category.label} ${CurrencyFormatter.formatWithWon(expense.amount)}원',
-                button: onExpenseTap != null,
-                child: InkWell(
-                  onTap: onExpenseTap != null ? () => onExpenseTap!(expense) : null,
-                  child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                  children: [
-                    // 카테고리 이미지
-                    Image.asset(
-                      category.assetPath,
-                      width: 24,
-                      height: 24,
-                      color: isDark ? AppColors.white : AppColors.black,
-                    ),
-                    const SizedBox(width: 12),
-
-                    // 카테고리 이름
-                    Text(
-                      category.label,
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: textMainColor,
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    // 금액
-                    Text(
-                      '-${CurrencyFormatter.formatWithWon(expense.amount)}',
-                      style: AppTypography.bodyLarge.copyWith(
-                        color: textMainColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                ),
-                ),
+              return ExpenseListItem(
+                expense: expense,
+                onTap: onExpenseTap != null ? () => onExpenseTap!(expense) : null,
               );
             },
           ),
