@@ -33,4 +33,12 @@ class CalendarRepositoryImpl implements CalendarRepository {
   Future<int> getTotalSuccessCount() {
     return _datasource.getTotalSuccessCount();
   }
+
+  @override
+  Future<Map<DateTime, int>> getMonthlyBaseAmounts({
+    required int year,
+    required int month,
+  }) {
+    return _datasource.getMonthlyBaseAmounts(year: year, month: month);
+  }
 }

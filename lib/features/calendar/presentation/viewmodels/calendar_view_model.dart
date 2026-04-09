@@ -21,6 +21,9 @@ class CalendarState {
   /// 현재 월의 일별 지출 데이터
   final Map<DateTime, List<ExpenseEntity>> monthlyExpenses;
 
+  /// 현재 월의 일별 baseAmount 데이터 (DailyBudgets.baseAmount)
+  final Map<DateTime, int> monthlyBaseAmounts;
+
   /// 오늘까지 연속 성공일 수
   final int streakDays;
 
@@ -46,6 +49,7 @@ class CalendarState {
     required this.selectedMonth,
     this.selectedDate,
     this.monthlyExpenses = const {},
+    this.monthlyBaseAmounts = const {},
     this.streakDays = 0,
     this.successCount = 0,
     this.isLoading = false,
@@ -66,6 +70,7 @@ class CalendarState {
     DateTime? selectedDate,
     bool clearSelectedDate = false,
     Map<DateTime, List<ExpenseEntity>>? monthlyExpenses,
+    Map<DateTime, int>? monthlyBaseAmounts,
     int? streakDays,
     int? successCount,
     bool? isLoading,
@@ -81,6 +86,7 @@ class CalendarState {
           ? null
           : (selectedDate ?? this.selectedDate),
       monthlyExpenses: monthlyExpenses ?? this.monthlyExpenses,
+      monthlyBaseAmounts: monthlyBaseAmounts ?? this.monthlyBaseAmounts,
       streakDays: streakDays ?? this.streakDays,
       successCount: successCount ?? this.successCount,
       isLoading: isLoading ?? this.isLoading,
@@ -101,6 +107,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 월별 지출 캐시: key = "year-month"
   final Map<String, Map<DateTime, List<ExpenseEntity>>> _expenseCache = {};
 
+  /// 월별 baseAmount 캐시: key = "year-month"
+  final Map<String, Map<DateTime, int>> _baseAmountCache = {};
+
   /// 월별 선택 날짜 캐시: 월 이동 후 복귀 시 이전 선택 날짜 복원용
   final Map<String, DateTime> _selectedDateCache = {};
 
@@ -117,6 +126,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
   CalendarState build() {
     // invalidate 재호출 시 stale 캐시가 남지 않도록 항상 초기화
     _expenseCache.clear();
+    _baseAmountCache.clear();
     _selectedDateCache.clear();
     _cachedStreak = null;
     _cachedSuccessCount = null;
@@ -139,6 +149,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 캐시 미스 시 빈 Map을 반환한다 (UI 프리렌더링용).
   Map<DateTime, List<ExpenseEntity>> getCachedExpenses(int year, int month) {
     return _expenseCache[_cacheKey(year, month)] ?? const {};
+  }
+
+  /// 특정 월의 baseAmount 캐시를 반환한다.
+  /// 캐시 미스 시 빈 Map을 반환한다 (fallback은 UI에서 AppConstants.dailyBudget 사용).
+  Map<DateTime, int> getCachedBaseAmounts(int year, int month) {
+    return _baseAmountCache[_cacheKey(year, month)] ?? const {};
   }
 
   /// 월을 delta만큼 이동한다 (양수 = 다음 달, 음수 = 이전 달)
@@ -189,6 +205,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
     if (!forceRefresh && _expenseCache.containsKey(key)) {
       state = state.copyWith(
         monthlyExpenses: _expenseCache[key]!,
+        monthlyBaseAmounts: _baseAmountCache[key] ?? const {},
         streakDays: _cachedStreak ?? state.streakDays,
         successCount: _cachedSuccessCount ?? state.successCount,
         isLoading: false,
@@ -202,8 +219,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final (expenses, streak, successCount) = await (
+      final (expenses, baseAmounts, streak, successCount) = await (
         _useCase.getMonthlyExpenses(year: year, month: month),
+        _useCase.getMonthlyBaseAmounts(year: year, month: month),
         _cachedStreak != null
             ? Future.value(_cachedStreak!)
             : _useCase.getStreakDays(),
@@ -213,6 +231,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       ).wait;
 
       _expenseCache[key] = expenses;
+      _baseAmountCache[key] = baseAmounts;
       if (state.selectedMonth.year != year ||
           state.selectedMonth.month != month) {
         return;
@@ -223,6 +242,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
 
       state = state.copyWith(
         monthlyExpenses: expenses,
+        monthlyBaseAmounts: baseAmounts,
         streakDays: streak,
         successCount: successCount,
         isLoading: false,
@@ -288,7 +308,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
       final expenses = _expenseCache[_cacheKey(day.year, day.month)]?[day] ?? [];
       final dayTotal = expenses.fold<int>(0, (s, e) => s + e.amount);
       totalSpent += dayTotal;
-      if (dayTotal == 0 || dayTotal <= AppConstants.dailyBudget) savingDays++;
+      final dayBudget = _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
+          ?? AppConstants.dailyBudget;
+      if (dayTotal == 0 || dayTotal <= dayBudget) savingDays++;
     }
     return (
       totalSpent: totalSpent,
@@ -323,9 +345,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
     if (_inFlightLoads.contains(key)) return;
     _inFlightLoads.add(key);
     try {
-      final expenses =
-          await _useCase.getMonthlyExpenses(year: year, month: month);
+      final (expenses, baseAmounts) = await (
+        _useCase.getMonthlyExpenses(year: year, month: month),
+        _useCase.getMonthlyBaseAmounts(year: year, month: month),
+      ).wait;
       _expenseCache[key] = expenses;
+      _baseAmountCache[key] = baseAmounts;
     } finally {
       _inFlightLoads.remove(key);
     }
@@ -342,10 +367,13 @@ class CalendarViewModel extends Notifier<CalendarState> {
       }
 
       _inFlightLoads.add(key);
-      _useCase
-          .getMonthlyExpenses(year: dt.year, month: dt.month)
-          .then((expenses) {
-            _expenseCache[key] = expenses;
+      Future.wait([
+        _useCase.getMonthlyExpenses(year: dt.year, month: dt.month),
+        _useCase.getMonthlyBaseAmounts(year: dt.year, month: dt.month),
+      ]).then((results) {
+            _expenseCache[key] =
+                results[0] as Map<DateTime, List<ExpenseEntity>>;
+            _baseAmountCache[key] = results[1] as Map<DateTime, int>;
             // 인접 달 그리드에 데이터가 반영되도록 state 변경 유발
             state = state.copyWith(cacheVersion: state.cacheVersion + 1);
           })

@@ -72,7 +72,7 @@ class _TabItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? Colors.white : AppColors.primary)
+              ? (isDark ? AppColors.white : AppColors.primary)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
@@ -81,7 +81,7 @@ class _TabItem extends StatelessWidget {
             label,
             style: AppTypography.labelMedium.copyWith(
               color: isSelected
-                  ? (isDark ? Colors.black : Colors.white)
+                  ? (isDark ? AppColors.black : AppColors.white)
                   : (isDark ? AppColors.darkTextSub : AppColors.textSub),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             ),

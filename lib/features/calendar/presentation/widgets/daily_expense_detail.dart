@@ -15,10 +15,14 @@ class DailyExpenseDetail extends StatelessWidget {
   /// 해당 날짜의 지출 목록
   final List<ExpenseEntity> expenses;
 
+  /// 지출 항목 탭 시 호출되는 콜백
+  final void Function(ExpenseEntity expense)? onExpenseTap;
+
   const DailyExpenseDetail({
     super.key,
     required this.date,
     required this.expenses,
+    this.onExpenseTap,
   });
 
   @override
@@ -96,12 +100,15 @@ class DailyExpenseDetail extends StatelessWidget {
 
               return Semantics(
                 label: '${category.label} ${CurrencyFormatter.formatWithWon(expense.amount)}원',
-                child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: Row(
+                button: onExpenseTap != null,
+                child: InkWell(
+                  onTap: onExpenseTap != null ? () => onExpenseTap!(expense) : null,
+                  child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Row(
                   children: [
                     // 카테고리 이모지
                     Text(
@@ -129,6 +136,7 @@ class DailyExpenseDetail extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
                 ),
                 ),
               );

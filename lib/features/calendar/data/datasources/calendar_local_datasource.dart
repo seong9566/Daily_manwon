@@ -57,10 +57,9 @@ class CalendarLocalDatasource {
   }
 
   /// 오늘까지 거슬러 올라가며 연속 성공일 수를 계산한다
-  /// 성공 기준: 해당일 총 지출 합계 ≤ dailyBudget(10,000원)
+  /// 성공 기준: 해당일 총 지출 합계 ≤ DailyBudgets.baseAmount (없으면 AppConstants.dailyBudget)
   /// 단, 지출이 없는 날은 연속 성공에 포함하지 않는다 (기록이 없으면 집계 대상 아님)
   Future<int> getStreakDays() async {
-    // 모든 지출을 오래된 것부터 가져와 일별 합계를 계산한다
     final allRows = await (_db.select(_db.expenses)
           ..orderBy([(e) => OrderingTerm.desc(e.createdAt)]))
         .get();
@@ -78,6 +77,14 @@ class CalendarLocalDatasource {
       dailyTotals[dayKey] = (dailyTotals[dayKey] ?? 0) + row.amount;
     }
 
+    // 날짜별 baseAmount 조회 (fallback: AppConstants.dailyBudget)
+    final budgetRows = await _db.select(_db.dailyBudgets).get();
+    final Map<DateTime, int> baseAmounts = {};
+    for (final row in budgetRows) {
+      final dayKey = DateTime(row.date.year, row.date.month, row.date.day);
+      baseAmounts[dayKey] = row.baseAmount;
+    }
+
     // 오늘부터 과거로 거슬러 올라가며 연속 성공 계산
     int streak = 0;
     DateTime cursor = DateTime(
@@ -92,7 +99,8 @@ class CalendarLocalDatasource {
         // 지출 기록이 없는 날 — 연속 끊김
         break;
       }
-      if (total <= AppConstants.dailyBudget) {
+      final budget = baseAmounts[cursor] ?? AppConstants.dailyBudget;
+      if (total <= budget) {
         streak++;
         cursor = cursor.subtract(const Duration(days: 1));
       } else {
@@ -121,16 +129,48 @@ class CalendarLocalDatasource {
       dailyTotals[dayKey] = (dailyTotals[dayKey] ?? 0) + row.amount;
     }
 
-    // 오늘 이전(오늘 포함)이고 예산 이하인 날만 성공으로 집계
+    // 날짜별 baseAmount 조회 (fallback: AppConstants.dailyBudget)
+    final budgetRows = await _db.select(_db.dailyBudgets).get();
+    final Map<DateTime, int> baseAmounts = {};
+    for (final row in budgetRows) {
+      final dayKey = DateTime(row.date.year, row.date.month, row.date.day);
+      baseAmounts[dayKey] = row.baseAmount;
+    }
+
+    // 오늘 이전(오늘 포함)이고 해당 날 예산 이하인 날만 성공으로 집계
     final today = DateTime(
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day,
     );
 
-    return dailyTotals.entries
-        .where((e) =>
-            !e.key.isAfter(today) && e.value <= AppConstants.dailyBudget)
-        .length;
+    return dailyTotals.entries.where((e) {
+      if (e.key.isAfter(today)) return false;
+      final budget = baseAmounts[e.key] ?? AppConstants.dailyBudget;
+      return e.value <= budget;
+    }).length;
+  }
+
+  /// 특정 월의 일별 baseAmount 맵을 반환한다
+  /// 키: 날짜(시분초=0), 값: baseAmount (DailyBudgets row가 없는 날은 포함되지 않음)
+  Future<Map<DateTime, int>> getMonthlyBaseAmounts({
+    required int year,
+    required int month,
+  }) async {
+    final start = DateTime(year, month, 1);
+    final end = DateTime(year, month + 1, 1);
+
+    final rows = await (_db.select(_db.dailyBudgets)
+          ..where((t) =>
+              t.date.isBiggerOrEqualValue(start) &
+              t.date.isSmallerThanValue(end)))
+        .get();
+
+    final Map<DateTime, int> result = {};
+    for (final row in rows) {
+      final dayKey = DateTime(row.date.year, row.date.month, row.date.day);
+      result[dayKey] = row.baseAmount;
+    }
+    return result;
   }
 }

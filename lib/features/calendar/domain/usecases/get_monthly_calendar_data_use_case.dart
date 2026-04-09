@@ -23,4 +23,11 @@ class GetMonthlyCalendarDataUseCase {
 
   /// 전체 기간 중 성공한 날의 수를 반환한다
   Future<int> getTotalSuccessCount() => _repository.getTotalSuccessCount();
+
+  /// 특정 월의 일별 baseAmount 맵을 반환한다
+  Future<Map<DateTime, int>> getMonthlyBaseAmounts({
+    required int year,
+    required int month,
+  }) =>
+      _repository.getMonthlyBaseAmounts(year: year, month: month);
 }

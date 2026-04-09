@@ -148,10 +148,14 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
 
           int? totalAmount;
           bool? isSuccess;
+          final monthBaseAmounts =
+              notifier.getCachedBaseAmounts(day.year, day.month);
+          final dayBudget =
+              monthBaseAmounts[day] ?? AppConstants.dailyBudget;
           if (!isFuture) {
             if (dayExpenses != null && dayExpenses.isNotEmpty) {
               totalAmount = dayExpenses.fold<int>(0, (s, e) => s + e.amount);
-              isSuccess = totalAmount <= AppConstants.dailyBudget;
+              isSuccess = totalAmount <= dayBudget;
             }
           }
 
@@ -160,7 +164,7 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
           // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
           CharacterMood? mood;
           if (!isFuture && totalAmount != null) {
-            mood = calculateMood(AppConstants.dailyBudget, totalAmount);
+            mood = calculateMood(dayBudget, totalAmount);
           }
 
           return Expanded(

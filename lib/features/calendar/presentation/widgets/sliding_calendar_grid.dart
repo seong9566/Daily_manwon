@@ -195,6 +195,16 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
                               currentMonth.month + i,
                             ).month,
                           ),
+                          monthlyBaseAmounts: notifier.getCachedBaseAmounts(
+                            DateTime(
+                              currentMonth.year,
+                              currentMonth.month + i,
+                            ).year,
+                            DateTime(
+                              currentMonth.year,
+                              currentMonth.month + i,
+                            ).month,
+                          ),
                           selectedWeekStart: widget.state.selectedWeekStart,
                         ),
                         isDark: widget.isDark,
@@ -267,15 +277,17 @@ class _CalendarGrid extends StatelessWidget {
           final expenses = state.monthlyExpenses[cellDate];
           bool? isSuccess;
           int? totalSpent;
+          final baseAmount = state.monthlyBaseAmounts[cellDate]
+              ?? AppConstants.dailyBudget;
           if (expenses != null && expenses.isNotEmpty) {
             totalSpent = expenses.fold<int>(0, (sum, e) => sum + e.amount);
-            isSuccess = totalSpent <= AppConstants.dailyBudget;
+            isSuccess = totalSpent <= baseAmount;
           }
 
           // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
           CharacterMood? mood;
           if (!isFuture && totalSpent != null) {
-            mood = calculateMood(AppConstants.dailyBudget, totalSpent);
+            mood = calculateMood(baseAmount, totalSpent);
           }
 
           return CalendarDayCell(

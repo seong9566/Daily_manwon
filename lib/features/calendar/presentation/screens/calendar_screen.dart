@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_date_utils.dart';
+import '../../../expense/presentation/screens/expense_add_screen.dart';
 import '../viewmodels/calendar_view_model.dart';
 import '../widgets/daily_expense_detail.dart';
 import '../widgets/sliding_calendar_grid.dart';
@@ -158,6 +159,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         DailyExpenseDetail(
                           date: state.selectedDate!,
                           expenses: state.selectedDateExpenses,
+                          onExpenseTap: (expense) {
+                            showExpenseAddBottomSheet(context, expense: expense);
+                          },
                         ),
 
                       const SizedBox(height: 24),
