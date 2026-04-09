@@ -95,8 +95,8 @@ class _DateCircle extends StatelessWidget {
     BoxBorder? border;
 
     if (isSelected) {
-      bgColor = isDark ? Colors.white : AppColors.primary;
-      textColor = isDark ? Colors.black : Colors.white;
+      bgColor = isDark ? AppColors.white : AppColors.primary;
+      textColor = isDark ? AppColors.black : AppColors.white;
     } else if (isToday) {
       bgColor = isDark ? AppColors.darkCard : AppColors.primaryLight;
       textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;

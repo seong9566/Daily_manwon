@@ -135,7 +135,7 @@ class _OnboardingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final textMain = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSub = isDark ? AppColors.darkTextSub : AppColors.textSub;
-    final primaryColor = isDark ? Colors.white : AppColors.primary;
+    final primaryColor = isDark ? AppColors.white : AppColors.primary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -180,7 +180,7 @@ class _OnboardingPage extends StatelessWidget {
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
-                foregroundColor: isDark ? AppColors.primary : Colors.white,
+                foregroundColor: isDark ? AppColors.primary : AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -192,13 +192,13 @@ class _OnboardingPage extends StatelessWidget {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: isDark ? AppColors.primary : Colors.white,
+                        color: isDark ? AppColors.primary : AppColors.white,
                       ),
                     )
                   : Text(
                       buttonLabel,
                       style: AppTypography.bodyLarge.copyWith(
-                        color: isDark ? AppColors.primary : Colors.white,
+                        color: isDark ? AppColors.primary : AppColors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -223,7 +223,7 @@ class _DotIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = isDark ? Colors.white : AppColors.primary;
+    final activeColor = isDark ? AppColors.white : AppColors.primary;
     final inactiveColor =
         isDark ? AppColors.darkDivider : AppColors.border;
 

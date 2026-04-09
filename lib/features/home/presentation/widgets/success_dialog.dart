@@ -21,7 +21,7 @@ void showSuccessDialog(
 }) {
   showDialog(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: AppColors.black.withValues(alpha: 0.54),
     barrierDismissible: false,
     builder: (_) => _SuccessDialog(
       remainingAmount: remainingAmount,
@@ -94,7 +94,7 @@ class _SuccessDialogState extends State<_SuccessDialog>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
+                    color: AppColors.black.withValues(alpha: 0.15),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -273,7 +273,7 @@ class _RewardRow extends StatelessWidget {
         Text(
           value,
           style: AppTypography.bodyLarge.copyWith(
-            color: isDark ? Colors.white : AppColors.primary,
+            color: isDark ? AppColors.white : AppColors.primary,
             fontWeight: FontWeight.w700,
           ),
         ),

@@ -97,11 +97,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             content: Text(
               '새 칭호 획득! ${next.newlyAchievedTitle}',
               style: AppTypography.bodyMedium.copyWith(
-                color: isDark ? Colors.black : Colors.white,
+                color: isDark ? AppColors.black : AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            backgroundColor: isDark ? Colors.white : AppColors.budgetComfortable,
+            backgroundColor: isDark ? AppColors.white : AppColors.budgetComfortable,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -192,8 +192,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // FAB — 라이트: black(primary) + white 아이콘, 다크: white + black 아이콘
         floatingActionButton: FloatingActionButton(
           tooltip: '지출 추가',
-          backgroundColor: isDark ? Colors.white : AppColors.primary,
-          foregroundColor: isDark ? Colors.black : Colors.white,
+          backgroundColor: isDark ? AppColors.white : AppColors.primary,
+          foregroundColor: isDark ? AppColors.black : AppColors.white,
           shape: const CircleBorder(),
           onPressed: () => showExpenseAddBottomSheet(context),
           child: const Icon(Icons.add, size: 28),

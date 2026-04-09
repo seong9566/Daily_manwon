@@ -150,7 +150,7 @@ class BudgetCatIndicator extends StatelessWidget {
             .then(delay: 0.ms)
             .shakeX(hz: 6, amount: 6, duration: 500.ms)
             .shimmer(
-              color: Colors.red.withValues(alpha: 0.3),
+              color: AppColors.budgetDanger.withValues(alpha: 0.3),
               duration: 500.ms,
             );
     }

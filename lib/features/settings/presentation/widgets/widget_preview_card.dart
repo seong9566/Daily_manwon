@@ -48,8 +48,8 @@ class WidgetPreviewCard extends StatelessWidget {
           BoxShadow(
             // 다크모드에서는 그림자를 더 옅게 처리
             color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.08),
+                ? AppColors.black.withValues(alpha: 0.3)
+                : AppColors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
