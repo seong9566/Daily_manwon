@@ -16,6 +16,7 @@ class Expenses extends Table {
 /// 일별 예산 테이블
 /// - date는 unique 제약으로 하루에 하나의 예산만 존재
 /// - carryOver: 전날 절약한 금액이 이월된 값
+/// - mood: 해당 날의 고양이 감정 상태 (CharacterMood.name, nullable)
 class DailyBudgets extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime().unique()();
@@ -23,6 +24,7 @@ class DailyBudgets extends Table {
       integer().withDefault(const Constant(10000))(); // 기본 1만원
   IntColumn get carryOver =>
       integer().withDefault(const Constant(0))(); // 이월 금액
+  TextColumn get mood => text().nullable()();
 }
 
 /// 도토리 테이블
@@ -89,7 +91,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -107,6 +109,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.addColumn(
                 userPreferences, userPreferences.isOnboardingCompleted);
+          }
+          // schema v5: DailyBudgets.mood 컬럼 추가
+          if (from < 5) {
+            await m.addColumn(dailyBudgets, dailyBudgets.mood);
           }
         },
       );

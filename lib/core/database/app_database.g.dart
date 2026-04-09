@@ -395,8 +395,17 @@ class $DailyBudgetsTable extends DailyBudgets
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _moodMeta = const VerificationMeta('mood');
   @override
-  List<GeneratedColumn> get $columns => [id, date, baseAmount, carryOver];
+  late final GeneratedColumn<String> mood = GeneratedColumn<String>(
+    'mood',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, date, baseAmount, carryOver, mood];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -432,6 +441,12 @@ class $DailyBudgetsTable extends DailyBudgets
         carryOver.isAcceptableOrUnknown(data['carry_over']!, _carryOverMeta),
       );
     }
+    if (data.containsKey('mood')) {
+      context.handle(
+        _moodMeta,
+        mood.isAcceptableOrUnknown(data['mood']!, _moodMeta),
+      );
+    }
     return context;
   }
 
@@ -457,6 +472,10 @@ class $DailyBudgetsTable extends DailyBudgets
         DriftSqlType.int,
         data['${effectivePrefix}carry_over'],
       )!,
+      mood: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mood'],
+      ),
     );
   }
 
@@ -471,11 +490,13 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
   final DateTime date;
   final int baseAmount;
   final int carryOver;
+  final String? mood;
   const DailyBudget({
     required this.id,
     required this.date,
     required this.baseAmount,
     required this.carryOver,
+    this.mood,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -484,6 +505,9 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
     map['date'] = Variable<DateTime>(date);
     map['base_amount'] = Variable<int>(baseAmount);
     map['carry_over'] = Variable<int>(carryOver);
+    if (!nullToAbsent || mood != null) {
+      map['mood'] = Variable<String>(mood);
+    }
     return map;
   }
 
@@ -493,6 +517,7 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
       date: Value(date),
       baseAmount: Value(baseAmount),
       carryOver: Value(carryOver),
+      mood: mood == null && nullToAbsent ? const Value.absent() : Value(mood),
     );
   }
 
@@ -506,6 +531,7 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
       date: serializer.fromJson<DateTime>(json['date']),
       baseAmount: serializer.fromJson<int>(json['baseAmount']),
       carryOver: serializer.fromJson<int>(json['carryOver']),
+      mood: serializer.fromJson<String?>(json['mood']),
     );
   }
   @override
@@ -516,6 +542,7 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
       'date': serializer.toJson<DateTime>(date),
       'baseAmount': serializer.toJson<int>(baseAmount),
       'carryOver': serializer.toJson<int>(carryOver),
+      'mood': serializer.toJson<String?>(mood),
     };
   }
 
@@ -524,11 +551,13 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
     DateTime? date,
     int? baseAmount,
     int? carryOver,
+    Value<String?> mood = const Value.absent(),
   }) => DailyBudget(
     id: id ?? this.id,
     date: date ?? this.date,
     baseAmount: baseAmount ?? this.baseAmount,
     carryOver: carryOver ?? this.carryOver,
+    mood: mood.present ? mood.value : this.mood,
   );
   DailyBudget copyWithCompanion(DailyBudgetsCompanion data) {
     return DailyBudget(
@@ -538,6 +567,7 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
           ? data.baseAmount.value
           : this.baseAmount,
       carryOver: data.carryOver.present ? data.carryOver.value : this.carryOver,
+      mood: data.mood.present ? data.mood.value : this.mood,
     );
   }
 
@@ -547,13 +577,14 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
           ..write('id: $id, ')
           ..write('date: $date, ')
           ..write('baseAmount: $baseAmount, ')
-          ..write('carryOver: $carryOver')
+          ..write('carryOver: $carryOver, ')
+          ..write('mood: $mood')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, date, baseAmount, carryOver);
+  int get hashCode => Object.hash(id, date, baseAmount, carryOver, mood);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -561,7 +592,8 @@ class DailyBudget extends DataClass implements Insertable<DailyBudget> {
           other.id == this.id &&
           other.date == this.date &&
           other.baseAmount == this.baseAmount &&
-          other.carryOver == this.carryOver);
+          other.carryOver == this.carryOver &&
+          other.mood == this.mood);
 }
 
 class DailyBudgetsCompanion extends UpdateCompanion<DailyBudget> {
@@ -569,29 +601,34 @@ class DailyBudgetsCompanion extends UpdateCompanion<DailyBudget> {
   final Value<DateTime> date;
   final Value<int> baseAmount;
   final Value<int> carryOver;
+  final Value<String?> mood;
   const DailyBudgetsCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
     this.baseAmount = const Value.absent(),
     this.carryOver = const Value.absent(),
+    this.mood = const Value.absent(),
   });
   DailyBudgetsCompanion.insert({
     this.id = const Value.absent(),
     required DateTime date,
     this.baseAmount = const Value.absent(),
     this.carryOver = const Value.absent(),
+    this.mood = const Value.absent(),
   }) : date = Value(date);
   static Insertable<DailyBudget> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
     Expression<int>? baseAmount,
     Expression<int>? carryOver,
+    Expression<String>? mood,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (date != null) 'date': date,
       if (baseAmount != null) 'base_amount': baseAmount,
       if (carryOver != null) 'carry_over': carryOver,
+      if (mood != null) 'mood': mood,
     });
   }
 
@@ -600,12 +637,14 @@ class DailyBudgetsCompanion extends UpdateCompanion<DailyBudget> {
     Value<DateTime>? date,
     Value<int>? baseAmount,
     Value<int>? carryOver,
+    Value<String?>? mood,
   }) {
     return DailyBudgetsCompanion(
       id: id ?? this.id,
       date: date ?? this.date,
       baseAmount: baseAmount ?? this.baseAmount,
       carryOver: carryOver ?? this.carryOver,
+      mood: mood ?? this.mood,
     );
   }
 
@@ -624,6 +663,9 @@ class DailyBudgetsCompanion extends UpdateCompanion<DailyBudget> {
     if (carryOver.present) {
       map['carry_over'] = Variable<int>(carryOver.value);
     }
+    if (mood.present) {
+      map['mood'] = Variable<String>(mood.value);
+    }
     return map;
   }
 
@@ -633,7 +675,8 @@ class DailyBudgetsCompanion extends UpdateCompanion<DailyBudget> {
           ..write('id: $id, ')
           ..write('date: $date, ')
           ..write('baseAmount: $baseAmount, ')
-          ..write('carryOver: $carryOver')
+          ..write('carryOver: $carryOver, ')
+          ..write('mood: $mood')
           ..write(')'))
         .toString();
   }
@@ -2032,6 +2075,7 @@ typedef $$DailyBudgetsTableCreateCompanionBuilder =
       required DateTime date,
       Value<int> baseAmount,
       Value<int> carryOver,
+      Value<String?> mood,
     });
 typedef $$DailyBudgetsTableUpdateCompanionBuilder =
     DailyBudgetsCompanion Function({
@@ -2039,6 +2083,7 @@ typedef $$DailyBudgetsTableUpdateCompanionBuilder =
       Value<DateTime> date,
       Value<int> baseAmount,
       Value<int> carryOver,
+      Value<String?> mood,
     });
 
 class $$DailyBudgetsTableFilterComposer
@@ -2067,6 +2112,11 @@ class $$DailyBudgetsTableFilterComposer
 
   ColumnFilters<int> get carryOver => $composableBuilder(
     column: $table.carryOver,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mood => $composableBuilder(
+    column: $table.mood,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2099,6 +2149,11 @@ class $$DailyBudgetsTableOrderingComposer
     column: $table.carryOver,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get mood => $composableBuilder(
+    column: $table.mood,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DailyBudgetsTableAnnotationComposer
@@ -2123,6 +2178,9 @@ class $$DailyBudgetsTableAnnotationComposer
 
   GeneratedColumn<int> get carryOver =>
       $composableBuilder(column: $table.carryOver, builder: (column) => column);
+
+  GeneratedColumn<String> get mood =>
+      $composableBuilder(column: $table.mood, builder: (column) => column);
 }
 
 class $$DailyBudgetsTableTableManager
@@ -2160,11 +2218,13 @@ class $$DailyBudgetsTableTableManager
                 Value<DateTime> date = const Value.absent(),
                 Value<int> baseAmount = const Value.absent(),
                 Value<int> carryOver = const Value.absent(),
+                Value<String?> mood = const Value.absent(),
               }) => DailyBudgetsCompanion(
                 id: id,
                 date: date,
                 baseAmount: baseAmount,
                 carryOver: carryOver,
+                mood: mood,
               ),
           createCompanionCallback:
               ({
@@ -2172,11 +2232,13 @@ class $$DailyBudgetsTableTableManager
                 required DateTime date,
                 Value<int> baseAmount = const Value.absent(),
                 Value<int> carryOver = const Value.absent(),
+                Value<String?> mood = const Value.absent(),
               }) => DailyBudgetsCompanion.insert(
                 id: id,
                 date: date,
                 baseAmount: baseAmount,
                 carryOver: carryOver,
+                mood: mood,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

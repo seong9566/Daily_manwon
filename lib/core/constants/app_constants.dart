@@ -87,39 +87,58 @@ enum ExpenseCategory {
   }
 }
 
-/// 캐릭터 감정 상태
-/// 남은 잔액 기준으로 계산된다
+/// 고양이 캐릭터 감정 상태 — 잔액 비율(remaining/total) 기준
 enum CharacterMood {
-  happy,
-  worried,
-  sad;
+  comfortable, // 여유: 잔액 > 70%
+  normal,      // 보통: 잔액 30~70%
+  danger,      // 위험: 잔액 0~30%
+  over;        // 초과: 잔액 < 0%
 
-  /// 남은 금액을 받아 적절한 감정 상태를 반환한다
-  static CharacterMood fromRemainingBudget(int remaining) {
-    if (remaining >= AppConstants.happyThreshold) {
-      return CharacterMood.happy;
-    } else if (remaining >= AppConstants.worriedThreshold) {
-      return CharacterMood.worried;
-    } else {
-      return CharacterMood.sad;
-    }
+  /// 잔액 비율(remaining / total)로 감정 상태를 결정한다
+  static CharacterMood fromRatio(double ratio) {
+    if (ratio > 0.7) return CharacterMood.comfortable;
+    if (ratio > 0.3) return CharacterMood.normal;
+    if (ratio >= 0.0) return CharacterMood.danger;
+    return CharacterMood.over;
+  }
+
+  /// 감정 상태별 고양이 이미지 경로
+  String get assetPath {
+    return switch (this) {
+      CharacterMood.comfortable => 'assets/images/character/여유_clean.png',
+      CharacterMood.normal => 'assets/images/character/보통_clean.png',
+      CharacterMood.danger => 'assets/images/character/위험_clean.png',
+      CharacterMood.over => 'assets/images/character/초과_clean.png',
+    };
   }
 
   /// 감정 상태에 대응하는 색상
   Color get statusColor {
     return switch (this) {
-      CharacterMood.happy => AppColors.statusComfortable,
-      CharacterMood.worried => AppColors.statusWarning,
-      CharacterMood.sad => AppColors.statusDanger,
+      CharacterMood.comfortable => AppColors.budgetComfortable,
+      CharacterMood.normal => AppColors.budgetWarning,
+      CharacterMood.danger => AppColors.budgetDanger,
+      CharacterMood.over => AppColors.budgetOver,
     };
   }
 
-  /// 말풍선 메시지 (예시 - 실제 다국어 처리 시 l10n으로 이전)
-  String get bubbleMessage {
+  /// 한글 레이블
+  String get label {
     return switch (this) {
-      CharacterMood.happy => '오늘 예산이 넉넉해요!',
-      CharacterMood.worried => '슬슬 아껴써야 할 것 같아요...',
-      CharacterMood.sad => '오늘 예산을 거의 다 썼어요 ㅠㅠ',
+      CharacterMood.comfortable => '여유',
+      CharacterMood.normal => '보통',
+      CharacterMood.danger => '위험',
+      CharacterMood.over => '초과',
+    };
+  }
+
+  /// 말풍선에 표시될 한마디 코멘트
+  String get comment {
+    return switch (this) {
+      CharacterMood.comfortable => '오늘은 여유롭네요~',
+      CharacterMood.normal => '적당히 쓰고 있어요',
+      CharacterMood.danger => '조금 아껴야 해요...',
+      CharacterMood.over => '으아, 많이 썼어요!',
     };
   }
 }
