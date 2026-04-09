@@ -14,16 +14,19 @@ import SwiftUI
 // ─────────────────────────────────────────────────────────────────────────────
 enum BudgetStatus {
     case comfortable  // 여유: ≥ 5,000
-    case tight        // 빠듯: 1 ~ 4,999
-    case exceeded     // 초과: < 0
-    
+    case warning      // 주의: 1,000 ~ 4,999
+    case danger       // 위험: 0 ~ 999
+    case over         // 초과: < 0
+
     init(remaining: Int) {
         if remaining >= 5000 {
             self = .comfortable
+        } else if remaining >= 1000 {
+            self = .warning
         } else if remaining >= 0 {
-            self = .tight
+            self = .danger
         } else {
-            self = .exceeded
+            self = .over
         }
     }
 }
@@ -66,67 +69,57 @@ struct WidgetColorPalette {
     let accentBg: Color       // 스트릭 배지, 구분선 등
     
     static func palette(for status: BudgetStatus) -> WidgetColorPalette {
+        // 배경: 모든 상태 흰색 고정 (모바일 정책 동일)
+        // 서브 텍스트: 중립 고정 #8E8E8E
+        let bg            = Color.white
+        let secondaryText = Color(red: 142/255, green: 142/255, blue: 142/255) // #8E8E8E
+
         switch status {
         case .comfortable:
             return WidgetColorPalette(
-                background:    Color(red: 241/255, green: 245/255, blue: 249/255), // #F1F5F9
-                primaryText:   Color(red: 15/255,  green: 23/255,  blue: 42/255),  // #0F172A
-                secondaryText: Color(red: 71/255,  green: 85/255,  blue: 105/255), // #475569
-                accentBg:      Color(red: 226/255, green: 232/255, blue: 240/255)  // #E2E8F0
+                background:    bg,
+                primaryText:   Color(red: 0,       green: 0,       blue: 0),        // #000000
+                secondaryText: secondaryText,
+                accentBg:      Color(red: 238/255, green: 238/255, blue: 238/255)   // #EEEEEE
             )
-        case .tight:
+        case .warning:
             return WidgetColorPalette(
-                background:    Color(red: 254/255, green: 243/255, blue: 199/255), // #FEF3C7
-                primaryText:   Color(red: 120/255, green: 53/255,  blue: 15/255),  // #78350F
-                secondaryText: Color(red: 194/255, green: 65/255,  blue: 12/255),  // #C2410C
-                accentBg:      Color(red: 254/255, green: 215/255, blue: 170/255)  // #FED7AA
+                background:    bg,
+                primaryText:   Color(red: 245/255, green: 166/255, blue: 35/255),   // #F5A623
+                secondaryText: secondaryText,
+                accentBg:      Color(red: 254/255, green: 243/255, blue: 199/255)   // #FEF3C7
             )
-        case .exceeded:
+        case .danger:
             return WidgetColorPalette(
-                background:    Color(red: 254/255, green: 226/255, blue: 226/255), // #FEE2E2
-                primaryText:   Color(red: 185/255, green: 28/255,  blue: 28/255),  // #B91C1C
-                secondaryText: Color(red: 220/255, green: 38/255,  blue: 38/255),  // #DC2626
-                accentBg:      Color(red: 254/255, green: 202/255, blue: 202/255)  // #FECACA
+                background:    bg,
+                primaryText:   Color(red: 232/255, green: 93/255,  blue: 93/255),   // #E85D5D
+                secondaryText: secondaryText,
+                accentBg:      Color(red: 253/255, green: 232/255, blue: 232/255)   // #FDE8E8
+            )
+        case .over:
+            return WidgetColorPalette(
+                background:    bg,
+                primaryText:   Color(red: 192/255, green: 57/255,  blue: 43/255),   // #C0392B
+                secondaryText: secondaryText,
+                accentBg:      Color(red: 254/255, green: 226/255, blue: 226/255)   // #FEE2E2
             )
         }
     }
     
     /// Small 위젯 금액 폰트 크기
-    static func smallFontSize(for status: BudgetStatus) -> CGFloat {
-        switch status {
-        case .comfortable: return 24
-        case .tight:       return 24
-        case .exceeded:    return 24
-        }
-    }
-    
+    static func smallFontSize(for status: BudgetStatus) -> CGFloat { 24 }
+
     /// Medium 위젯 "남은 예산" 금액 폰트 크기
-    static func mediumRemainingFontSize(for status: BudgetStatus) -> CGFloat {
-        switch status {
-        case .comfortable: return 26
-        case .tight:       return 26
-        case .exceeded:    return 26
-        }
-    }
-    
-    /// Medium 위젯 "사용한 예산" 금액 폰트 크기 (남은 예산과 동일)
-    static func mediumUsedFontSize(for status: BudgetStatus) -> CGFloat {
-        return mediumRemainingFontSize(for: status)
-    }
-    
+    static func mediumRemainingFontSize(for status: BudgetStatus) -> CGFloat { 26 }
+
+    /// Medium 위젯 "사용한 예산" 금액 폰트 크기
+    static func mediumUsedFontSize(for status: BudgetStatus) -> CGFloat { 26 }
+
     /// Large 위젯 "남은 예산" 금액 폰트 크기
-    static func largeRemainingFontSize(for status: BudgetStatus) -> CGFloat {
-        switch status {
-        case .comfortable: return 26
-        case .tight:       return 26
-        case .exceeded:    return 26
-        }
-    }
-    
-    /// Large 위젯 "사용한 예산" 금액 폰트 크기 (남은 예산과 동일)
-    static func largeUsedFontSize(for status: BudgetStatus) -> CGFloat {
-        return largeRemainingFontSize(for: status)
-    }
+    static func largeRemainingFontSize(for status: BudgetStatus) -> CGFloat { 26 }
+
+    /// Large 위젯 "사용한 예산" 금액 폰트 크기
+    static func largeUsedFontSize(for status: BudgetStatus) -> CGFloat { 26 }
 }
 
 
@@ -223,11 +216,12 @@ struct DailyHomeSmallView: View {
     private var statusMessage: String {
         switch status {
         case .comfortable: return "오늘도 잘 하고 있어요"
-        case .tight:       return "조금만 더 아껴볼까요?"
-        case .exceeded:    return "예산을 초과했어요"
+        case .warning:     return "조금만 더 아껴볼까요?"
+        case .danger:      return "위험해요! 아껴쓰세요"
+        case .over:        return "예산을 초과했어요"
         }
     }
-    
+
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
             // 상단: 남은 예산 라벨 + 스트릭 배지
@@ -274,7 +268,7 @@ struct DailyHomeSmallView: View {
                 Spacer()
             }
 
-            if status == .exceeded {
+            if status == .over {
                 HStack {
                     Spacer()
                     Text("초과!")
@@ -353,8 +347,9 @@ struct DailyHomeMediumView: View {
     private var statusMessage: String {
         switch status {
         case .comfortable: return "오늘도 잘 하고 있어요"
-        case .tight:       return "조금만 더 아껴볼까요?"
-        case .exceeded:    return "예산을 초과했어요"
+        case .warning:     return "조금만 더 아껴볼까요?"
+        case .danger:      return "위험해요! 아껴쓰세요"
+        case .over:        return "예산을 초과했어요"
         }
     }
     

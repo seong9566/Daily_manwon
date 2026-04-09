@@ -53,6 +53,8 @@ class UserPreferences extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get isOnboardingCompleted =>
       boolean().withDefault(const Constant(false))();
+  IntColumn get dailyBudget =>
+      integer().withDefault(const Constant(10000))(); // 일일 예산 (원, 기본 1만원)
 
   @override
   Set<Column> get primaryKey => {id};
@@ -91,7 +93,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -113,6 +115,10 @@ class AppDatabase extends _$AppDatabase {
           // schema v5: DailyBudgets.mood 컬럼 추가
           if (from < 5) {
             await m.addColumn(dailyBudgets, dailyBudgets.mood);
+          }
+          // schema v6: UserPreferences.dailyBudget 컬럼 추가
+          if (from < 6) {
+            await m.addColumn(userPreferences, userPreferences.dailyBudget);
           }
         },
       );

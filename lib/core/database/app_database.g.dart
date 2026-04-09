@@ -1268,8 +1268,25 @@ class $UserPreferencesTable extends UserPreferences
         ),
         defaultValue: const Constant(false),
       );
+  static const VerificationMeta _dailyBudgetMeta = const VerificationMeta(
+    'dailyBudget',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, isDarkMode, isOnboardingCompleted];
+  late final GeneratedColumn<int> dailyBudget = GeneratedColumn<int>(
+    'daily_budget',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(10000),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    isDarkMode,
+    isOnboardingCompleted,
+    dailyBudget,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1303,6 +1320,15 @@ class $UserPreferencesTable extends UserPreferences
         ),
       );
     }
+    if (data.containsKey('daily_budget')) {
+      context.handle(
+        _dailyBudgetMeta,
+        dailyBudget.isAcceptableOrUnknown(
+          data['daily_budget']!,
+          _dailyBudgetMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1324,6 +1350,10 @@ class $UserPreferencesTable extends UserPreferences
         DriftSqlType.bool,
         data['${effectivePrefix}is_onboarding_completed'],
       )!,
+      dailyBudget: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_budget'],
+      )!,
     );
   }
 
@@ -1337,10 +1367,12 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
   final int id;
   final bool isDarkMode;
   final bool isOnboardingCompleted;
+  final int dailyBudget;
   const UserPreference({
     required this.id,
     required this.isDarkMode,
     required this.isOnboardingCompleted,
+    required this.dailyBudget,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1348,6 +1380,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     map['id'] = Variable<int>(id);
     map['is_dark_mode'] = Variable<bool>(isDarkMode);
     map['is_onboarding_completed'] = Variable<bool>(isOnboardingCompleted);
+    map['daily_budget'] = Variable<int>(dailyBudget);
     return map;
   }
 
@@ -1356,6 +1389,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       id: Value(id),
       isDarkMode: Value(isDarkMode),
       isOnboardingCompleted: Value(isOnboardingCompleted),
+      dailyBudget: Value(dailyBudget),
     );
   }
 
@@ -1370,6 +1404,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       isOnboardingCompleted: serializer.fromJson<bool>(
         json['isOnboardingCompleted'],
       ),
+      dailyBudget: serializer.fromJson<int>(json['dailyBudget']),
     );
   }
   @override
@@ -1379,6 +1414,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       'id': serializer.toJson<int>(id),
       'isDarkMode': serializer.toJson<bool>(isDarkMode),
       'isOnboardingCompleted': serializer.toJson<bool>(isOnboardingCompleted),
+      'dailyBudget': serializer.toJson<int>(dailyBudget),
     };
   }
 
@@ -1386,10 +1422,12 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     int? id,
     bool? isDarkMode,
     bool? isOnboardingCompleted,
+    int? dailyBudget,
   }) => UserPreference(
     id: id ?? this.id,
     isDarkMode: isDarkMode ?? this.isDarkMode,
     isOnboardingCompleted: isOnboardingCompleted ?? this.isOnboardingCompleted,
+    dailyBudget: dailyBudget ?? this.dailyBudget,
   );
   UserPreference copyWithCompanion(UserPreferencesCompanion data) {
     return UserPreference(
@@ -1400,6 +1438,9 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       isOnboardingCompleted: data.isOnboardingCompleted.present
           ? data.isOnboardingCompleted.value
           : this.isOnboardingCompleted,
+      dailyBudget: data.dailyBudget.present
+          ? data.dailyBudget.value
+          : this.dailyBudget,
     );
   }
 
@@ -1408,46 +1449,54 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     return (StringBuffer('UserPreference(')
           ..write('id: $id, ')
           ..write('isDarkMode: $isDarkMode, ')
-          ..write('isOnboardingCompleted: $isOnboardingCompleted')
+          ..write('isOnboardingCompleted: $isOnboardingCompleted, ')
+          ..write('dailyBudget: $dailyBudget')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, isDarkMode, isOnboardingCompleted);
+  int get hashCode =>
+      Object.hash(id, isDarkMode, isOnboardingCompleted, dailyBudget);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserPreference &&
           other.id == this.id &&
           other.isDarkMode == this.isDarkMode &&
-          other.isOnboardingCompleted == this.isOnboardingCompleted);
+          other.isOnboardingCompleted == this.isOnboardingCompleted &&
+          other.dailyBudget == this.dailyBudget);
 }
 
 class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
   final Value<int> id;
   final Value<bool> isDarkMode;
   final Value<bool> isOnboardingCompleted;
+  final Value<int> dailyBudget;
   const UserPreferencesCompanion({
     this.id = const Value.absent(),
     this.isDarkMode = const Value.absent(),
     this.isOnboardingCompleted = const Value.absent(),
+    this.dailyBudget = const Value.absent(),
   });
   UserPreferencesCompanion.insert({
     this.id = const Value.absent(),
     this.isDarkMode = const Value.absent(),
     this.isOnboardingCompleted = const Value.absent(),
+    this.dailyBudget = const Value.absent(),
   });
   static Insertable<UserPreference> custom({
     Expression<int>? id,
     Expression<bool>? isDarkMode,
     Expression<bool>? isOnboardingCompleted,
+    Expression<int>? dailyBudget,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (isDarkMode != null) 'is_dark_mode': isDarkMode,
       if (isOnboardingCompleted != null)
         'is_onboarding_completed': isOnboardingCompleted,
+      if (dailyBudget != null) 'daily_budget': dailyBudget,
     });
   }
 
@@ -1455,12 +1504,14 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     Value<int>? id,
     Value<bool>? isDarkMode,
     Value<bool>? isOnboardingCompleted,
+    Value<int>? dailyBudget,
   }) {
     return UserPreferencesCompanion(
       id: id ?? this.id,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       isOnboardingCompleted:
           isOnboardingCompleted ?? this.isOnboardingCompleted,
+      dailyBudget: dailyBudget ?? this.dailyBudget,
     );
   }
 
@@ -1478,6 +1529,9 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
         isOnboardingCompleted.value,
       );
     }
+    if (dailyBudget.present) {
+      map['daily_budget'] = Variable<int>(dailyBudget.value);
+    }
     return map;
   }
 
@@ -1486,7 +1540,8 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     return (StringBuffer('UserPreferencesCompanion(')
           ..write('id: $id, ')
           ..write('isDarkMode: $isDarkMode, ')
-          ..write('isOnboardingCompleted: $isOnboardingCompleted')
+          ..write('isOnboardingCompleted: $isOnboardingCompleted, ')
+          ..write('dailyBudget: $dailyBudget')
           ..write(')'))
         .toString();
   }
@@ -2597,12 +2652,14 @@ typedef $$UserPreferencesTableCreateCompanionBuilder =
       Value<int> id,
       Value<bool> isDarkMode,
       Value<bool> isOnboardingCompleted,
+      Value<int> dailyBudget,
     });
 typedef $$UserPreferencesTableUpdateCompanionBuilder =
     UserPreferencesCompanion Function({
       Value<int> id,
       Value<bool> isDarkMode,
       Value<bool> isOnboardingCompleted,
+      Value<int> dailyBudget,
     });
 
 class $$UserPreferencesTableFilterComposer
@@ -2626,6 +2683,11 @@ class $$UserPreferencesTableFilterComposer
 
   ColumnFilters<bool> get isOnboardingCompleted => $composableBuilder(
     column: $table.isOnboardingCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dailyBudget => $composableBuilder(
+    column: $table.dailyBudget,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2653,6 +2715,11 @@ class $$UserPreferencesTableOrderingComposer
     column: $table.isOnboardingCompleted,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get dailyBudget => $composableBuilder(
+    column: $table.dailyBudget,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserPreferencesTableAnnotationComposer
@@ -2674,6 +2741,11 @@ class $$UserPreferencesTableAnnotationComposer
 
   GeneratedColumn<bool> get isOnboardingCompleted => $composableBuilder(
     column: $table.isOnboardingCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get dailyBudget => $composableBuilder(
+    column: $table.dailyBudget,
     builder: (column) => column,
   );
 }
@@ -2718,20 +2790,24 @@ class $$UserPreferencesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<bool> isDarkMode = const Value.absent(),
                 Value<bool> isOnboardingCompleted = const Value.absent(),
+                Value<int> dailyBudget = const Value.absent(),
               }) => UserPreferencesCompanion(
                 id: id,
                 isDarkMode: isDarkMode,
                 isOnboardingCompleted: isOnboardingCompleted,
+                dailyBudget: dailyBudget,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<bool> isDarkMode = const Value.absent(),
                 Value<bool> isOnboardingCompleted = const Value.absent(),
+                Value<int> dailyBudget = const Value.absent(),
               }) => UserPreferencesCompanion.insert(
                 id: id,
                 isDarkMode: isDarkMode,
                 isOnboardingCompleted: isOnboardingCompleted,
+                dailyBudget: dailyBudget,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

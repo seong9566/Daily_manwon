@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -12,7 +11,6 @@ import 'hero_budget_number.dart';
 class HomeBudgetHeader extends StatelessWidget {
   final int remainingBudget;
   final int totalBudget;
-  final int carryOver;
   final int totalAcorns;
   final int streakDays;
   final bool isDark;
@@ -25,7 +23,6 @@ class HomeBudgetHeader extends StatelessWidget {
     super.key,
     required this.remainingBudget,
     required this.totalBudget,
-    required this.carryOver,
     required this.totalAcorns,
     required this.streakDays,
     required this.isDark,
@@ -56,12 +53,6 @@ class HomeBudgetHeader extends StatelessWidget {
         const SizedBox(height: 4),
         // [Idea 4] 소형 고양이 + 히어로 금액 Row
         HeroBudgetNumber(remainingBudget: remainingBudget),
-        // 이월 금액 표시 (S-18: 양수/음수 carryOver 모두 처리)
-        if (carryOver != 0)
-          _CarryOverBadge(carryOver: carryOver)
-              .animate()
-              .fadeIn(duration: 300.ms, delay: 200.ms)
-              .slideY(begin: 0.3, duration: 300.ms, curve: Curves.easeOut),
         const SizedBox(height: 20),
         // [Idea 2+3] 고양이 마커 + 말풍선 통합 progress bar
         _CatProgressBar(
@@ -76,42 +67,6 @@ class HomeBudgetHeader extends StatelessWidget {
         AcornStreakBadge(totalAcorns: totalAcorns, streakDays: streakDays),
         const SizedBox(height: 24),
       ],
-    );
-  }
-}
-
-/// 이월 금액 뱃지 — 양수(절약 이월)는 초록, 음수(초과 이월)는 빨강
-class _CarryOverBadge extends StatelessWidget {
-  final int carryOver;
-
-  const _CarryOverBadge({required this.carryOver});
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = carryOver > 0;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = isPositive
-        ? (isDark
-              ? AppColors.budgetComfortableDark
-              : AppColors.budgetComfortable)
-        : AppColors.budgetDanger;
-    final sign = isPositive ? '+' : '−';
-    final absAmount = NumberFormat('#,###').format(carryOver.abs());
-    final label = isPositive ? '어제 이월' : '어제 초과';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        '$sign ₩$absAmount  $label',
-        style: AppTypography.bodySmall.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 }
@@ -207,15 +162,30 @@ class _CatProgressBar extends StatelessWidget {
                         // [Idea 3] 말풍선
                         _SpeechBubble(text: mood.comment, isDark: isDark),
                         const SizedBox(height: 2),
-                        // [Idea 2] 고양이 마커
+                        // [Idea 2] 고양이 마커 (다크모드: RGB 반전으로 흰 아웃라인 대응)
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 400),
-                          child: Image.asset(
-                            mood.assetPath,
-                            key: ValueKey(mood),
-                            width: catSize,
-                            height: catSize,
-                            fit: BoxFit.contain,
+                          child: ColorFiltered(
+                            colorFilter: isDark
+                                ? const ColorFilter.matrix([
+                                    -1, 0, 0, 0, 255,
+                                    0, -1, 0, 0, 255,
+                                    0, 0, -1, 0, 255,
+                                    0, 0, 0, 1, 0,
+                                  ])
+                                : const ColorFilter.matrix([
+                                    1, 0, 0, 0, 0,
+                                    0, 1, 0, 0, 0,
+                                    0, 0, 1, 0, 0,
+                                    0, 0, 0, 1, 0,
+                                  ]),
+                            child: Image.asset(
+                              mood.assetPath,
+                              key: ValueKey(mood),
+                              width: catSize,
+                              height: catSize,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ],

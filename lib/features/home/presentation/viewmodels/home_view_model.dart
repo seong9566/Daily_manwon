@@ -22,7 +22,6 @@ import '../../domain/usecases/get_today_expenses_use_case.dart';
 class HomeState {
   final int remainingBudget;
   final int totalBudget;
-  final int carryOver;
   final List<ExpenseEntity> expenses;
   final int totalAcorns;
   final int streakDays;
@@ -34,7 +33,6 @@ class HomeState {
   const HomeState({
     this.remainingBudget = 10000,
     this.totalBudget = 10000,
-    this.carryOver = 0,
     this.expenses = const [],
     this.totalAcorns = 0,
     this.streakDays = 0,
@@ -45,7 +43,6 @@ class HomeState {
   HomeState copyWith({
     int? remainingBudget,
     int? totalBudget,
-    int? carryOver,
     List<ExpenseEntity>? expenses,
     int? totalAcorns,
     int? streakDays,
@@ -57,7 +54,6 @@ class HomeState {
     return HomeState(
       remainingBudget: remainingBudget ?? this.remainingBudget,
       totalBudget: totalBudget ?? this.totalBudget,
-      carryOver: carryOver ?? this.carryOver,
       expenses: expenses ?? this.expenses,
       totalAcorns: totalAcorns ?? this.totalAcorns,
       streakDays: streakDays ?? this.streakDays,
@@ -112,9 +108,9 @@ class HomeViewModel extends Notifier<HomeState> {
       // 전날 결과 평가 → 도토리 지급 (중복 방지 포함)
       await getIt<EvaluateAndAwardAcornUseCase>().execute();
 
-      // 오늘 예산 확보 (carryOver 반영)
+      // 오늘 예산 확보
       final budget = await budgetUseCase.getOrCreateTodayBudget();
-      final totalBudget = budget.baseAmount + budget.carryOver;
+      final totalBudget = budget.baseAmount;
 
       // 오늘 지출 목록
       final expenses = await expenseUseCase.getExpensesByDate(DateTime.now());
@@ -132,7 +128,6 @@ class HomeViewModel extends Notifier<HomeState> {
       state = state.copyWith(
         remainingBudget: remaining,
         totalBudget: totalBudget,
-        carryOver: budget.carryOver,
         expenses: expenses,
         totalAcorns: acorns,
         streakDays: streak,

@@ -10,6 +10,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/expense.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
 import '../widgets/category_selector.dart';
+import '../widgets/expense_delete_dialog.dart';
 import '../widgets/number_keypad.dart';
 
 /// 지출 입력 바텀시트를 표시하는 헬퍼 함수
@@ -155,105 +156,8 @@ class _ExpenseAddBottomSheetState
 
   Future<void> _onDelete() async {
     if (widget.expense == null) return;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // const Text('🗑️', style: TextStyle(fontSize: 36)),
-              Icon(
-                CupertinoIcons.trash,
-                size: 36,
-                color: AppColors.budgetDanger,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '정말 삭제할까요?',
-                style: AppTypography.titleMedium.copyWith(
-                  color: isDark ? AppColors.darkTextMain : AppColors.textMain,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '이 지출 기록이 사라져요',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: isDark ? AppColors.darkTextSub : AppColors.textSub,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: Semantics(
-                        button: true,
-                        label: '삭제 취소',
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: isDark
-                                  ? AppColors.darkDivider
-                                  : AppColors.border,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            '아니요',
-                            style: AppTypography.labelMedium.copyWith(
-                              color: isDark
-                                  ? AppColors.darkTextSub
-                                  : AppColors.textSub,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: Semantics(
-                        button: true,
-                        label: '삭제 확인',
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.budgetDanger,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            '삭제할게요',
-                            style: AppTypography.labelMedium.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    final shouldDelete = await showExpenseDeleteDialog(context);
 
     if (shouldDelete == true && mounted) {
       ref
@@ -266,7 +170,7 @@ class _ExpenseAddBottomSheetState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : Colors.white;
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.white;
     final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
@@ -447,7 +351,7 @@ class _ExpenseAddBottomSheetState
                           : AppColors.textMain,
                       foregroundColor: isDark
                           ? AppColors.darkBackground
-                          : Colors.white,
+                          : AppColors.white,
                       disabledBackgroundColor: isDark
                           ? AppColors.darkTextMain
                           : AppColors.textMain,
@@ -464,7 +368,7 @@ class _ExpenseAddBottomSheetState
                               strokeWidth: 2.5,
                               color: isDark
                                   ? AppColors.darkBackground
-                                  : Colors.white,
+                                  : AppColors.white,
                             ),
                           )
                         : Text(
@@ -472,7 +376,7 @@ class _ExpenseAddBottomSheetState
                             style: AppTypography.bodyLarge.copyWith(
                               color: isDark
                                   ? AppColors.darkBackground
-                                  : Colors.white,
+                                  : AppColors.white,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
