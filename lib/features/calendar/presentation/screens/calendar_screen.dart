@@ -61,20 +61,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (state.viewMode == CalendarViewMode.monthly)
-                              _MonthlyNavRow(
-                                selectedMonth: state.selectedMonth,
-                                onPrev: () => _onMonthChange(-1),
-                                onNext: () => _onMonthChange(1),
-                                isDark: isDark,
-                              )
-                            else
-                              _WeeklyNavRow(
-                                weekStart: state.selectedWeekStart,
-                                onPrev: () => _onWeekChange(-1),
-                                onNext: () => _onWeekChange(1),
-                                isDark: isDark,
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: state.viewMode == CalendarViewMode.monthly
+                                    ? _MonthlyNavRow(
+                                        selectedMonth: state.selectedMonth,
+                                        onPrev: () => _onMonthChange(-1),
+                                        onNext: () => _onMonthChange(1),
+                                        isDark: isDark,
+                                      )
+                                    : _WeeklyNavRow(
+                                        weekStart: state.selectedWeekStart,
+                                        onPrev: () => _onWeekChange(-1),
+                                        onNext: () => _onWeekChange(1),
+                                        isDark: isDark,
+                                      ),
                               ),
+                            ),
+                            const SizedBox(width: 8),
                             ViewModeToggle(
                               mode: state.viewMode,
                               onChanged: (mode) {
@@ -216,9 +221,14 @@ class _MonthlyNavRow extends StatelessWidget {
             icon: Icon(Icons.chevron_left, color: textColor, size: 24),
           ),
         ),
-        Text(
-          _label,
-          style: AppTypography.titleMedium.copyWith(color: textColor),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              _label,
+              style: AppTypography.titleMedium.copyWith(color: textColor),
+            ),
+          ),
         ),
         SizedBox(
           width: 40,
@@ -264,9 +274,14 @@ class _WeeklyNavRow extends StatelessWidget {
             icon: Icon(Icons.chevron_left, color: textColor, size: 24),
           ),
         ),
-        Text(
-          AppDateUtils.weekRangeLabel(weekStart),
-          style: AppTypography.titleMedium.copyWith(color: textColor),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              AppDateUtils.weekRangeLabel(weekStart),
+              style: AppTypography.titleMedium.copyWith(color: textColor),
+            ),
+          ),
         ),
         SizedBox(
           width: 40,

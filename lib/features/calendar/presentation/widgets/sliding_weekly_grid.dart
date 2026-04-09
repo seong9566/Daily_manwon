@@ -73,8 +73,7 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
   void _onSnapTick() {
     if (!_isDragging && mounted) {
       setState(() {
-        _dragOffset =
-            _snapStart + (_snapEnd - _snapStart) * _snapCurved.value;
+        _dragOffset = _snapStart + (_snapEnd - _snapStart) * _snapCurved.value;
       });
     }
   }
@@ -97,8 +96,10 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
     _snapDelta = 0;
     setState(() {
       final maxOffset = _width * 2.1;
-      _dragOffset =
-          (_dragOffset + details.delta.dx).clamp(-maxOffset, maxOffset);
+      _dragOffset = (_dragOffset + details.delta.dx).clamp(
+        -maxOffset,
+        maxOffset,
+      );
     });
   }
 
@@ -132,44 +133,46 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
     );
     final days = AppDateUtils.weekDaysFrom(weekStart);
 
-    return Row(
-      children: days.map((day) {
-        final isToday = day == today;
-        final isFuture = day.isAfter(today);
-        final isSelected = state.selectedDate == day;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: days.map((day) {
+          final isToday = day == today;
+          final isFuture = day.isAfter(today);
+          final isSelected = state.selectedDate == day;
 
-        // 월 경계 주를 위해 해당 날짜 소속 월의 캐시에서 지출 조회
-        final monthExpenses = notifier.getCachedExpenses(day.year, day.month);
-        final dayExpenses = monthExpenses[day];
+          // 월 경계 주를 위해 해당 날짜 소속 월의 캐시에서 지출 조회
+          final monthExpenses = notifier.getCachedExpenses(day.year, day.month);
+          final dayExpenses = monthExpenses[day];
 
-        int? totalAmount;
-        bool? isSuccess;
-        if (!isFuture) {
-          if (dayExpenses != null && dayExpenses.isNotEmpty) {
-            totalAmount =
-                dayExpenses.fold<int>(0, (s, e) => s + e.amount);
-            isSuccess = totalAmount <= AppConstants.dailyBudget;
+          int? totalAmount;
+          bool? isSuccess;
+          if (!isFuture) {
+            if (dayExpenses != null && dayExpenses.isNotEmpty) {
+              totalAmount = dayExpenses.fold<int>(0, (s, e) => s + e.amount);
+              isSuccess = totalAmount <= AppConstants.dailyBudget;
+            }
           }
-        }
 
-        final showAcornIcon = !isFuture && totalAmount == null;
+          final showAcornIcon = !isFuture && totalAmount == null;
 
-        return Expanded(
-          child: Center(
-            child: WeeklyCalendarDayCell(
-              date: day,
-              isToday: isToday,
-              isSelected: isSelected,
-              isFuture: isFuture,
-              isSuccess: isSuccess,
-              totalAmount: totalAmount,
-              showAcornIcon: showAcornIcon,
-              onTap: () => widget.onDateSelected(day),
-              isDark: widget.isDark,
+          return Expanded(
+            child: Center(
+              child: WeeklyCalendarDayCell(
+                date: day,
+                isToday: isToday,
+                isSelected: isSelected,
+                isFuture: isFuture,
+                isSuccess: isSuccess,
+                totalAmount: totalAmount,
+                showAcornIcon: showAcornIcon,
+                onTap: () => widget.onDateSelected(day),
+                isDark: widget.isDark,
+              ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -179,7 +182,6 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
     final currentWeekStart = state.selectedWeekStart;
 
     // selectedWeekStart 변경 시 드래그 오프셋 초기화
-    // (비동기 changeWeek 완료 후 VM이 state를 업데이트하면 이 리스너가 실행된다)
     ref.listen<DateTime>(
       calendarViewModelProvider.select((s) => s.selectedWeekStart),
       (prev, next) {

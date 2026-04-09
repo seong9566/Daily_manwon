@@ -25,23 +25,25 @@ class WeeklySummaryHeader extends StatelessWidget {
   });
 
   Color _totalSpentColor() {
-    if (totalSpent <= 50000) return AppColors.budgetComfortable;
+    if (totalSpent <= 50000) {
+      return isDark
+          ? AppColors.budgetComfortableDark
+          : AppColors.budgetComfortable;
+    }
     if (totalSpent <= 70000) return AppColors.budgetWarning;
     return AppColors.budgetDanger;
   }
 
   @override
   Widget build(BuildContext context) {
-    final subTextColor =
-        isDark ? AppColors.darkTextSub : AppColors.textSub;
-    final mainTextColor =
-        isDark ? AppColors.darkTextMain : AppColors.textMain;
+    final subTextColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+    final mainTextColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
 
     return Row(
       children: [
         Expanded(
           child: _SummaryItem(
-            label: '총지출',
+            label: '총 지출',
             value: CurrencyFormatter.formatWithWon(totalSpent),
             valueColor: _totalSpentColor(),
             labelColor: subTextColor,
@@ -88,10 +90,7 @@ class _SummaryItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: AppTypography.bodySmall.copyWith(color: labelColor),
-        ),
+        Text(label, style: AppTypography.bodySmall.copyWith(color: labelColor)),
         const SizedBox(height: 4),
         Text(
           value,

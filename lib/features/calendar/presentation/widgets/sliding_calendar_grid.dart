@@ -89,8 +89,7 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
     if (!_isDragging && mounted) {
       setState(() {
         // lerp: _snapStart → _snapEnd (곡선 적용)
-        _dragOffset =
-            _snapStart + (_snapEnd - _snapStart) * _snapCurved.value;
+        _dragOffset = _snapStart + (_snapEnd - _snapStart) * _snapCurved.value;
       });
     }
   }
@@ -117,8 +116,10 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
     setState(() {
       // ±2달 경계(±2 * width)에서 추가 저항
       final maxOffset = _width * 2.1;
-      _dragOffset =
-          (_dragOffset + details.delta.dx).clamp(-maxOffset, maxOffset);
+      _dragOffset = (_dragOffset + details.delta.dx).clamp(
+        -maxOffset,
+        maxOffset,
+      );
     });
   }
 
@@ -169,10 +170,6 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
                   // ±2달 그리드를 나란히 배치하여 PageView 방식으로 슬라이드
                   for (int i = -2; i <= 2; i++)
                     Transform.translate(
-                      // slot+currentMonth 조합 key — 월 이동 시 currentMonth가 바뀌어
-                      // 모든 키가 변경되므로 그리드를 항상 새로 생성한다.
-                      // 월만으로 키를 지정하면 같은 달이 슬롯 간 이동 시 Flutter가
-                      // 기존 위젯을 재사용(MOVE)하여 isSelected 전환 애니메이션이 발생한다.
                       key: ValueKey(
                         '${currentMonth.year}-${currentMonth.month}-$i',
                       ),
@@ -184,17 +181,24 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
                             currentMonth.month + i,
                           ),
                           // 현재 달만 선택 날짜 표시, 나머지는 생략
-                          selectedDate: i == 0 ? widget.state.selectedDate : null,
+                          selectedDate: i == 0
+                              ? widget.state.selectedDate
+                              : null,
                           monthlyExpenses: notifier.getCachedExpenses(
-                            DateTime(currentMonth.year, currentMonth.month + i).year,
-                            DateTime(currentMonth.year, currentMonth.month + i).month,
+                            DateTime(
+                              currentMonth.year,
+                              currentMonth.month + i,
+                            ).year,
+                            DateTime(
+                              currentMonth.year,
+                              currentMonth.month + i,
+                            ).month,
                           ),
                           selectedWeekStart: widget.state.selectedWeekStart,
                         ),
                         isDark: widget.isDark,
                         // 현재 달만 날짜 선택 활성화
-                        onDateSelected:
-                            i == 0 ? widget.onDateSelected : (_) {},
+                        onDateSelected: i == 0 ? widget.onDateSelected : (_) {},
                       ),
                     ),
                 ],

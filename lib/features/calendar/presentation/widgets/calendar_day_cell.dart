@@ -56,7 +56,7 @@ class CalendarDayCell extends StatelessWidget {
       // 선택된 날: 라이트=white on black, 다크=black on white
       textColor = isDark ? Colors.black : Colors.white;
     } else if (isToday) {
-      textColor = Colors.white;
+      textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     } else {
       textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     }
@@ -67,8 +67,8 @@ class CalendarDayCell extends StatelessWidget {
       // 선택된 날: 라이트=black, 다크=white
       bgColor = isDark ? Colors.white : AppColors.primary;
     } else if (isToday && !isSelected) {
-      // 오늘(미선택): 진한 텍스트 색 원형 배경
-      bgColor = isDark ? AppColors.darkTextSub : AppColors.textMain;
+      // 오늘(미선택): 연한 회색 배경
+      bgColor = isDark ? AppColors.darkCard : AppColors.primaryLight;
     }
 
     return Semantics(

@@ -103,8 +103,8 @@ abstract final class AppDateUtils {
   static String weekRangeLabel(DateTime weekStart) {
     final weekEnd = weekStart.add(const Duration(days: 6));
     if (weekStart.month == weekEnd.month) {
-      return '${weekStart.month}. ${weekStart.day} ~ ${weekEnd.day}';
+      return '${weekStart.month}월 ${weekStart.day}일 ~ ${weekStart.month}월 ${weekEnd.day}일';
     }
-    return '${weekStart.month}. ${weekStart.day} ~ ${weekEnd.month}. ${weekEnd.day}';
+    return '${weekStart.month}월 ${weekStart.day}일 ~ ${weekEnd.month}월 ${weekEnd.day}일';
   }
 }
