@@ -74,7 +74,7 @@
 |---|--------|------|------|
 | DS-01 | Primary Color → black/white 전환 | ✅ | `AppColors.primary=#000000`, 다크 primary=white |
 | DS-02 | 시간대 배경색 7단계 제거 | ✅ | `TimeBasedTheme` 삭제, `AppColors.bg*` 토큰 제거 |
-| DS-03 | 캐릭터 → 고양이 전환 | ⬜ | 추후 스프린트 (도메인/프레젠테이션 ~20파일) |
+| DS-03 | 캐릭터 → 고양이 전환 | ⬜ | `docs/plan_cat_character.md` 참조. 상태명: 여유/보통/위험/초과, 기준: 비율(70%/30%) |
 | DS-04 | 칭호 스토리 재기획 | 📋 | `docs/title_story_redesign.md` 기획 문서 생성 |
 
 ---
