@@ -1,4 +1,6 @@
 import 'package:daily_manwon/core/services/notification_service.dart';
+import 'package:daily_manwon/features/calendar/presentation/viewmodels/calendar_view_model.dart';
+import 'package:daily_manwon/features/home/presentation/viewmodels/home_view_model.dart';
 import 'package:daily_manwon/features/settings/domain/entities/notification_settings_entity.dart';
 import 'package:daily_manwon/features/settings/domain/repositories/settings_repository.dart';
 import 'package:daily_manwon/features/settings/domain/usecases/get_notification_settings_use_case.dart';
@@ -198,9 +200,12 @@ class SettingsViewModel extends Notifier<SettingsState> {
   }
 
   /// 일일 예산을 변경하고 DB에 저장한다.
+  /// 저장 후 홈/캘린더 화면이 즉시 새 예산을 반영하도록 Provider를 갱신한다.
   Future<void> setDailyBudget(int amount) async {
     state = state.copyWith(dailyBudget: amount);
     await _settingsRepository.setDailyBudget(amount);
+    ref.invalidate(homeViewModelProvider);
+    ref.invalidate(calendarViewModelProvider);
   }
 
   // ── private ──────────────────────────────────────────────────────────────
