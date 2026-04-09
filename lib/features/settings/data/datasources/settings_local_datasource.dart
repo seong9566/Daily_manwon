@@ -43,4 +43,21 @@ class SettingsLocalDatasource {
           ),
         );
   }
+
+  /// 일일 예산 설정값을 조회한다 (row가 없으면 10000 반환)
+  Future<int> getDailyBudget() async {
+    final row = await (_db.select(_db.userPreferences)
+          ..where((t) => t.id.equals(1)))
+        .getSingleOrNull();
+    return row?.dailyBudget ?? 10000;
+  }
+
+  /// 일일 예산 설정값을 upsert한다
+  Future<void> setDailyBudget(int amount) async {
+    await _db.into(_db.userPreferences).insertOnConflictUpdate(
+          UserPreferencesCompanion.insert(
+            dailyBudget: Value(amount),
+          ),
+        );
+  }
 }

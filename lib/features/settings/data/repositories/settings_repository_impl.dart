@@ -18,4 +18,14 @@ class SettingsRepositoryImpl implements SettingsRepository {
   Future<void> setIsDarkMode({required bool value}) {
     return _datasource.setIsDarkMode(value: value);
   }
+
+  @override
+  Future<int> getDailyBudget() {
+    return _datasource.getDailyBudget();
+  }
+
+  @override
+  Future<void> setDailyBudget(int amount) {
+    return _datasource.setDailyBudget(amount);
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:daily_manwon/core/services/notification_service.dart';
 import 'package:daily_manwon/features/settings/domain/entities/notification_settings_entity.dart';
+import 'package:daily_manwon/features/settings/domain/repositories/settings_repository.dart';
 import 'package:daily_manwon/features/settings/domain/usecases/get_notification_settings_use_case.dart';
 import 'package:daily_manwon/features/settings/domain/usecases/save_notification_settings_use_case.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,9 @@ class SettingsState {
   final TimeOfDay dinnerTime;
   final bool isDarkMode;
 
+  /// 일일 예산 설정값 (원)
+  final int dailyBudget;
+
   /// 알림 설정 로드/저장 중 로딩 인디케이터 표시 여부
   final bool isLoading;
 
@@ -26,6 +30,7 @@ class SettingsState {
     this.dinnerEnabled = false,
     this.dinnerTime = const TimeOfDay(hour: 20, minute: 0),
     this.isDarkMode = false,
+    this.dailyBudget = 10000,
     this.isLoading = false,
   });
 
@@ -35,6 +40,7 @@ class SettingsState {
     bool? dinnerEnabled,
     TimeOfDay? dinnerTime,
     bool? isDarkMode,
+    int? dailyBudget,
     bool? isLoading,
   }) {
     return SettingsState(
@@ -43,6 +49,7 @@ class SettingsState {
       dinnerEnabled: dinnerEnabled ?? this.dinnerEnabled,
       dinnerTime: dinnerTime ?? this.dinnerTime,
       isDarkMode: isDarkMode ?? this.isDarkMode,
+      dailyBudget: dailyBudget ?? this.dailyBudget,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -59,6 +66,9 @@ class SettingsViewModel extends Notifier<SettingsState> {
 
   NotificationService get _notifService =>
       GetIt.instance<NotificationService>();
+
+  SettingsRepository get _settingsRepository =>
+      GetIt.instance<SettingsRepository>();
 
   /// 각 필드별 사용자 직접 변경 여부 — 초기 DB 로드와의 race condition 방지.
   /// enabled와 time을 분리하여 토글만 눌렀을 때 기존 저장 시간이 유실되지 않도록 한다.
@@ -80,8 +90,11 @@ class SettingsViewModel extends Notifier<SettingsState> {
       state = state.copyWith(isDarkMode: themeMode == ThemeMode.dark);
     });
 
-    // build 완료 후 알림 설정을 DB에서 비동기 로드 (최초 1회)
-    Future.microtask(() => loadNotificationSettings());
+    // build 완료 후 알림 설정과 일일 예산을 DB에서 비동기 로드 (최초 1회)
+    Future.microtask(() async {
+      await loadNotificationSettings();
+      await _loadDailyBudget();
+    });
 
     return SettingsState(isDarkMode: initialTheme == ThemeMode.dark);
   }
@@ -172,6 +185,22 @@ class SettingsViewModel extends Notifier<SettingsState> {
     ref.read(appThemeModeProvider.notifier).setMode(
           value ? ThemeMode.dark : ThemeMode.light,
         );
+  }
+
+  /// 일일 예산 설정값을 DB에서 로드한다.
+  Future<void> _loadDailyBudget() async {
+    try {
+      final budget = await _settingsRepository.getDailyBudget();
+      state = state.copyWith(dailyBudget: budget);
+    } catch (_) {
+      // 로드 실패 시 기본값(10000) 유지
+    }
+  }
+
+  /// 일일 예산을 변경하고 DB에 저장한다.
+  Future<void> setDailyBudget(int amount) async {
+    state = state.copyWith(dailyBudget: amount);
+    await _settingsRepository.setDailyBudget(amount);
   }
 
   // ── private ──────────────────────────────────────────────────────────────

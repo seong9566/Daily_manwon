@@ -5,4 +5,10 @@ abstract interface class SettingsRepository {
 
   /// 다크모드 설정 값을 저장한다
   Future<void> setIsDarkMode({required bool value});
+
+  /// 일일 예산 설정값을 조회한다
+  Future<int> getDailyBudget();
+
+  /// 일일 예산 설정값을 저장한다
+  Future<void> setDailyBudget(int amount);
 }
