@@ -28,7 +28,7 @@ class CategorySelector extends StatelessWidget {
       children: ExpenseCategory.values.map((category) {
         final isSelected = category == selectedCategory;
         return _CategoryItem(
-          emoji: category.emoji,
+          assetPath: category.assetPath,
           label: category.label,
           isSelected: isSelected,
           isDark: isDark,
@@ -42,7 +42,7 @@ class CategorySelector extends StatelessWidget {
 
 /// 개별 카테고리 아이템 — 이모지 + 레이블 + 선택 상태 표시
 class _CategoryItem extends StatelessWidget {
-  final String emoji;
+  final String assetPath;
   final String label;
   final bool isSelected;
   final bool isDark;
@@ -50,7 +50,7 @@ class _CategoryItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const _CategoryItem({
-    required this.emoji,
+    required this.assetPath,
     required this.label,
     required this.isSelected,
     required this.isDark,
@@ -82,7 +82,14 @@ class _CategoryItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 26)),
+              // 검정 라인아트 PNG — 다크모드에서 흰색으로 반전
+              Image.asset(
+                assetPath,
+                width: 36,
+                height: 36,
+                color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+                colorBlendMode: BlendMode.srcIn,
+              ),
               const SizedBox(height: 4),
               Text(
                 label,

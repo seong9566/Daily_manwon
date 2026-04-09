@@ -64,6 +64,20 @@ enum ExpenseCategory {
     };
   }
 
+  /// 카테고리 손그림 아이콘 이미지 경로
+  /// 투명 배경 + 순수 검정 라인아트 PNG (_clean 포맷)
+  String get assetPath {
+    return switch (this) {
+      ExpenseCategory.food => 'assets/images/category_images/food_clean.png',
+      ExpenseCategory.transport =>
+        'assets/images/category_images/car_clean.png',
+      ExpenseCategory.cafe => 'assets/images/category_images/coffee_clean.png',
+      ExpenseCategory.shopping =>
+        'assets/images/category_images/shopping_clean.png',
+      ExpenseCategory.etc => 'assets/images/category_images/etc_clean.png',
+    };
+  }
+
   /// 카테고리 배경 칩 색상 (디자인 가이드 Section 5)
   Color get chipColor {
     return switch (this) {
@@ -90,9 +104,9 @@ enum ExpenseCategory {
 /// 고양이 캐릭터 감정 상태 — 잔액 비율(remaining/total) 기준
 enum CharacterMood {
   comfortable, // 여유: 잔액 > 70%
-  normal,      // 보통: 잔액 30~70%
-  danger,      // 위험: 잔액 0~30%
-  over;        // 초과: 잔액 < 0%
+  normal, // 보통: 잔액 30~70%
+  danger, // 위험: 잔액 0~30%
+  over; // 초과: 잔액 < 0%
 
   /// 잔액 비율(remaining / total)로 감정 상태를 결정한다
   static CharacterMood fromRatio(double ratio) {
