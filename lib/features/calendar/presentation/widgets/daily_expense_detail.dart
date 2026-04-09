@@ -110,10 +110,12 @@ class DailyExpenseDetail extends StatelessWidget {
                   ),
                   child: Row(
                   children: [
-                    // 카테고리 이모지
-                    Text(
-                      category.emoji,
-                      style: const TextStyle(fontSize: 22),
+                    // 카테고리 이미지
+                    Image.asset(
+                      category.assetPath,
+                      width: 24,
+                      height: 24,
+                      color: isDark ? AppColors.white : AppColors.black,
                     ),
                     const SizedBox(width: 12),
 

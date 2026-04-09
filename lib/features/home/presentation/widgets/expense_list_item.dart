@@ -39,9 +39,11 @@ class ExpenseListItem extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: Text(
-                category.emoji,
-                style: const TextStyle(fontSize: 20),
+              child: Image.asset(
+                category.assetPath,
+                width: 24,
+                height: 24,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
             const SizedBox(width: 12),
