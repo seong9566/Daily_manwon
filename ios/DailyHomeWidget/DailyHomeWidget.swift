@@ -138,10 +138,10 @@ struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(
             date: Date(), total: 10000, used: 0,
-            remaining: 10000, streak: 0, expenses: []
+            remaining: 10000, streak: 0, expenses: [], catMood: "comfortable"
         )
     }
-    
+
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
         let entry = SimpleEntry(
             date: Date(), total: 10000, used: 2800,
@@ -149,35 +149,38 @@ struct Provider: TimelineProvider {
             expenses: [
                 ExpenseItem(category: "점심", time: "12:30", amount: 3500),
                 ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
-            ]
+            ],
+            catMood: "comfortable"
         )
         completion(entry)
     }
-    
+
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let userDefault = UserDefaults(suiteName: "group.dailyManWon.homeWidget")
-        
+
         let total     = userDefault?.integer(forKey: "totalKey")     ?? 0
         let used      = userDefault?.integer(forKey: "usedKey")      ?? 0
         let remaining = userDefault?.integer(forKey: "remainingKey") ?? 0
         let streak    = userDefault?.integer(forKey: "streakKey")    ?? 0
-        
+        let catMood   = userDefault?.string(forKey: "cat_mood")      ?? "comfortable"
+
         // JSON 문자열로 저장된 지출 목록 파싱
         var expenses: [ExpenseItem] = []
         if let jsonString = userDefault?.string(forKey: "expensesKey"),
            let data = jsonString.data(using: .utf8) {
             expenses = (try? JSONDecoder().decode([ExpenseItem].self, from: data)) ?? []
         }
-        
+
         let entry = SimpleEntry(
             date: Date(),
             total: total,
             used: used,
             remaining: remaining,
             streak: streak,
-            expenses: expenses
+            expenses: expenses,
+            catMood: catMood
         )
-        
+
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
     }
@@ -193,6 +196,7 @@ struct SimpleEntry: TimelineEntry {
     let remaining: Int
     let streak: Int
     let expenses: [ExpenseItem]
+    let catMood: String  // "comfortable", "normal", "danger", "over"
 }
 
 
@@ -250,7 +254,16 @@ struct DailyHomeSmallView: View {
             }
             
             Spacer()
-            
+
+            HStack {
+                Spacer()
+                Image(catImageName(for: entry.catMood))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 64, height: 64)
+                Spacer()
+            }
+
             HStack {
                 Spacer()
                 Text(amountText)
@@ -260,7 +273,7 @@ struct DailyHomeSmallView: View {
                     .lineLimit(1)
                 Spacer()
             }
-            
+
             if status == .exceeded {
                 HStack {
                     Spacer()
@@ -402,7 +415,7 @@ struct DailyHomeMediumView: View {
                     Text("사용한 예산")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(colors.secondaryText)
-                    
+
                     Text(usedText)
                         .font(.system(size: WidgetColorPalette.mediumUsedFontSize(for: status), weight: .bold))
                         .foregroundColor(colors.primaryText)
@@ -410,10 +423,16 @@ struct DailyHomeMediumView: View {
                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                Image(catImageName(for: entry.catMood))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 56, height: 56)
+                    .padding(.leading, 8)
             }
-            
+
             Spacer()
-            
+
             // 프로그레스 바
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -425,15 +444,15 @@ struct DailyHomeMediumView: View {
                 }
             }
             .frame(height: 6)
-            
+
             Spacer().frame(height: 6)
-            
+
             Text(statusMessage)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(colors.secondaryText)
                 .lineLimit(1)
         }
-        
+
         if #available(iOS 17.0, *) {
             content.containerBackground(for: .widget) { colors.background }
         } else {
@@ -648,6 +667,17 @@ struct ExpenseRowView: View {
 // MARK: - Helper
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// cat_mood 문자열로 Asset 이미지 이름을 반환한다
+private func catImageName(for mood: String) -> String {
+    switch mood {
+    case "comfortable": return "CatComfortable"
+    case "normal":      return "CatNormal"
+    case "danger":      return "CatDanger"
+    case "over":        return "CatOver"
+    default:            return "CatComfortable"
+    }
+}
+
 private func formatNumber(_ number: Int) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
@@ -695,9 +725,9 @@ struct DailyHomeWidgetRouter: View {
 #Preview(as: .systemSmall) {
     DailyHomeWidget()
 } timeline: {
-    SimpleEntry(date: Date(), total: 10000, used: 3000, remaining: 7000, streak: 12, expenses: [])
-    SimpleEntry(date: Date(), total: 10000, used: 7000, remaining: 3000, streak: 7, expenses: [])
-    SimpleEntry(date: Date(), total: 10000, used: 12000, remaining: -2000, streak: 0, expenses: [])
+    SimpleEntry(date: Date(), total: 10000, used: 3000, remaining: 7000, streak: 12, expenses: [], catMood: "comfortable")
+    SimpleEntry(date: Date(), total: 10000, used: 7000, remaining: 3000, streak: 7, expenses: [], catMood: "normal")
+    SimpleEntry(date: Date(), total: 10000, used: 12000, remaining: -2000, streak: 0, expenses: [], catMood: "over")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -706,9 +736,9 @@ struct DailyHomeWidgetRouter: View {
 #Preview(as: .systemMedium) {
     DailyHomeWidget()
 } timeline: {
-    SimpleEntry(date: Date(), total: 10000, used: 2800, remaining: 7200, streak: 12, expenses: [])
-    SimpleEntry(date: Date(), total: 10000, used: 7200, remaining: 2800, streak: 7, expenses: [])
-    SimpleEntry(date: Date(), total: 10000, used: 13000, remaining: -3000, streak: 0, expenses: [])
+    SimpleEntry(date: Date(), total: 10000, used: 2800, remaining: 7200, streak: 12, expenses: [], catMood: "comfortable")
+    SimpleEntry(date: Date(), total: 10000, used: 7200, remaining: 2800, streak: 7, expenses: [], catMood: "normal")
+    SimpleEntry(date: Date(), total: 10000, used: 13000, remaining: -3000, streak: 0, expenses: [], catMood: "over")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -722,7 +752,8 @@ struct DailyHomeWidgetRouter: View {
         expenses: [
             ExpenseItem(category: "점심", time: "12:30", amount: 3500),
             ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
-        ]
+        ],
+        catMood: "comfortable"
     )
     SimpleEntry(
         date: Date(), total: 10000, used: 11500, remaining: -1500, streak: 0,
@@ -733,6 +764,7 @@ struct DailyHomeWidgetRouter: View {
             ExpenseItem(category: "카페", time: "15:15", amount: 4800),
             ExpenseItem(category: "카페", time: "15:15", amount: 5800),
             ExpenseItem(category: "간식", time: "17:40", amount: 2200),
-        ]
+        ],
+        catMood: "over"
     )
 }
