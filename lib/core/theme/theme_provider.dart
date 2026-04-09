@@ -11,7 +11,7 @@ part 'theme_provider.g.dart';
 @riverpod
 class AppThemeMode extends _$AppThemeMode {
   @override
-  ThemeMode build() => ThemeMode.system;
+  ThemeMode build() => ThemeMode.light; // runApp 전 로드값으로 곧 덮어씀
 
   /// DB에서 저장된 다크모드 설정을 로드하여 반영
   Future<void> loadFromDatabase() async {

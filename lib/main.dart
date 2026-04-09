@@ -27,19 +27,28 @@ void main() async {
   // 홈 위젯 서비스 초기화
   await GetIt.instance<WidgetService>().init();
 
-  // 온보딩 완료 여부 확인
-  final isOnboardingCompleted = await GetIt.instance<SettingsLocalDatasource>()
-      .getIsOnboardingCompleted();
+  // 온보딩 완료 여부 및 다크모드 설정을 runApp 전에 미리 로드 (첫 프레임 flicker 방지)
+  final datasource = GetIt.instance<SettingsLocalDatasource>();
+  final isOnboardingCompleted = await datasource.getIsOnboardingCompleted();
+  final isDarkMode = await datasource.getIsDarkMode();
 
   runApp(ProviderScope(
-    child: DailyManwonApp(isOnboardingCompleted: isOnboardingCompleted),
+    child: DailyManwonApp(
+      isOnboardingCompleted: isOnboardingCompleted,
+      isDarkMode: isDarkMode,
+    ),
   ));
 }
 
 class DailyManwonApp extends ConsumerStatefulWidget {
-  const DailyManwonApp({super.key, required this.isOnboardingCompleted});
+  const DailyManwonApp({
+    super.key,
+    required this.isOnboardingCompleted,
+    required this.isDarkMode,
+  });
 
   final bool isOnboardingCompleted;
+  final bool isDarkMode;
 
   @override
   ConsumerState<DailyManwonApp> createState() => _DailyManwonAppState();
@@ -51,11 +60,12 @@ class _DailyManwonAppState extends ConsumerState<DailyManwonApp> {
   @override
   void initState() {
     super.initState();
-    _router = createRouter(
-        isOnboardingCompleted: widget.isOnboardingCompleted);
-    // DB에서 저장된 다크모드 설정을 로드
+    _router = createRouter(isOnboardingCompleted: widget.isOnboardingCompleted);
+    // runApp 전에 미리 로드한 isDarkMode 값으로 초기 테마를 설정
     Future.microtask(() {
-      ref.read(appThemeModeProvider.notifier).loadFromDatabase();
+      ref.read(appThemeModeProvider.notifier).setMode(
+        widget.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      );
     });
   }
 
