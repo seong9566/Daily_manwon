@@ -118,7 +118,9 @@ class _DateCircle extends StatelessWidget {
           '${date.day}',
           style: AppTypography.bodyMedium.copyWith(
             color: textColor,
-            fontWeight: (isToday || isSelected) ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: (isToday || isSelected)
+                ? FontWeight.w600
+                : FontWeight.w400,
           ),
         ),
       ),
@@ -154,14 +156,16 @@ class _MiddleContent extends StatelessWidget {
         width: 20,
         height: 20,
         fit: BoxFit.contain,
+        color: isDark ? AppColors.white : AppColors.black,
       );
     }
 
-    if (showAcornIcon) {
-      return const Text('🌰', style: TextStyle(fontSize: 14))
-          .animate()
-          .scale(duration: 300.ms, curve: Curves.easeOut);
-    }
+    // if (showAcornIcon) {
+    //   return const Text(
+    //     '🌰',
+    //     style: TextStyle(fontSize: 14),
+    //   ).animate().scale(duration: 300.ms, curve: Curves.easeOut);
+    // }
 
     if (totalAmount != null && totalAmount! > 0) {
       return Text(
@@ -194,7 +198,9 @@ class _StatusDot extends StatelessWidget {
       height: 6,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isSuccess!
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkTextMain
+            : isSuccess!
             ? AppColors.budgetComfortable
             : AppColors.budgetDanger,
       ),

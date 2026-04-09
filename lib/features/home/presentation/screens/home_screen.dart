@@ -15,7 +15,6 @@ import '../viewmodels/home_view_model.dart';
 import '../widgets/expense_list_item.dart';
 import '../widgets/home_budget_header.dart';
 
-/// 메인 홈 화면 (디자인 가이드 Section 7.1)
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,7 +24,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
-  /// Foreground 알림 탭 이벤트를 구독하는 스트림 구독 객체
   StreamSubscription<String>? _notifSubscription;
 
   @override
@@ -76,11 +74,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   /// NotificationService.navigationStream(static)을 listen하여
   /// 알림 탭 시 홈 화면으로 이동한다.
   void _subscribeNotificationNavigation() {
-    _notifSubscription = NotificationService.navigationStream.listen(
-      (payload) {
-        if (mounted) context.go(AppRoutes.home);
-      },
-    );
+    _notifSubscription = NotificationService.navigationStream.listen((payload) {
+      if (mounted) context.go(AppRoutes.home);
+    });
   }
 
   @override
@@ -101,7 +97,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 fontWeight: FontWeight.w600,
               ),
             ),
-            backgroundColor: isDark ? AppColors.white : AppColors.budgetComfortable,
+            backgroundColor: isDark
+                ? AppColors.white
+                : AppColors.budgetComfortable,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -147,13 +145,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         children: [
                           Text(
                             '오늘의 지출',
-                            style: AppTypography.titleMedium
-                                .copyWith(color: textColor),
+                            style: AppTypography.titleMedium.copyWith(
+                              color: textColor,
+                            ),
                           ),
                           Text(
                             '${state.expenses.length}건',
-                            style: AppTypography.bodySmall
-                                .copyWith(color: subTextColor),
+                            style: AppTypography.bodySmall.copyWith(
+                              color: subTextColor,
+                            ),
                           ),
                         ],
                       ),
@@ -165,8 +165,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ? Center(
                               child: Text(
                                 '아직 지출이 없어요',
-                                style: AppTypography.bodySmall
-                                    .copyWith(color: subTextColor),
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: subTextColor,
+                                ),
                               ),
                             )
                           : ListView.builder(
@@ -180,7 +181,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   label: '${category.label} ${expense.amount}원',
                                   child: ExpenseListItem(
                                     expense: expense,
-                                    onTap: () => showExpenseAddBottomSheet(context, expense: expense),
+                                    onTap: () => showExpenseAddBottomSheet(
+                                      context,
+                                      expense: expense,
+                                    ),
                                   ),
                                 );
                               },
@@ -201,6 +205,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
     );
   }
-
-
 }

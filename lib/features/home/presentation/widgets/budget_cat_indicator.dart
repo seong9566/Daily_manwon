@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
 
 /// 예산 잔액 비율에 따라 고양이 감정 이미지를 전환하는 인디케이터
 ///
