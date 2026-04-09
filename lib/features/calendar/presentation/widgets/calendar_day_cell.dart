@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
 /// 캘린더 날짜 셀 위젯
 /// 날짜 숫자 + 하단 성공/실패 dot + 선택/오늘 강조 표시
+/// 과거 날짜이고 mood가 있을 경우 미니 고양이 이미지 표시
 class CalendarDayCell extends StatelessWidget {
   /// 표시할 날짜
   final DateTime date;
@@ -24,6 +26,9 @@ class CalendarDayCell extends StatelessWidget {
   /// 해당일 성공 여부 (null = 지출 없음, true = 성공, false = 실패)
   final bool? isSuccess;
 
+  /// 해당일 고양이 감정 상태 (null = 표시 안 함)
+  final CharacterMood? mood;
+
   /// 탭 콜백
   final VoidCallback? onTap;
 
@@ -35,6 +40,7 @@ class CalendarDayCell extends StatelessWidget {
     required this.isCurrentMonth,
     required this.isFuture,
     this.isSuccess,
+    this.mood,
     this.onTap,
   });
 
@@ -107,7 +113,20 @@ class CalendarDayCell extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
+
+            // ── 미니 고양이 이미지 (과거 날짜 + mood 있을 때만) ──────
+            if (isCurrentMonth && !isFuture && mood != null)
+              Image.asset(
+                mood!.assetPath,
+                width: 20,
+                height: 20,
+                fit: BoxFit.contain,
+              )
+            else
+              const SizedBox(height: 20),
+
+            const SizedBox(height: 1),
 
             // ── 성공/실패 dot ─────────────────────────
             // 미래 또는 다른 달은 dot 없음

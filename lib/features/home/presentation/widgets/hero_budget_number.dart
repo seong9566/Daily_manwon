@@ -61,7 +61,7 @@ class HeroBudgetNumber extends StatelessWidget {
             curve: Curves.easeInOut,
             style: TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 60, // 폰트 크기를 고정하여 카운팅 시 레이아웃 흔들림 방지
+              fontSize: 44, // 폰트 크기를 고정하여 카운팅 시 레이아웃 흔들림 방지
               fontWeight: _getFontWeight(value),
               color: _getColor(context, value),
               height: 1.2,

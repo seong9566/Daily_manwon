@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/app_date_utils.dart';
+import '../../../../core/utils/budget_mood_calculator.dart';
 import '../viewmodels/calendar_view_model.dart';
 import 'weekly_calendar_day_cell.dart';
 
@@ -156,6 +157,12 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
 
           final showAcornIcon = !isFuture && totalAmount == null;
 
+          // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
+          CharacterMood? mood;
+          if (!isFuture && totalAmount != null) {
+            mood = calculateMood(AppConstants.dailyBudget, totalAmount);
+          }
+
           return Expanded(
             child: Center(
               child: WeeklyCalendarDayCell(
@@ -168,6 +175,7 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
                 showAcornIcon: showAcornIcon,
                 onTap: () => widget.onDateSelected(day),
                 isDark: widget.isDark,
+                mood: mood,
               ),
             ),
           );

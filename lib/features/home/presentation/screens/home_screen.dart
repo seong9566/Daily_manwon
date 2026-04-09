@@ -136,6 +136,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       streakDays: state.streakDays,
                       isDark: isDark,
                       subTextColor: subTextColor,
+                      lastExpenseId: state.expenses.isNotEmpty
+                          ? state.expenses.last.id
+                          : null,
                     ),
                     // "오늘의 지출" 헤더
                     Padding(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -25,6 +26,9 @@ class WeeklyCalendarDayCell extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isDark;
 
+  /// 해당일 고양이 감정 상태 (null = 표시 안 함)
+  final CharacterMood? mood;
+
   const WeeklyCalendarDayCell({
     super.key,
     required this.date,
@@ -36,6 +40,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
     required this.showAcornIcon,
     this.onTap,
     required this.isDark,
+    this.mood,
   });
 
   @override
@@ -59,6 +64,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
               showAcornIcon: showAcornIcon,
               isFuture: isFuture,
               isDark: isDark,
+              mood: mood,
             ),
             const SizedBox(height: 4),
             _StatusDot(isSuccess: isSuccess),
@@ -125,18 +131,30 @@ class _MiddleContent extends StatelessWidget {
   final bool showAcornIcon;
   final bool isFuture;
   final bool isDark;
+  final CharacterMood? mood;
 
   const _MiddleContent({
     required this.totalAmount,
     required this.showAcornIcon,
     required this.isFuture,
     required this.isDark,
+    this.mood,
   });
 
   @override
   Widget build(BuildContext context) {
     if (isFuture) {
       return const SizedBox(height: 16);
+    }
+
+    // 과거 날짜이고 mood가 있으면 미니 고양이 이미지 표시
+    if (mood != null) {
+      return Image.asset(
+        mood!.assetPath,
+        width: 20,
+        height: 20,
+        fit: BoxFit.contain,
+      );
     }
 
     if (showAcornIcon) {

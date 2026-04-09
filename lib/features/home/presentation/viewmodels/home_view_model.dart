@@ -153,6 +153,7 @@ class HomeViewModel extends Notifier<HomeState> {
                   'amount': e.amount,
                 })
             .toList(),
+        catMood: CharacterMood.fromRatio(totalBudget > 0 ? remaining / totalBudget : 0.0).name,
       ));
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -197,6 +198,7 @@ class HomeViewModel extends Notifier<HomeState> {
                     'amount': e.amount,
                   })
               .toList(),
+          catMood: CharacterMood.fromRatio(state.totalBudget > 0 ? remaining / state.totalBudget : 0.0).name,
         ));
       }
     });
