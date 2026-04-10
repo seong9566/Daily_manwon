@@ -80,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     heroText: '매일 만원,\n얼마나 쓸 수 있을까요?',
                     subtitle: null,
                     description:
-                        '남은 돈이 줄어들수록 숫자가 달라져요\n성공하면 도토리를 모을 수 있어요',
+                        '남은 돈이 줄어들수록 숫자가 달라져요\n성공하면 발도장을 모을 수 있어요',
                     buttonLabel: '다음 →',
                     onPressed: _nextPage,
                   ),

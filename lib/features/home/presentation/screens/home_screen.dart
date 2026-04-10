@@ -129,8 +129,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     HomeBudgetHeader(
                       remainingBudget: state.remainingBudget,
                       totalBudget: state.totalBudget,
-                      totalAcorns: state.totalAcorns,
-                      streakDays: state.streakDays,
                       isDark: isDark,
                       subTextColor: subTextColor,
                       lastExpenseId: state.expenses.isNotEmpty

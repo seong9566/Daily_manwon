@@ -4,15 +4,12 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import 'acorn_streak_badge.dart';
 import 'hero_budget_number.dart';
 
-/// 홈 화면 상단 예산 정보 섹션 (날짜 ~ 도토리/스트릭)
+/// 홈 화면 상단 예산 정보 섹션 (날짜 ~ 프로그레스 바)
 class HomeBudgetHeader extends StatelessWidget {
   final int remainingBudget;
   final int totalBudget;
-  final int totalAcorns;
-  final int streakDays;
   final bool isDark;
   final Color subTextColor;
 
@@ -23,8 +20,6 @@ class HomeBudgetHeader extends StatelessWidget {
     super.key,
     required this.remainingBudget,
     required this.totalBudget,
-    required this.totalAcorns,
-    required this.streakDays,
     required this.isDark,
     required this.subTextColor,
     this.lastExpenseId,
@@ -62,9 +57,6 @@ class HomeBudgetHeader extends StatelessWidget {
           mood: mood,
           lastExpenseId: lastExpenseId,
         ),
-        const SizedBox(height: 16),
-        // 도토리 + 스트릭
-        AcornStreakBadge(totalAcorns: totalAcorns, streakDays: streakDays),
         const SizedBox(height: 24),
       ],
     );

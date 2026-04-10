@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -81,156 +82,158 @@ class _SuccessDialogState extends State<_SuccessDialog>
 
         // 다이얼로그 카드
         Center(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              constraints: BoxConstraints(
-              maxWidth: 320,
-              minWidth: MediaQuery.of(context).size.width * 0.8,
-            ),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : AppColors.card,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // X 닫기 버튼 (오른쪽 상단)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(
-                        Icons.close,
-                        size: 20,
-                        color: isDark
-                            ? AppColors.darkTextSub
-                            : AppColors.textSub,
+          child:
+              Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxWidth: 320,
+                        minWidth: MediaQuery.of(context).size.width * 0.8,
                       ),
-                      tooltip: '닫기',
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // 🎉 이모지
-                  const Text(
-                    '🎉',
-                    style: TextStyle(fontSize: 56),
-                  )
-                      .animate()
-                      .scale(
-                        begin: const Offset(0.5, 0.5),
-                        end: const Offset(1.0, 1.0),
-                        duration: 400.ms,
-                        curve: Curves.elasticOut,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkCard : AppColors.card,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.black.withValues(alpha: 0.15),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // X 닫기 버튼 (오른쪽 상단)
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: Icon(
+                                Icons.close,
+                                size: 20,
+                                color: isDark
+                                    ? AppColors.darkTextSub
+                                    : AppColors.textSub,
+                              ),
+                              tooltip: '닫기',
+                            ),
+                          ),
+                          const SizedBox(height: 4),
 
-                  const SizedBox(height: 16),
+                          // 🎉 이모지
+                          const Text(
+                            '🎉',
+                            style: TextStyle(fontSize: 56),
+                          ).animate().scale(
+                            begin: const Offset(0.5, 0.5),
+                            end: const Offset(1.0, 1.0),
+                            duration: 400.ms,
+                            curve: Curves.elasticOut,
+                          ),
 
-                  // 타이틀
-                  Text(
-                    '만원 챌린지 성공!',
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppColors.darkTextMain
-                          : AppColors.textMain,
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 200.ms, duration: 300.ms)
-                      .slideY(begin: 0.2, end: 0),
+                          const SizedBox(height: 16),
 
-                  const SizedBox(height: 8),
+                          // 타이틀
+                          Text(
+                                '만원 챌린지 성공!',
+                                style: AppTypography.titleMedium.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? AppColors.darkTextMain
+                                      : AppColors.textMain,
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(delay: 200.ms, duration: 300.ms)
+                              .slideY(begin: 0.2, end: 0),
 
-                  // 절약 금액 메시지
-                  Text(
-                    '오늘 ${CurrencyFormatter.formatWithWon(widget.remainingAmount)}을 남겼어요!',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: isDark
-                          ? AppColors.darkTextSub
-                          : AppColors.textSub,
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 300.ms, duration: 300.ms),
+                          const SizedBox(height: 8),
 
-                  const SizedBox(height: 24),
+                          // 절약 금액 메시지
+                          Text(
+                            '오늘 ${CurrencyFormatter.formatWithWon(widget.remainingAmount)}을 남겼어요!',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: isDark
+                                  ? AppColors.darkTextSub
+                                  : AppColors.textSub,
+                            ),
+                          ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
 
-                  // 도토리 획득 항목
-                  _RewardRow(
-                    emoji: '🌰',
-                    label: '도토리 획득',
-                    value: '+${widget.acornCount}',
-                    delay: 400.ms,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 12),
+                          const SizedBox(height: 24),
 
-                  // 연속 성공 항목
-                  _RewardRow(
-                    emoji: '🔥',
-                    label: '연속 성공',
-                    value: '${widget.streakDays}일째',
-                    delay: 500.ms,
-                    isDark: isDark,
-                  ),
+                          // 발도장 획득 항목
+                          _RewardRow(
+                            emoji: AppEmoji.rewardIcon,
+                            label: '발도장 획득',
+                            value: '+${widget.acornCount}',
+                            delay: 400.ms,
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 12),
 
-                  const SizedBox(height: 28),
+                          // 연속 성공 항목
+                          _RewardRow(
+                            emoji: '🔥',
+                            label: '연속 성공',
+                            value: '${widget.streakDays}일째',
+                            delay: 500.ms,
+                            isDark: isDark,
+                          ),
 
-                  // 확인 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: Semantics(
-                      button: true,
-                      label: '확인',
-                      child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            isDark ? AppColors.darkTextMain : AppColors.textMain,
-                        foregroundColor:
-                            isDark ? AppColors.darkBackground : AppColors.card,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
+                          const SizedBox(height: 28),
+
+                          // 확인 버튼
+                          SizedBox(
+                                width: double.infinity,
+                                child: Semantics(
+                                  button: true,
+                                  label: '확인',
+                                  child: ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isDark
+                                          ? AppColors.darkTextMain
+                                          : AppColors.textMain,
+                                      foregroundColor: isDark
+                                          ? AppColors.darkBackground
+                                          : AppColors.card,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text(
+                                      '확인',
+                                      style: AppTypography.bodyLarge.copyWith(
+                                        color: isDark
+                                            ? AppColors.darkBackground
+                                            : AppColors.card,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(delay: 600.ms, duration: 300.ms)
+                              .slideY(begin: 0.3, end: 0),
+                        ],
                       ),
-                      child: Text(
-                        '확인',
-                        style: AppTypography.bodyLarge.copyWith(
-                          color: isDark
-                              ? AppColors.darkBackground
-                              : AppColors.card,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
                     ),
                   )
-                      .animate()
-                      .fadeIn(delay: 600.ms, duration: 300.ms)
-                      .slideY(begin: 0.3, end: 0),
-                ],
-              ),
-            ),
-          )
-              .animate()
-              .scale(
-                begin: const Offset(0.8, 0.8),
-                duration: 350.ms,
-                curve: Curves.easeOutBack,
-              )
-              .fadeIn(duration: 300.ms),
+                  .animate()
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    duration: 350.ms,
+                    curve: Curves.easeOutBack,
+                  )
+                  .fadeIn(duration: 300.ms),
         ),
       ],
     );
@@ -259,26 +262,56 @@ class _RewardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: AppTypography.bodyMedium.copyWith(
-            color: isDark ? AppColors.darkTextMain : AppColors.textMain,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          value,
-          style: AppTypography.bodyLarge.copyWith(
-            color: isDark ? AppColors.white : AppColors.primary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    ).animate().fadeIn(delay: delay, duration: 300.ms).slideX(begin: -0.1, end: 0);
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Builder(
+              builder: (context) {
+                final isStreak = emoji == '🔥';
+                if (isStreak) {
+                  return Text(
+                    emoji,
+                    style: TextStyle(
+                      fontSize: 20,
+                      shadows: isDark
+                          ? [
+                              Shadow(
+                                color: AppColors.white.withValues(alpha: 0.5),
+                                blurRadius: 4,
+                              )
+                            ]
+                          : null,
+                    ),
+                  );
+                }
+                return ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    isDark ? AppColors.white : AppColors.textMain,
+                    BlendMode.srcIn,
+                  ),
+                  child: Text(emoji, style: const TextStyle(fontSize: 20)),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: AppTypography.bodyMedium.copyWith(
+                color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: AppTypography.bodyLarge.copyWith(
+                color: isDark ? AppColors.white : AppColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        )
+        .animate()
+        .fadeIn(delay: delay, duration: 300.ms)
+        .slideX(begin: -0.1, end: 0);
   }
 }
 
@@ -355,11 +388,7 @@ class _ConfettiPainter extends CustomPainter {
 
       if (shapeType == 0) {
         // 원형
-        canvas.drawCircle(
-          Offset(x + sway, y),
-          particleSize / 2,
-          paint,
-        );
+        canvas.drawCircle(Offset(x + sway, y), particleSize / 2, paint);
       } else if (shapeType == 1) {
         // 직사각형 + 회전
         canvas.save();
