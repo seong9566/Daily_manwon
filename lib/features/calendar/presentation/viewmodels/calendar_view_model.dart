@@ -65,6 +65,23 @@ class CalendarState {
     return monthlyExpenses[selectedDate] ?? [];
   }
 
+  /// 현재 표시 중인 월의 성공일 수 (오늘 이전 날짜 기준)
+  /// 지출이 없는 날(0원)도 성공으로 카운트한다
+  int get monthlySuccessCount {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysInMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 0).day;
+    int count = 0;
+    for (int d = 1; d <= daysInMonth; d++) {
+      final date = DateTime(selectedMonth.year, selectedMonth.month, d);
+      if (date.isAfter(today)) continue;
+      final dayTotal = (monthlyExpenses[date] ?? []).fold<int>(0, (s, e) => s + e.amount);
+      final budget = monthlyBaseAmounts[date] ?? AppConstants.dailyBudget;
+      if (dayTotal <= budget) count++;
+    }
+    return count;
+  }
+
   CalendarState copyWith({
     DateTime? selectedMonth,
     DateTime? selectedDate,
@@ -316,7 +333,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       totalSpent: totalSpent,
       dailyAverage: countedDays > 0 ? totalSpent ~/ countedDays : 0,
       savingDays: savingDays,
-      totalDays: countedDays,
+      totalDays: weekDays.length,
     );
   }
 

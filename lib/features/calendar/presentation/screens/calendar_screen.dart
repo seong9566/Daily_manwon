@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/presentation/screens/expense_add_screen.dart';
+import '../../../../core/widgets/acorn_streak_badge.dart';
 import '../viewmodels/calendar_view_model.dart';
 import '../widgets/daily_expense_detail.dart';
 import '../widgets/sliding_calendar_grid.dart';
@@ -35,7 +36,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
-    final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -98,13 +98,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
                       const SizedBox(height: 8),
 
-                      // ── 연속일 · 성공 횟수 통계 ──────────────────
+                      // ── 뷰 모드별 성공 통계 배지 ─────────────────
                       Center(
-                        child: Text(
-                          '연속 ${state.streakDays}일 · 성공 ${state.successCount}회',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: textSubColor,
-                          ),
+                        child: Builder(
+                          builder: (_) {
+                            final isMonthly = state.viewMode ==
+                                CalendarViewMode.monthly;
+                            final successCount = isMonthly
+                                ? state.monthlySuccessCount
+                                : ref
+                                    .read(calendarViewModelProvider.notifier)
+                                    .getWeeklySummary()
+                                    .savingDays;
+                            return AcornStreakBadge(
+                              totalAcorns: successCount,
+                              streakDays: state.streakDays,
+                              rewardLabel:
+                                  isMonthly ? '이달 성공' : '이번주 성공',
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 16),

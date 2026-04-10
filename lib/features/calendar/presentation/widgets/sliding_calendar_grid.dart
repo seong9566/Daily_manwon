@@ -282,6 +282,10 @@ class _CalendarGrid extends StatelessWidget {
           if (expenses != null && expenses.isNotEmpty) {
             totalSpent = expenses.fold<int>(0, (sum, e) => sum + e.amount);
             isSuccess = totalSpent <= baseAmount;
+          } else if (!isFuture && !isToday) {
+            // 지출 없는 과거 날 → 0원 지출 = 성공(comfortable)
+            totalSpent = 0;
+            isSuccess = true;
           }
 
           // 과거 날짜이고 지출 데이터가 있을 때 mood 계산

@@ -117,11 +117,26 @@ class CalendarDayCell extends StatelessWidget {
 
             // ── 미니 고양이 이미지 (과거 날짜 + mood 있을 때만) ──────
             if (isCurrentMonth && !isFuture && mood != null)
-              Image.asset(
-                mood!.assetPath,
-                width: 20,
-                height: 20,
-                fit: BoxFit.contain,
+              ColorFiltered(
+                colorFilter: isDark
+                    ? const ColorFilter.matrix([
+                        -1, 0, 0, 0, 255,
+                        0, -1, 0, 0, 255,
+                        0, 0, -1, 0, 255,
+                        0, 0, 0, 1, 0,
+                      ])
+                    : const ColorFilter.matrix([
+                        1, 0, 0, 0, 0,
+                        0, 1, 0, 0, 0,
+                        0, 0, 1, 0, 0,
+                        0, 0, 0, 1, 0,
+                      ]),
+                child: Image.asset(
+                  mood!.assetPath,
+                  width: 20,
+                  height: 20,
+                  fit: BoxFit.contain,
+                ),
               )
             else
               const SizedBox(height: 20),
