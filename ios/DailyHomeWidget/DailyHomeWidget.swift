@@ -14,7 +14,7 @@ import SwiftUI
 // ─────────────────────────────────────────────────────────────────────────────
 enum BudgetStatus {
     case comfortable  // 여유: ≥ 5,000
-    case warning      // 주의: 1,000 ~ 4,999
+    case normal       // 주의: 1,000 ~ 4,999
     case danger       // 위험: 0 ~ 999
     case over         // 초과: < 0
 
@@ -22,7 +22,7 @@ enum BudgetStatus {
         if remaining >= 5000 {
             self = .comfortable
         } else if remaining >= 1000 {
-            self = .warning
+            self = .normal
         } else if remaining >= 0 {
             self = .danger
         } else {
@@ -36,25 +36,23 @@ enum BudgetStatus {
 // ─────────────────────────────────────────────────────────────────────────────
 struct ExpenseItem: Codable, Identifiable {
     var id: String { "\(category)_\(time)_\(amount)" }
-    let category: String  // "점심", "카페", "간식" 등
+    let category: String  // "점심", "카페", "간식", "교통", "쇼핑" 등
     let time: String      // "12:30", "15:15" 등
     let amount: Int       // 양수값 (3500)
     
-    /// 카테고리별 이모지 아이콘 매핑
-    var icon: String {
+    /// 카테고리별 에셋 파일 이름 매핑
+    var categoryAssetName: String {
         switch category {
         case "점심", "저녁", "아침", "식비":
-            return "🍚"
+            return "CategoryFood"
         case "카페", "아메리카노", "커피":
-            return "☕"
-        case "간식":
-            return "🍪"
-        case "교통":
-            return "🚗"
+            return "CategoryCoffee"
         case "쇼핑":
-            return "🛍️"
+            return "CategoryShopping"
+        case "교통":
+            return "CategoryTransport"
         default:
-            return "💰"
+            return "CategoryEtc"
         }
     }
 }
@@ -67,7 +65,8 @@ struct WidgetColorPalette {
     let primaryText: Color    // 금액, 제목
     let secondaryText: Color  // 라벨, 설명
     let accentBg: Color       // 스트릭 배지, 구분선 등
-    
+    let progressColor: Color  // 프로그레스 바 채움 색상
+
     static func palette(for status: BudgetStatus) -> WidgetColorPalette {
         // 배경: 모든 상태 흰색 고정 (모바일 정책 동일)
         // 서브 텍스트: 중립 고정 #8E8E8E
@@ -80,28 +79,32 @@ struct WidgetColorPalette {
                 background:    bg,
                 primaryText:   Color(red: 0,       green: 0,       blue: 0),        // #000000
                 secondaryText: secondaryText,
-                accentBg:      Color(red: 238/255, green: 238/255, blue: 238/255)   // #EEEEEE
+                accentBg:      Color(red: 238/255, green: 238/255, blue: 238/255),  // #EEEEEE
+                progressColor: Color(red: 0,       green: 0,       blue: 0)         // #000000 (budgetComfortable)
             )
-        case .warning:
+        case .normal:
             return WidgetColorPalette(
                 background:    bg,
                 primaryText:   Color(red: 245/255, green: 166/255, blue: 35/255),   // #F5A623
                 secondaryText: secondaryText,
-                accentBg:      Color(red: 254/255, green: 243/255, blue: 199/255)   // #FEF3C7
+                accentBg:      Color(red: 254/255, green: 243/255, blue: 199/255),  // #FEF3C7
+                progressColor: Color(red: 245/255, green: 166/255, blue: 35/255)    // #F5A623 (budgetWarning)
             )
         case .danger:
             return WidgetColorPalette(
                 background:    bg,
                 primaryText:   Color(red: 232/255, green: 93/255,  blue: 93/255),   // #E85D5D
                 secondaryText: secondaryText,
-                accentBg:      Color(red: 253/255, green: 232/255, blue: 232/255)   // #FDE8E8
+                accentBg:      Color(red: 253/255, green: 232/255, blue: 232/255),  // #FDE8E8
+                progressColor: Color(red: 232/255, green: 93/255,  blue: 93/255)    // #E85D5D (budgetDanger)
             )
         case .over:
             return WidgetColorPalette(
                 background:    bg,
                 primaryText:   Color(red: 192/255, green: 57/255,  blue: 43/255),   // #C0392B
                 secondaryText: secondaryText,
-                accentBg:      Color(red: 254/255, green: 226/255, blue: 226/255)   // #FEE2E2
+                accentBg:      Color(red: 254/255, green: 226/255, blue: 226/255),  // #FEE2E2
+                progressColor: Color(red: 232/255, green: 93/255,  blue: 93/255)    // #E85D5D (budgetDanger — Flutter와 동일)
             )
         }
     }
@@ -116,10 +119,10 @@ struct WidgetColorPalette {
     static func mediumUsedFontSize(for status: BudgetStatus) -> CGFloat { 26 }
 
     /// Large 위젯 "남은 예산" 금액 폰트 크기
-    static func largeRemainingFontSize(for status: BudgetStatus) -> CGFloat { 26 }
+    static func largeRemainingFontSize(for status: BudgetStatus) -> CGFloat { 18 }
 
     /// Large 위젯 "사용한 예산" 금액 폰트 크기
-    static func largeUsedFontSize(for status: BudgetStatus) -> CGFloat { 26 }
+    static func largeUsedFontSize(for status: BudgetStatus) -> CGFloat { 18 }
 }
 
 
@@ -216,7 +219,7 @@ struct DailyHomeSmallView: View {
     private var statusMessage: String {
         switch status {
         case .comfortable: return "오늘도 잘 하고 있어요"
-        case .warning:     return "조금만 더 아껴볼까요?"
+        case .normal:     return "조금만 더 아껴볼까요?"
         case .danger:      return "위험해요! 아껴쓰세요"
         case .over:        return "예산을 초과했어요"
         }
@@ -286,7 +289,7 @@ struct DailyHomeSmallView: View {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(colors.accentBg)
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(colors.primaryText)
+                        .fill(colors.progressColor)
                         .frame(width: geometry.size.width * CGFloat(progressRatio))
                 }
             }
@@ -347,7 +350,7 @@ struct DailyHomeMediumView: View {
     private var statusMessage: String {
         switch status {
         case .comfortable: return "오늘도 잘 하고 있어요"
-        case .warning:     return "조금만 더 아껴볼까요?"
+        case .normal:     return "조금만 더 아껴볼까요?"
         case .danger:      return "위험해요! 아껴쓰세요"
         case .over:        return "예산을 초과했어요"
         }
@@ -434,7 +437,7 @@ struct DailyHomeMediumView: View {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(colors.accentBg)
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(colors.primaryText)
+                        .fill(colors.progressColor)
                         .frame(width: geometry.size.width * CGFloat(progressRatio))
                 }
             }
@@ -473,6 +476,10 @@ struct DailyHomeMediumView: View {
 struct DailyHomeLargeView: View {
     var entry: Provider.Entry
     
+    private var progressRatio: Double {
+        guard entry.total > 0 else { return 0.0 }
+        return max(0.0, min(1.0, Double(entry.remaining) / Double(entry.total)))
+    }
     private var status: BudgetStatus { BudgetStatus(remaining: entry.remaining) }
     private var colors: WidgetColorPalette { WidgetColorPalette.palette(for: status) }
     
@@ -492,7 +499,7 @@ struct DailyHomeLargeView: View {
     
     /// 표시할 지출 목록 (최대 4건)
     private var displayExpenses: [ExpenseItem] {
-        Array(entry.expenses.prefix(4))
+        Array(entry.expenses.prefix(3))
     }
     
     var body: some View {
@@ -539,6 +546,11 @@ struct DailyHomeLargeView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
+                // 세로 구분선 추가
+                Divider()
+                    .frame(height: 40)
+                    .padding(.horizontal, 12)
+                
                 // 우측: 사용한 예산
                 VStack(alignment: .leading, spacing: 4) {
                     Text("사용한 예산")
@@ -552,11 +564,32 @@ struct DailyHomeLargeView: View {
                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                // 고양이 캐릭터 추가
+                Image(catImageName(for: entry.catMood))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 70, height: 70)
+                    .padding(.leading, 8)
             }
+           
+            // 프로그레스 바
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(colors.accentBg)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(colors.progressColor)
+                        .frame(width: geometry.size.width * CGFloat(progressRatio))
+                }
+            }
+            .frame(height: 6)
+
+            Spacer().frame(height: 12)
             
-            // ── 구분선 ──────────────────────────────────────────────
-            Divider()
-                .padding(.vertical, 10)
+//            // ── 구분선 ──────────────────────────────────────────────
+//            Divider()
+//                .padding(.vertical, 10)
             
             // ── 오늘의 지출 헤더 ─────────────────────────────────────
             HStack {
@@ -594,10 +627,10 @@ struct DailyHomeLargeView: View {
                     }
                     
                     // 4건 초과 시 "외 N건 더보기" 표시
-                    if entry.expenses.count > 4 {
+                    if entry.expenses.count > 3 {
                         HStack {
                             Spacer()
-                            Text("외 \(entry.expenses.count - 4)건 더보기")
+                            Text("외 \(entry.expenses.count - 3)건 더보기")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(colors.secondaryText.opacity(0.7))
                             Spacer()
@@ -626,10 +659,12 @@ struct ExpenseRowView: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            // 아이콘
-            Text(expense.icon)
-                .font(.system(size: 16))
-                .frame(width: 28, height: 28)
+            // 아이콘 이미지
+            Image(expense.categoryAssetName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .padding(5)
                 .background(
                     Circle()
                         .fill(colors.accentBg)
@@ -639,7 +674,7 @@ struct ExpenseRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(expense.category)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(colors.primaryText)
+                    .foregroundColor(.black)
                 
                 Text(expense.time)
                     .font(.system(size: 12, weight: .regular))
@@ -651,7 +686,7 @@ struct ExpenseRowView: View {
             // 금액 (음수 표시)
             Text("-\(formatNumber(expense.amount))")
                 .font(.system(size: 14, weight: .bold))
-                .foregroundColor(colors.primaryText)
+                .foregroundColor(.black)
         }
         .padding(.vertical, 4)
     }
@@ -749,6 +784,16 @@ struct DailyHomeWidgetRouter: View {
             ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
         ],
         catMood: "comfortable"
+    )
+    SimpleEntry(
+        date: Date(), total: 10000, used: 6000, remaining: 4000, streak: 12,
+        expenses: [
+            ExpenseItem(category: "점심", time: "12:30", amount: 8500),
+            ExpenseItem(category: "카페", time: "15:15", amount: 2800),
+            ExpenseItem(category: "카페", time: "15:15", amount: 3800),
+
+        ],
+        catMood: "normal"
     )
     SimpleEntry(
         date: Date(), total: 10000, used: 11500, remaining: -1500, streak: 0,
