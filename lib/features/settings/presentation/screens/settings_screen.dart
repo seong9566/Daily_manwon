@@ -10,6 +10,7 @@ import '../widgets/settings_divider.dart';
 import '../widgets/settings_section_header.dart';
 import '../widgets/settings_switch_tile.dart';
 import '../widgets/settings_tap_tile.dart';
+import '../widgets/carryover_toggle_section.dart';
 import '../widgets/settings_time_picker_tile.dart';
 import '../widgets/time_picker_bottom_sheet.dart';
 
@@ -51,6 +52,12 @@ class SettingsScreen extends ConsumerWidget {
                     isDark: isDark,
                     onTap: () =>
                         _showBudgetEditDialog(context, state.dailyBudget, vm),
+                  ),
+                  SettingsDivider(isDark: isDark),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 8),
+                    child: const CarryoverToggleSection(),
                   ),
                   SettingsDivider(isDark: isDark),
 

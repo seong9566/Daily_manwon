@@ -1,6 +1,7 @@
 import 'package:daily_manwon/core/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Drift SQLite를 통한 사용자 설정 로컬 접근 객체
 /// 단일 row(id=1)로 설정 값을 관리한다
@@ -83,5 +84,28 @@ class SettingsLocalDatasource {
                 t.date.isSmallerThanValue(end),
           ))
         .write(DailyBudgetsCompanion(baseAmount: Value(amount)));
+  }
+
+  Future<bool> getCarryoverEnabled() async {
+    final row = await (_db.select(_db.userPreferences)
+          ..where((t) => t.id.equals(1)))
+        .getSingleOrNull();
+    return row?.carryoverEnabled ?? false;
+  }
+
+  Future<void> setCarryoverEnabled(bool enabled) async {
+    await _ensureRow();
+    await (_db.update(_db.userPreferences)..where((t) => t.id.equals(1)))
+        .write(UserPreferencesCompanion(carryoverEnabled: Value(enabled)));
+  }
+
+  Future<bool> hasSeenNewWeekThisWeek(String weekKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('new_week_seen_$weekKey') ?? false;
+  }
+
+  Future<void> markNewWeekSeen(String weekKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('new_week_seen_$weekKey', true);
   }
 }

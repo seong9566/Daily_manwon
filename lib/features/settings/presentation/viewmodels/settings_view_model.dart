@@ -23,6 +23,9 @@ class SettingsState {
   /// 일일 예산 설정값 (원)
   final int dailyBudget;
 
+  /// 이월 기능 활성화 여부
+  final bool carryoverEnabled;
+
   /// 알림 설정 로드/저장 중 로딩 인디케이터 표시 여부
   final bool isLoading;
 
@@ -33,6 +36,7 @@ class SettingsState {
     this.dinnerTime = const TimeOfDay(hour: 20, minute: 0),
     this.isDarkMode = false,
     this.dailyBudget = 10000,
+    this.carryoverEnabled = false,
     this.isLoading = false,
   });
 
@@ -43,6 +47,7 @@ class SettingsState {
     TimeOfDay? dinnerTime,
     bool? isDarkMode,
     int? dailyBudget,
+    bool? carryoverEnabled,
     bool? isLoading,
   }) {
     return SettingsState(
@@ -52,6 +57,7 @@ class SettingsState {
       dinnerTime: dinnerTime ?? this.dinnerTime,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       dailyBudget: dailyBudget ?? this.dailyBudget,
+      carryoverEnabled: carryoverEnabled ?? this.carryoverEnabled,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -78,6 +84,7 @@ class SettingsViewModel extends Notifier<SettingsState> {
   bool _lunchTimeInteracted = false;
   bool _dinnerEnabledInteracted = false;
   bool _dinnerTimeInteracted = false;
+  bool _carryoverInteracted = false;
 
   /// DB에서 로드한 설정값 캐시.
   /// 초기 로드 완료 전 사용자가 저장 시도 시 미변경 필드의 DB 원본값을 보존한다.
@@ -96,6 +103,7 @@ class SettingsViewModel extends Notifier<SettingsState> {
     Future.microtask(() async {
       await loadNotificationSettings();
       await _loadDailyBudget();
+      await _loadCarryoverEnabled();
     });
 
     return SettingsState(isDarkMode: initialTheme == ThemeMode.dark);
@@ -204,6 +212,29 @@ class SettingsViewModel extends Notifier<SettingsState> {
   Future<void> setDailyBudget(int amount) async {
     state = state.copyWith(dailyBudget: amount);
     await _settingsRepository.setDailyBudget(amount);
+    ref.invalidate(homeViewModelProvider);
+    ref.invalidate(calendarViewModelProvider);
+  }
+
+  /// 이월 기능 활성화 여부를 DB에서 로드한다.
+  /// 사용자가 이미 토글을 변경한 경우 DB 값으로 덮어쓰지 않는다.
+  Future<void> _loadCarryoverEnabled() async {
+    try {
+      final enabled = await _settingsRepository.getCarryoverEnabled();
+      if (!_carryoverInteracted) {
+        state = state.copyWith(carryoverEnabled: enabled);
+      }
+    } catch (_) {
+      // 로드 실패 시 기본값(false) 유지
+    }
+  }
+
+  /// 이월 기능 활성화 여부를 변경하고 DB에 저장한다.
+  /// 저장 후 홈/캘린더 화면이 즉시 새 설정을 반영하도록 Provider를 갱신한다.
+  Future<void> setCarryoverEnabled(bool enabled) async {
+    _carryoverInteracted = true;
+    await _settingsRepository.setCarryoverEnabled(enabled);
+    state = state.copyWith(carryoverEnabled: enabled);
     ref.invalidate(homeViewModelProvider);
     ref.invalidate(calendarViewModelProvider);
   }

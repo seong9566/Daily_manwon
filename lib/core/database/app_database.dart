@@ -55,6 +55,8 @@ class UserPreferences extends Table {
       boolean().withDefault(const Constant(false))();
   IntColumn get dailyBudget =>
       integer().withDefault(const Constant(10000))(); // 일일 예산 (원, 기본 1만원)
+  BoolColumn get carryoverEnabled =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -93,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -119,6 +121,11 @@ class AppDatabase extends _$AppDatabase {
           // schema v6: UserPreferences.dailyBudget 컬럼 추가
           if (from < 6) {
             await m.addColumn(userPreferences, userPreferences.dailyBudget);
+          }
+          // schema v7: UserPreferences.carryoverEnabled 컬럼 추가
+          if (from < 7) {
+            await m.addColumn(
+                userPreferences, userPreferences.carryoverEnabled);
           }
         },
       );

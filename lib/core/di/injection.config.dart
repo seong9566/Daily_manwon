@@ -135,7 +135,10 @@ _i174.GetIt $initGetIt(
     ),
   );
   gh.lazySingleton<_i597.GetTodayBudgetUseCase>(
-    () => _i597.GetTodayBudgetUseCase(gh<_i891.DailyBudgetRepository>()),
+    () => _i597.GetTodayBudgetUseCase(
+      gh<_i891.DailyBudgetRepository>(),
+      gh<_i674.SettingsRepository>(),
+    ),
   );
   gh.lazySingleton<_i241.CalendarRepository>(
     () => _i712.CalendarRepositoryImpl(gh<_i494.CalendarLocalDatasource>()),

@@ -11,6 +11,7 @@ import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
+import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../domain/usecases/check_and_award_title_use_case.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
@@ -27,6 +28,12 @@ class HomeState {
   final int streakDays;
   final bool isLoading;
 
+  /// 이월 배지 표시용 금액 (0이면 이월 없음)
+  final int carryOver;
+
+  /// 월요일 첫 접근 인터스티셜 트리거 여부
+  final bool isNewWeek;
+
   /// 방금 획득한 칭호 이름 — null이면 신규 칭호 없음 (S-26g)
   final String? newlyAchievedTitle;
 
@@ -37,6 +44,8 @@ class HomeState {
     this.totalAcorns = 0,
     this.streakDays = 0,
     this.isLoading = true,
+    this.carryOver = 0,
+    this.isNewWeek = false,
     this.newlyAchievedTitle,
   });
 
@@ -47,6 +56,8 @@ class HomeState {
     int? totalAcorns,
     int? streakDays,
     bool? isLoading,
+    int? carryOver,
+    bool? isNewWeek,
     String? newlyAchievedTitle,
     // null로 명시적 초기화가 필요할 때 사용하는 플래그 (S-26g)
     bool clearTitle = false,
@@ -58,6 +69,8 @@ class HomeState {
       totalAcorns: totalAcorns ?? this.totalAcorns,
       streakDays: streakDays ?? this.streakDays,
       isLoading: isLoading ?? this.isLoading,
+      carryOver: carryOver ?? this.carryOver,
+      isNewWeek: isNewWeek ?? this.isNewWeek,
       newlyAchievedTitle: clearTitle ? null : (newlyAchievedTitle ?? this.newlyAchievedTitle),
     );
   }
@@ -108,9 +121,12 @@ class HomeViewModel extends Notifier<HomeState> {
       // 전날 결과 평가 → 도토리 지급 (중복 방지 포함)
       await getIt<EvaluateAndAwardAcornUseCase>().execute();
 
+      final settingsRepository = getIt<SettingsRepository>();
+
       // 오늘 예산 확보
       final budget = await budgetUseCase.getOrCreateTodayBudget();
-      final totalBudget = budget.baseAmount;
+      final totalBudget = budget.effectiveBudget;
+      final carryOver = budget.carryOver;
 
       // 오늘 지출 목록
       final expenses = await expenseUseCase.getExpensesByDate(DateTime.now());
@@ -122,6 +138,13 @@ class HomeViewModel extends Notifier<HomeState> {
       final acorns = await acornUseCase.getTotalAcorns();
       final streak = await acornUseCase.getStreakDays();
 
+      // 새 주 감지 (월요일 + 이월 활성화 + 이번 주 미확인)
+      final carryoverEnabled = await settingsRepository.getCarryoverEnabled();
+      final weekKey = _currentWeekKey();
+      final isNewWeek = DateTime.now().weekday == DateTime.monday
+          && carryoverEnabled
+          && !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
+
       // 스트릭 마일스톤 달성 시 칭호 수여 (S-26g)
       final newTitle = await getIt<CheckAndAwardTitleUseCase>().execute(streak);
 
@@ -132,10 +155,17 @@ class HomeViewModel extends Notifier<HomeState> {
         totalAcorns: acorns,
         streakDays: streak,
         isLoading: false,
+        carryOver: carryOver,
+        isNewWeek: isNewWeek,
         newlyAchievedTitle: newTitle,
       );
 
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
+      final catMood = isNewWeek
+          ? 'new_week'
+          : (remaining < 0 || totalBudget <= 0
+              ? CharacterMood.over.name
+              : CharacterMood.fromRatio(remaining / totalBudget).name);
       unawaited(getIt<WidgetService>().updateWidget(
         total: totalBudget,
         used: totalBudget - remaining,
@@ -148,7 +178,7 @@ class HomeViewModel extends Notifier<HomeState> {
                   'amount': e.amount,
                 })
             .toList(),
-        catMood: CharacterMood.fromRatio(totalBudget > 0 ? remaining / totalBudget : 0.0).name,
+        catMood: catMood,
       ));
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -193,10 +223,28 @@ class HomeViewModel extends Notifier<HomeState> {
                     'amount': e.amount,
                   })
               .toList(),
-          catMood: CharacterMood.fromRatio(state.totalBudget > 0 ? remaining / state.totalBudget : 0.0).name,
+          catMood: state.isNewWeek
+              ? 'new_week'
+              : (remaining < 0 || state.totalBudget <= 0
+                  ? CharacterMood.over.name
+                  : CharacterMood.fromRatio(remaining / state.totalBudget).name),
         ));
       }
     });
+  }
+
+  /// 새 주 인터스티셜 확인 후 상태를 초기화한다
+  Future<void> markNewWeekSeen() async {
+    await getIt<SettingsRepository>().markNewWeekSeen(_currentWeekKey());
+    state = state.copyWith(isNewWeek: false);
+  }
+
+  /// 현재 주의 월요일 기준 키를 반환한다 (yyyy-MM-dd 형식)
+  String _currentWeekKey() {
+    final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - DateTime.monday));
+    final d = DateTime(monday.year, monday.month, monday.day);
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
   /// 칭호 Snackbar 표시 후 상태를 초기화한다 (S-26g)

@@ -11,6 +11,7 @@ import 'package:daily_manwon/features/home/domain/usecases/get_today_budget_use_
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/domain/repositories/expense_repository.dart';
 import 'package:daily_manwon/features/expense/domain/usecases/add_expense_use_case.dart';
+import 'package:daily_manwon/features/settings/domain/repositories/settings_repository.dart';
 
 class MockDailyBudgetRepository extends Mock implements DailyBudgetRepository {}
 
@@ -18,10 +19,13 @@ class MockAcornRepository extends Mock implements AcornRepository {}
 
 class MockExpenseRepository extends Mock implements ExpenseRepository {}
 
+class MockSettingsRepository extends Mock implements SettingsRepository {}
+
 void main() {
   late MockDailyBudgetRepository mockBudgetRepo;
   late MockAcornRepository mockAcornRepo;
   late MockExpenseRepository mockExpenseRepo;
+  late MockSettingsRepository mockSettingsRepo;
 
   setUpAll(() {
     registerFallbackValue(
@@ -34,6 +38,7 @@ void main() {
     mockBudgetRepo = MockDailyBudgetRepository();
     mockAcornRepo = MockAcornRepository();
     mockExpenseRepo = MockExpenseRepository();
+    mockSettingsRepo = MockSettingsRepository();
   });
 
   // ─── T-01-1: 지출 저장 → 잔액 차감 ───────────────────────────────────────
@@ -53,7 +58,7 @@ void main() {
       when(() => mockBudgetRepo.getRemainingBudget(any())).thenAnswer((_) async => 7000);
 
       final addExpenseUseCase = AddExpenseUseCase(mockExpenseRepo);
-      final getTodayBudgetUseCase = GetTodayBudgetUseCase(mockBudgetRepo);
+      final getTodayBudgetUseCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
 
       // when
       await addExpenseUseCase.execute(expense);
@@ -96,9 +101,11 @@ void main() {
         baseAmount: 10000,
         carryOver: 0,
       );
-      when(() => mockBudgetRepo.getOrCreateTodayBudget()).thenAnswer((_) async => newBudget);
+      when(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).thenAnswer((_) async => newBudget);
+      when(() => mockBudgetRepo.getLastBudgetDate()).thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getCarryoverEnabled()).thenAnswer((_) async => false);
 
-      final useCase = GetTodayBudgetUseCase(mockBudgetRepo);
+      final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
 
       // when
       final budget = await useCase.getOrCreateTodayBudget();
@@ -113,15 +120,17 @@ void main() {
       // given
       final today = DateTime.now();
       final budget = DailyBudgetEntity(id: 1, date: today);
-      when(() => mockBudgetRepo.getOrCreateTodayBudget()).thenAnswer((_) async => budget);
+      when(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).thenAnswer((_) async => budget);
+      when(() => mockBudgetRepo.getLastBudgetDate()).thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getCarryoverEnabled()).thenAnswer((_) async => false);
 
-      final useCase = GetTodayBudgetUseCase(mockBudgetRepo);
+      final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
 
       // when
       await useCase.getOrCreateTodayBudget();
 
       // then
-      verify(() => mockBudgetRepo.getOrCreateTodayBudget()).called(1);
+      verify(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).called(1);
     });
   });
 
@@ -137,9 +146,11 @@ void main() {
         baseAmount: 10000,
         carryOver: 2000,
       );
-      when(() => mockBudgetRepo.getOrCreateTodayBudget()).thenAnswer((_) async => budget);
+      when(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).thenAnswer((_) async => budget);
+      when(() => mockBudgetRepo.getLastBudgetDate()).thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getCarryoverEnabled()).thenAnswer((_) async => true);
 
-      final useCase = GetTodayBudgetUseCase(mockBudgetRepo);
+      final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
 
       // when
       final result = await useCase.getOrCreateTodayBudget();
@@ -157,9 +168,11 @@ void main() {
         baseAmount: 10000,
         carryOver: -1000,
       );
-      when(() => mockBudgetRepo.getOrCreateTodayBudget()).thenAnswer((_) async => budget);
+      when(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).thenAnswer((_) async => budget);
+      when(() => mockBudgetRepo.getLastBudgetDate()).thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getCarryoverEnabled()).thenAnswer((_) async => true);
 
-      final useCase = GetTodayBudgetUseCase(mockBudgetRepo);
+      final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
 
       // when
       final result = await useCase.getOrCreateTodayBudget();

@@ -15,8 +15,16 @@ class DailyBudgetRepositoryImpl implements DailyBudgetRepository {
       _datasource.getBudgetByDate(date);
 
   @override
-  Future<DailyBudgetEntity> getOrCreateTodayBudget() =>
-      _datasource.getOrCreateTodayBudget();
+  Future<DailyBudgetEntity> getOrCreateTodayBudget({required int carryOver}) =>
+      _datasource.getOrCreateTodayBudget(carryOver: carryOver);
+
+  @override
+  Future<DailyBudgetEntity> getOrCreateBudgetForDate({
+    required DateTime date,
+    required int carryOver,
+    int? baseAmount,
+  }) =>
+      _datasource.getOrCreateBudgetForDate(date: date, carryOver: carryOver, baseAmount: baseAmount);
 
   @override
   Future<int> getRemainingBudget(DateTime date) =>
@@ -25,4 +33,12 @@ class DailyBudgetRepositoryImpl implements DailyBudgetRepository {
   @override
   Stream<int> watchRemainingBudget(DateTime date) =>
       _datasource.watchRemainingBudget(date);
+
+  @override
+  Future<DateTime?> getLastBudgetDate() =>
+      _datasource.getLastBudgetDate();
+
+  @override
+  Future<int> getTotalExpensesByDate(DateTime date) =>
+      _datasource.getTotalExpensesByDate(date);
 }

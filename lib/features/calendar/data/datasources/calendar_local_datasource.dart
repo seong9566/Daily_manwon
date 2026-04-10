@@ -77,12 +77,12 @@ class CalendarLocalDatasource {
       dailyTotals[dayKey] = (dailyTotals[dayKey] ?? 0) + row.amount;
     }
 
-    // 날짜별 baseAmount 조회 (fallback: AppConstants.dailyBudget)
+    // 날짜별 effectiveBudget 조회 (fallback: AppConstants.dailyBudget)
     final budgetRows = await _db.select(_db.dailyBudgets).get();
-    final Map<DateTime, int> baseAmounts = {};
+    final Map<DateTime, int> effectiveBudgets = {};
     for (final row in budgetRows) {
       final dayKey = DateTime(row.date.year, row.date.month, row.date.day);
-      baseAmounts[dayKey] = row.baseAmount;
+      effectiveBudgets[dayKey] = row.baseAmount + row.carryOver;
     }
 
     // 오늘부터 과거로 거슬러 올라가며 연속 성공 계산
@@ -99,7 +99,7 @@ class CalendarLocalDatasource {
         // 지출 기록이 없는 날 — 연속 끊김
         break;
       }
-      final budget = baseAmounts[cursor] ?? AppConstants.dailyBudget;
+      final budget = effectiveBudgets[cursor] ?? AppConstants.dailyBudget;
       if (total <= budget) {
         streak++;
         cursor = cursor.subtract(const Duration(days: 1));
@@ -129,12 +129,12 @@ class CalendarLocalDatasource {
       dailyTotals[dayKey] = (dailyTotals[dayKey] ?? 0) + row.amount;
     }
 
-    // 날짜별 baseAmount 조회 (fallback: AppConstants.dailyBudget)
+    // 날짜별 effectiveBudget 조회 (fallback: AppConstants.dailyBudget)
     final budgetRows = await _db.select(_db.dailyBudgets).get();
-    final Map<DateTime, int> baseAmounts = {};
+    final Map<DateTime, int> effectiveBudgets = {};
     for (final row in budgetRows) {
       final dayKey = DateTime(row.date.year, row.date.month, row.date.day);
-      baseAmounts[dayKey] = row.baseAmount;
+      effectiveBudgets[dayKey] = row.baseAmount + row.carryOver;
     }
 
     // 오늘 이전(오늘 포함)이고 해당 날 예산 이하인 날만 성공으로 집계
@@ -146,7 +146,7 @@ class CalendarLocalDatasource {
 
     return dailyTotals.entries.where((e) {
       if (e.key.isAfter(today)) return false;
-      final budget = baseAmounts[e.key] ?? AppConstants.dailyBudget;
+      final budget = effectiveBudgets[e.key] ?? AppConstants.dailyBudget;
       return e.value <= budget;
     }).length;
   }
@@ -172,5 +172,18 @@ class CalendarLocalDatasource {
       result[dayKey] = row.baseAmount;
     }
     return result;
+  }
+
+  /// 특정 월의 일별 effectiveBudget(baseAmount + carryOver) 맵을 반환한다
+  Future<Map<DateTime, int>> getMonthlyEffectiveBudgets(int year, int month) async {
+    final rows = await (_db.select(_db.dailyBudgets)
+          ..where((t) =>
+              t.date.isBiggerOrEqualValue(DateTime(year, month, 1)) &
+              t.date.isSmallerThanValue(DateTime(year, month + 1, 1))))
+        .get();
+    return {
+      for (final r in rows)
+        DateTime(r.date.year, r.date.month, r.date.day): r.baseAmount + r.carryOver,
+    };
   }
 }

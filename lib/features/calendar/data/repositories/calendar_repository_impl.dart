@@ -41,4 +41,12 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }) {
     return _datasource.getMonthlyBaseAmounts(year: year, month: month);
   }
+
+  @override
+  Future<Map<DateTime, int>> getMonthlyEffectiveBudgets({
+    required int year,
+    required int month,
+  }) {
+    return _datasource.getMonthlyEffectiveBudgets(year, month);
+  }
 }

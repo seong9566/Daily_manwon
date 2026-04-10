@@ -202,8 +202,8 @@ return $default(_that.id,_that.date,_that.baseAmount,_that.carryOver);case _:
 /// @nodoc
 
 
-class _DailyBudgetEntity implements DailyBudgetEntity {
-  const _DailyBudgetEntity({required this.id, required this.date, this.baseAmount = 10000, this.carryOver = 0});
+class _DailyBudgetEntity extends DailyBudgetEntity {
+  const _DailyBudgetEntity({required this.id, required this.date, this.baseAmount = 10000, this.carryOver = 0}): super._();
   
 
 @override final  int id;

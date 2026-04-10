@@ -24,4 +24,10 @@ abstract interface class CalendarRepository {
     required int year,
     required int month,
   });
+
+  /// 특정 월의 일별 effectiveBudget 맵을 반환한다
+  Future<Map<DateTime, int>> getMonthlyEffectiveBudgets({
+    required int year,
+    required int month,
+  });
 }

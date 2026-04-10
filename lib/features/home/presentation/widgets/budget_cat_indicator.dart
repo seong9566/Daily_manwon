@@ -87,6 +87,16 @@ class BudgetCatIndicator extends StatelessWidget {
         return child
             .animate(onPlay: (c) => c.repeat())
             .shakeX(hz: 4, amount: 5, duration: 1200.ms);
+      case CharacterMood.newWeek:
+        // 새 주 — 여유와 동일한 부유 애니메이션
+        return child
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .scale(
+              begin: const Offset(1.0, 1.0),
+              end: const Offset(1.05, 1.05),
+              duration: 2000.ms,
+              curve: Curves.easeInOut,
+            );
     }
   }
 
@@ -153,6 +163,28 @@ class BudgetCatIndicator extends StatelessWidget {
             .shimmer(
               color: AppColors.budgetDanger.withValues(alpha: 0.3),
               duration: 500.ms,
+            );
+      case CharacterMood.newWeek:
+        // 새 주 — 여유와 동일한 기지개 애니메이션
+        return child
+            .animate(key: ValueKey(lastExpenseId))
+            .scale(
+              begin: const Offset(0.92, 0.92),
+              duration: 350.ms,
+              curve: Curves.elasticOut,
+            )
+            .then(delay: 0.ms)
+            .scale(
+              begin: const Offset(1.0, 1.0),
+              end: const Offset(1.1, 1.1),
+              duration: 200.ms,
+            )
+            .then()
+            .scale(
+              begin: const Offset(1.1, 1.1),
+              end: const Offset(1.0, 1.0),
+              duration: 200.ms,
+              curve: Curves.elasticOut,
             );
     }
   }

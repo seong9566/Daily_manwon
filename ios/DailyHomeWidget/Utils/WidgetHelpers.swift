@@ -15,6 +15,7 @@ func catImageName(for mood: String) -> String {
     case "normal":      return "CatNormal"
     case "danger":      return "CatDanger"
     case "over":        return "CatOver"
+    case "new_week":    return "CatNewWeek"
     default:            return "CatComfortable"
     }
 }

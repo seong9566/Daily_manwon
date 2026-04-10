@@ -28,4 +28,19 @@ class SettingsRepositoryImpl implements SettingsRepository {
   Future<void> setDailyBudget(int amount) {
     return _datasource.setDailyBudget(amount);
   }
+
+  @override
+  Future<bool> getCarryoverEnabled() => _datasource.getCarryoverEnabled();
+
+  @override
+  Future<void> setCarryoverEnabled(bool enabled) =>
+      _datasource.setCarryoverEnabled(enabled);
+
+  @override
+  Future<bool> hasSeenNewWeekThisWeek(String weekKey) =>
+      _datasource.hasSeenNewWeekThisWeek(weekKey);
+
+  @override
+  Future<void> markNewWeekSeen(String weekKey) =>
+      _datasource.markNewWeekSeen(weekKey);
 }

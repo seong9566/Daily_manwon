@@ -205,6 +205,16 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
                               currentMonth.month + i,
                             ).month,
                           ),
+                          monthlyEffectiveBudgets: notifier.getCachedEffectiveBudgets(
+                            DateTime(
+                              currentMonth.year,
+                              currentMonth.month + i,
+                            ).year,
+                            DateTime(
+                              currentMonth.year,
+                              currentMonth.month + i,
+                            ).month,
+                          ),
                           selectedWeekStart: widget.state.selectedWeekStart,
                         ),
                         isDark: widget.isDark,
@@ -277,7 +287,8 @@ class _CalendarGrid extends StatelessWidget {
           final expenses = state.monthlyExpenses[cellDate];
           bool? isSuccess;
           int? totalSpent;
-          final baseAmount = state.monthlyBaseAmounts[cellDate]
+          final baseAmount = state.monthlyEffectiveBudgets[cellDate]
+              ?? state.monthlyBaseAmounts[cellDate]
               ?? AppConstants.dailyBudget;
           if (expenses != null && expenses.isNotEmpty) {
             totalSpent = expenses.fold<int>(0, (sum, e) => sum + e.amount);

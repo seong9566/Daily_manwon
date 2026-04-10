@@ -24,6 +24,9 @@ class CalendarState {
   /// 현재 월의 일별 baseAmount 데이터 (DailyBudgets.baseAmount)
   final Map<DateTime, int> monthlyBaseAmounts;
 
+  /// 현재 월의 일별 effectiveBudget 데이터 (baseAmount + carryOver)
+  final Map<DateTime, int> monthlyEffectiveBudgets;
+
   /// 오늘까지 연속 성공일 수
   final int streakDays;
 
@@ -50,6 +53,7 @@ class CalendarState {
     this.selectedDate,
     this.monthlyExpenses = const {},
     this.monthlyBaseAmounts = const {},
+    this.monthlyEffectiveBudgets = const {},
     this.streakDays = 0,
     this.successCount = 0,
     this.isLoading = false,
@@ -76,7 +80,7 @@ class CalendarState {
       final date = DateTime(selectedMonth.year, selectedMonth.month, d);
       if (date.isAfter(today)) continue;
       final dayTotal = (monthlyExpenses[date] ?? []).fold<int>(0, (s, e) => s + e.amount);
-      final budget = monthlyBaseAmounts[date] ?? AppConstants.dailyBudget;
+      final budget = monthlyEffectiveBudgets[date] ?? monthlyBaseAmounts[date] ?? AppConstants.dailyBudget;
       if (dayTotal <= budget) count++;
     }
     return count;
@@ -88,6 +92,7 @@ class CalendarState {
     bool clearSelectedDate = false,
     Map<DateTime, List<ExpenseEntity>>? monthlyExpenses,
     Map<DateTime, int>? monthlyBaseAmounts,
+    Map<DateTime, int>? monthlyEffectiveBudgets,
     int? streakDays,
     int? successCount,
     bool? isLoading,
@@ -104,6 +109,7 @@ class CalendarState {
           : (selectedDate ?? this.selectedDate),
       monthlyExpenses: monthlyExpenses ?? this.monthlyExpenses,
       monthlyBaseAmounts: monthlyBaseAmounts ?? this.monthlyBaseAmounts,
+      monthlyEffectiveBudgets: monthlyEffectiveBudgets ?? this.monthlyEffectiveBudgets,
       streakDays: streakDays ?? this.streakDays,
       successCount: successCount ?? this.successCount,
       isLoading: isLoading ?? this.isLoading,
@@ -127,6 +133,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 월별 baseAmount 캐시: key = "year-month"
   final Map<String, Map<DateTime, int>> _baseAmountCache = {};
 
+  /// 월별 effectiveBudget 캐시: key = "year-month"
+  final Map<String, Map<DateTime, int>> _effectiveBudgetCache = {};
+
   /// 월별 선택 날짜 캐시: 월 이동 후 복귀 시 이전 선택 날짜 복원용
   final Map<String, DateTime> _selectedDateCache = {};
 
@@ -144,6 +153,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
     // invalidate 재호출 시 stale 캐시가 남지 않도록 항상 초기화
     _expenseCache.clear();
     _baseAmountCache.clear();
+    _effectiveBudgetCache.clear();
     _selectedDateCache.clear();
     _cachedStreak = null;
     _cachedSuccessCount = null;
@@ -172,6 +182,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 캐시 미스 시 빈 Map을 반환한다 (fallback은 UI에서 AppConstants.dailyBudget 사용).
   Map<DateTime, int> getCachedBaseAmounts(int year, int month) {
     return _baseAmountCache[_cacheKey(year, month)] ?? const {};
+  }
+
+  /// 특정 월의 effectiveBudget 캐시를 반환한다.
+  /// 캐시 미스 시 빈 Map을 반환한다.
+  Map<DateTime, int> getCachedEffectiveBudgets(int year, int month) {
+    return _effectiveBudgetCache[_cacheKey(year, month)] ?? const {};
   }
 
   /// 월을 delta만큼 이동한다 (양수 = 다음 달, 음수 = 이전 달)
@@ -223,6 +239,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       state = state.copyWith(
         monthlyExpenses: _expenseCache[key]!,
         monthlyBaseAmounts: _baseAmountCache[key] ?? const {},
+        monthlyEffectiveBudgets: _effectiveBudgetCache[key] ?? const {},
         streakDays: _cachedStreak ?? state.streakDays,
         successCount: _cachedSuccessCount ?? state.successCount,
         isLoading: false,
@@ -236,9 +253,10 @@ class CalendarViewModel extends Notifier<CalendarState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final (expenses, baseAmounts, streak, successCount) = await (
+      final (expenses, baseAmounts, effectiveBudgets, streak, successCount) = await (
         _useCase.getMonthlyExpenses(year: year, month: month),
         _useCase.getMonthlyBaseAmounts(year: year, month: month),
+        _useCase.getMonthlyEffectiveBudgets(year: year, month: month),
         _cachedStreak != null
             ? Future.value(_cachedStreak!)
             : _useCase.getStreakDays(),
@@ -249,6 +267,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
 
       _expenseCache[key] = expenses;
       _baseAmountCache[key] = baseAmounts;
+      _effectiveBudgetCache[key] = effectiveBudgets;
       if (state.selectedMonth.year != year ||
           state.selectedMonth.month != month) {
         return;
@@ -260,6 +279,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       state = state.copyWith(
         monthlyExpenses: expenses,
         monthlyBaseAmounts: baseAmounts,
+        monthlyEffectiveBudgets: effectiveBudgets,
         streakDays: streak,
         successCount: successCount,
         isLoading: false,
@@ -325,7 +345,8 @@ class CalendarViewModel extends Notifier<CalendarState> {
       final expenses = _expenseCache[_cacheKey(day.year, day.month)]?[day] ?? [];
       final dayTotal = expenses.fold<int>(0, (s, e) => s + e.amount);
       totalSpent += dayTotal;
-      final dayBudget = _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
+      final dayBudget = _effectiveBudgetCache[_cacheKey(day.year, day.month)]?[day]
+          ?? _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
           ?? AppConstants.dailyBudget;
       if (dayTotal == 0 || dayTotal <= dayBudget) savingDays++;
     }
@@ -362,12 +383,14 @@ class CalendarViewModel extends Notifier<CalendarState> {
     if (_inFlightLoads.contains(key)) return;
     _inFlightLoads.add(key);
     try {
-      final (expenses, baseAmounts) = await (
+      final (expenses, baseAmounts, effectiveBudgets) = await (
         _useCase.getMonthlyExpenses(year: year, month: month),
         _useCase.getMonthlyBaseAmounts(year: year, month: month),
+        _useCase.getMonthlyEffectiveBudgets(year: year, month: month),
       ).wait;
       _expenseCache[key] = expenses;
       _baseAmountCache[key] = baseAmounts;
+      _effectiveBudgetCache[key] = effectiveBudgets;
     } finally {
       _inFlightLoads.remove(key);
     }
@@ -387,10 +410,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
       Future.wait([
         _useCase.getMonthlyExpenses(year: dt.year, month: dt.month),
         _useCase.getMonthlyBaseAmounts(year: dt.year, month: dt.month),
+        _useCase.getMonthlyEffectiveBudgets(year: dt.year, month: dt.month),
       ]).then((results) {
             _expenseCache[key] =
                 results[0] as Map<DateTime, List<ExpenseEntity>>;
             _baseAmountCache[key] = results[1] as Map<DateTime, int>;
+            _effectiveBudgetCache[key] = results[2] as Map<DateTime, int>;
             // 인접 달 그리드에 데이터가 반영되도록 state 변경 유발
             state = state.copyWith(cacheVersion: state.cacheVersion + 1);
           })

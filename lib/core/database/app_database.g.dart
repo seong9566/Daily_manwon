@@ -1280,12 +1280,28 @@ class $UserPreferencesTable extends UserPreferences
     requiredDuringInsert: false,
     defaultValue: const Constant(10000),
   );
+  static const VerificationMeta _carryoverEnabledMeta = const VerificationMeta(
+    'carryoverEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> carryoverEnabled = GeneratedColumn<bool>(
+    'carryover_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("carryover_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     isDarkMode,
     isOnboardingCompleted,
     dailyBudget,
+    carryoverEnabled,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1329,6 +1345,15 @@ class $UserPreferencesTable extends UserPreferences
         ),
       );
     }
+    if (data.containsKey('carryover_enabled')) {
+      context.handle(
+        _carryoverEnabledMeta,
+        carryoverEnabled.isAcceptableOrUnknown(
+          data['carryover_enabled']!,
+          _carryoverEnabledMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1354,6 +1379,10 @@ class $UserPreferencesTable extends UserPreferences
         DriftSqlType.int,
         data['${effectivePrefix}daily_budget'],
       )!,
+      carryoverEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}carryover_enabled'],
+      )!,
     );
   }
 
@@ -1368,11 +1397,13 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
   final bool isDarkMode;
   final bool isOnboardingCompleted;
   final int dailyBudget;
+  final bool carryoverEnabled;
   const UserPreference({
     required this.id,
     required this.isDarkMode,
     required this.isOnboardingCompleted,
     required this.dailyBudget,
+    required this.carryoverEnabled,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1381,6 +1412,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     map['is_dark_mode'] = Variable<bool>(isDarkMode);
     map['is_onboarding_completed'] = Variable<bool>(isOnboardingCompleted);
     map['daily_budget'] = Variable<int>(dailyBudget);
+    map['carryover_enabled'] = Variable<bool>(carryoverEnabled);
     return map;
   }
 
@@ -1390,6 +1422,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       isDarkMode: Value(isDarkMode),
       isOnboardingCompleted: Value(isOnboardingCompleted),
       dailyBudget: Value(dailyBudget),
+      carryoverEnabled: Value(carryoverEnabled),
     );
   }
 
@@ -1405,6 +1438,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
         json['isOnboardingCompleted'],
       ),
       dailyBudget: serializer.fromJson<int>(json['dailyBudget']),
+      carryoverEnabled: serializer.fromJson<bool>(json['carryoverEnabled']),
     );
   }
   @override
@@ -1415,6 +1449,7 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       'isDarkMode': serializer.toJson<bool>(isDarkMode),
       'isOnboardingCompleted': serializer.toJson<bool>(isOnboardingCompleted),
       'dailyBudget': serializer.toJson<int>(dailyBudget),
+      'carryoverEnabled': serializer.toJson<bool>(carryoverEnabled),
     };
   }
 
@@ -1423,11 +1458,13 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
     bool? isDarkMode,
     bool? isOnboardingCompleted,
     int? dailyBudget,
+    bool? carryoverEnabled,
   }) => UserPreference(
     id: id ?? this.id,
     isDarkMode: isDarkMode ?? this.isDarkMode,
     isOnboardingCompleted: isOnboardingCompleted ?? this.isOnboardingCompleted,
     dailyBudget: dailyBudget ?? this.dailyBudget,
+    carryoverEnabled: carryoverEnabled ?? this.carryoverEnabled,
   );
   UserPreference copyWithCompanion(UserPreferencesCompanion data) {
     return UserPreference(
@@ -1441,6 +1478,9 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
       dailyBudget: data.dailyBudget.present
           ? data.dailyBudget.value
           : this.dailyBudget,
+      carryoverEnabled: data.carryoverEnabled.present
+          ? data.carryoverEnabled.value
+          : this.carryoverEnabled,
     );
   }
 
@@ -1450,14 +1490,20 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
           ..write('id: $id, ')
           ..write('isDarkMode: $isDarkMode, ')
           ..write('isOnboardingCompleted: $isOnboardingCompleted, ')
-          ..write('dailyBudget: $dailyBudget')
+          ..write('dailyBudget: $dailyBudget, ')
+          ..write('carryoverEnabled: $carryoverEnabled')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, isDarkMode, isOnboardingCompleted, dailyBudget);
+  int get hashCode => Object.hash(
+    id,
+    isDarkMode,
+    isOnboardingCompleted,
+    dailyBudget,
+    carryoverEnabled,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1465,7 +1511,8 @@ class UserPreference extends DataClass implements Insertable<UserPreference> {
           other.id == this.id &&
           other.isDarkMode == this.isDarkMode &&
           other.isOnboardingCompleted == this.isOnboardingCompleted &&
-          other.dailyBudget == this.dailyBudget);
+          other.dailyBudget == this.dailyBudget &&
+          other.carryoverEnabled == this.carryoverEnabled);
 }
 
 class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
@@ -1473,23 +1520,27 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
   final Value<bool> isDarkMode;
   final Value<bool> isOnboardingCompleted;
   final Value<int> dailyBudget;
+  final Value<bool> carryoverEnabled;
   const UserPreferencesCompanion({
     this.id = const Value.absent(),
     this.isDarkMode = const Value.absent(),
     this.isOnboardingCompleted = const Value.absent(),
     this.dailyBudget = const Value.absent(),
+    this.carryoverEnabled = const Value.absent(),
   });
   UserPreferencesCompanion.insert({
     this.id = const Value.absent(),
     this.isDarkMode = const Value.absent(),
     this.isOnboardingCompleted = const Value.absent(),
     this.dailyBudget = const Value.absent(),
+    this.carryoverEnabled = const Value.absent(),
   });
   static Insertable<UserPreference> custom({
     Expression<int>? id,
     Expression<bool>? isDarkMode,
     Expression<bool>? isOnboardingCompleted,
     Expression<int>? dailyBudget,
+    Expression<bool>? carryoverEnabled,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1497,6 +1548,7 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
       if (isOnboardingCompleted != null)
         'is_onboarding_completed': isOnboardingCompleted,
       if (dailyBudget != null) 'daily_budget': dailyBudget,
+      if (carryoverEnabled != null) 'carryover_enabled': carryoverEnabled,
     });
   }
 
@@ -1505,6 +1557,7 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     Value<bool>? isDarkMode,
     Value<bool>? isOnboardingCompleted,
     Value<int>? dailyBudget,
+    Value<bool>? carryoverEnabled,
   }) {
     return UserPreferencesCompanion(
       id: id ?? this.id,
@@ -1512,6 +1565,7 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
       isOnboardingCompleted:
           isOnboardingCompleted ?? this.isOnboardingCompleted,
       dailyBudget: dailyBudget ?? this.dailyBudget,
+      carryoverEnabled: carryoverEnabled ?? this.carryoverEnabled,
     );
   }
 
@@ -1532,6 +1586,9 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
     if (dailyBudget.present) {
       map['daily_budget'] = Variable<int>(dailyBudget.value);
     }
+    if (carryoverEnabled.present) {
+      map['carryover_enabled'] = Variable<bool>(carryoverEnabled.value);
+    }
     return map;
   }
 
@@ -1541,7 +1598,8 @@ class UserPreferencesCompanion extends UpdateCompanion<UserPreference> {
           ..write('id: $id, ')
           ..write('isDarkMode: $isDarkMode, ')
           ..write('isOnboardingCompleted: $isOnboardingCompleted, ')
-          ..write('dailyBudget: $dailyBudget')
+          ..write('dailyBudget: $dailyBudget, ')
+          ..write('carryoverEnabled: $carryoverEnabled')
           ..write(')'))
         .toString();
   }
@@ -2653,6 +2711,7 @@ typedef $$UserPreferencesTableCreateCompanionBuilder =
       Value<bool> isDarkMode,
       Value<bool> isOnboardingCompleted,
       Value<int> dailyBudget,
+      Value<bool> carryoverEnabled,
     });
 typedef $$UserPreferencesTableUpdateCompanionBuilder =
     UserPreferencesCompanion Function({
@@ -2660,6 +2719,7 @@ typedef $$UserPreferencesTableUpdateCompanionBuilder =
       Value<bool> isDarkMode,
       Value<bool> isOnboardingCompleted,
       Value<int> dailyBudget,
+      Value<bool> carryoverEnabled,
     });
 
 class $$UserPreferencesTableFilterComposer
@@ -2688,6 +2748,11 @@ class $$UserPreferencesTableFilterComposer
 
   ColumnFilters<int> get dailyBudget => $composableBuilder(
     column: $table.dailyBudget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get carryoverEnabled => $composableBuilder(
+    column: $table.carryoverEnabled,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2720,6 +2785,11 @@ class $$UserPreferencesTableOrderingComposer
     column: $table.dailyBudget,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get carryoverEnabled => $composableBuilder(
+    column: $table.carryoverEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserPreferencesTableAnnotationComposer
@@ -2746,6 +2816,11 @@ class $$UserPreferencesTableAnnotationComposer
 
   GeneratedColumn<int> get dailyBudget => $composableBuilder(
     column: $table.dailyBudget,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get carryoverEnabled => $composableBuilder(
+    column: $table.carryoverEnabled,
     builder: (column) => column,
   );
 }
@@ -2791,11 +2866,13 @@ class $$UserPreferencesTableTableManager
                 Value<bool> isDarkMode = const Value.absent(),
                 Value<bool> isOnboardingCompleted = const Value.absent(),
                 Value<int> dailyBudget = const Value.absent(),
+                Value<bool> carryoverEnabled = const Value.absent(),
               }) => UserPreferencesCompanion(
                 id: id,
                 isDarkMode: isDarkMode,
                 isOnboardingCompleted: isOnboardingCompleted,
                 dailyBudget: dailyBudget,
+                carryoverEnabled: carryoverEnabled,
               ),
           createCompanionCallback:
               ({
@@ -2803,11 +2880,13 @@ class $$UserPreferencesTableTableManager
                 Value<bool> isDarkMode = const Value.absent(),
                 Value<bool> isOnboardingCompleted = const Value.absent(),
                 Value<int> dailyBudget = const Value.absent(),
+                Value<bool> carryoverEnabled = const Value.absent(),
               }) => UserPreferencesCompanion.insert(
                 id: id,
                 isDarkMode: isDarkMode,
                 isOnboardingCompleted: isOnboardingCompleted,
                 dailyBudget: dailyBudget,
+                carryoverEnabled: carryoverEnabled,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

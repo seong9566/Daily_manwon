@@ -106,7 +106,8 @@ enum CharacterMood {
   comfortable, // 여유: 잔액 > 70%
   normal, // 보통: 잔액 30~70%
   danger, // 위험: 잔액 0~30%
-  over; // 초과: 잔액 < 0%
+  over, // 초과: 잔액 < 0%
+  newWeek; // 새 주 시작
 
   /// 잔액 비율(remaining / total)로 감정 상태를 결정한다
   static CharacterMood fromRatio(double ratio) {
@@ -123,6 +124,7 @@ enum CharacterMood {
       CharacterMood.normal => 'assets/images/character/보통_clean.png',
       CharacterMood.danger => 'assets/images/character/위험_clean.png',
       CharacterMood.over => 'assets/images/character/초과_clean.png',
+      CharacterMood.newWeek => 'assets/images/character/new_week_clean.png',
     };
   }
 
@@ -133,6 +135,7 @@ enum CharacterMood {
       CharacterMood.normal => AppColors.budgetWarning,
       CharacterMood.danger => AppColors.budgetDanger,
       CharacterMood.over => AppColors.budgetOver,
+      CharacterMood.newWeek => AppColors.budgetComfortable,
     };
   }
 
@@ -143,6 +146,7 @@ enum CharacterMood {
       CharacterMood.normal => '보통',
       CharacterMood.danger => '위험',
       CharacterMood.over => '초과',
+      CharacterMood.newWeek => '새 주',
     };
   }
 
@@ -153,6 +157,7 @@ enum CharacterMood {
       CharacterMood.normal => '적당히 쓰고 있어요',
       CharacterMood.danger => '조금 아껴야 해요...',
       CharacterMood.over => '으아, 많이 썼어요!',
+      CharacterMood.newWeek => '새로운 한주가 시작됐어!',
     };
   }
 }

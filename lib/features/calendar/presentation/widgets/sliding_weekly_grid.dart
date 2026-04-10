@@ -148,10 +148,13 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
 
           int? totalAmount;
           bool? isSuccess;
+          final monthEffectiveBudgets =
+              notifier.getCachedEffectiveBudgets(day.year, day.month);
           final monthBaseAmounts =
               notifier.getCachedBaseAmounts(day.year, day.month);
-          final dayBudget =
-              monthBaseAmounts[day] ?? AppConstants.dailyBudget;
+          final dayBudget = monthEffectiveBudgets[day]
+              ?? monthBaseAmounts[day]
+              ?? AppConstants.dailyBudget;
           if (!isFuture) {
             if (dayExpenses != null && dayExpenses.isNotEmpty) {
               totalAmount = dayExpenses.fold<int>(0, (s, e) => s + e.amount);

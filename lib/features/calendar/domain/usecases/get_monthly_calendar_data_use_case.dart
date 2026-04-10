@@ -30,4 +30,11 @@ class GetMonthlyCalendarDataUseCase {
     required int month,
   }) =>
       _repository.getMonthlyBaseAmounts(year: year, month: month);
+
+  /// 특정 월의 일별 effectiveBudget 맵을 반환한다
+  Future<Map<DateTime, int>> getMonthlyEffectiveBudgets({
+    required int year,
+    required int month,
+  }) =>
+      _repository.getMonthlyEffectiveBudgets(year: year, month: month);
 }
