@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../viewmodels/settings_view_model.dart';
-import '../widgets/budget_edit_dialog.dart';
+import '../widgets/budget_edit_bottom_sheet.dart';
 import '../widgets/settings_budget_tile.dart';
 import '../widgets/settings_divider.dart';
 import '../widgets/settings_section_header.dart';
@@ -51,7 +51,7 @@ class SettingsScreen extends ConsumerWidget {
                     budget: state.dailyBudget,
                     isDark: isDark,
                     onTap: () =>
-                        _showBudgetEditDialog(context, state.dailyBudget, vm),
+                        _showBudgetEditBottomSheet(context, state.dailyBudget, vm),
                   ),
                   SettingsDivider(isDark: isDark),
                   Padding(
@@ -132,15 +132,19 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  /// 일일 예산 편집 다이얼로그를 표시한다
-  Future<void> _showBudgetEditDialog(
+  /// 일일 예산 편집 바텀시트를 표시한다
+  Future<void> _showBudgetEditBottomSheet(
     BuildContext context,
     int currentBudget,
     SettingsViewModel vm,
   ) async {
-    final result = await showDialog<int>(
+    final result = await showModalBottomSheet<int>(
       context: context,
-      builder: (_) => BudgetEditDialog(initialBudget: currentBudget),
+      backgroundColor: Colors.transparent,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => BudgetEditBottomSheet(initialBudget: currentBudget),
     );
     if (result != null && result > 0) {
       await vm.setDailyBudget(result);

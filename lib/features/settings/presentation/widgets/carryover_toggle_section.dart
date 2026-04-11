@@ -27,7 +27,7 @@ class CarryoverToggleSection extends ConsumerWidget {
                 children: [
                   Text(
                     '남은 예산 이월',
-                    style: AppTypography.bodyMedium.copyWith(
+                    style: AppTypography.bodyLarge.copyWith(
                       color: isDark ? AppColors.darkTextMain : AppColors.textMain,
                     ),
                   ),
@@ -41,29 +41,28 @@ class CarryoverToggleSection extends ConsumerWidget {
                 ],
               ),
             ),
-            Switch(
-              value: enabled,
-              activeTrackColor: AppColors.budgetComfortable,
-              onChanged: (value) async {
-                await ref
-                    .read(settingsViewModelProvider.notifier)
-                    .setCarryoverEnabled(value);
-                if (context.mounted) {
-                  showDialog(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: const Text('정책 변경'),
-                      content: const Text('내일부터 적용됩니다.\n오늘 예산은 유지됩니다.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('확인'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
+            Semantics(
+              toggled: enabled,
+              label: '남은 예산 이월',
+              child: Switch(
+                value: enabled,
+                onChanged: (value) async {
+                  await ref
+                      .read(settingsViewModelProvider.notifier)
+                      .setCarryoverEnabled(value);
+                  if (context.mounted) {
+                    _showPolicyChangedDialog(context, isDark);
+                  }
+                },
+                activeThumbColor: isDark ? AppColors.black : AppColors.white,
+                activeTrackColor: isDark ? AppColors.white : AppColors.black,
+                inactiveThumbColor:
+                    isDark ? Colors.grey[400] : AppColors.white,
+                inactiveTrackColor:
+                    isDark ? Colors.grey[800] : Colors.grey[300],
+                trackOutlineColor:
+                    const WidgetStatePropertyAll(Colors.transparent),
+              ),
             ),
           ],
         ),
@@ -74,22 +73,22 @@ class CarryoverToggleSection extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDark
-                  ? AppColors.budgetComfortable.withValues(alpha: 0.15)
-                  : AppColors.budgetComfortable.withValues(alpha: 0.1),
+                  ? AppColors.darkSurface
+                  : AppColors.primaryLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.info_outline_rounded,
                   size: 16,
-                  color: AppColors.budgetComfortable,
+                  color: isDark ? AppColors.darkTextSub : AppColors.textSub,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '예) 오늘 3,000원 사용 시 → 내일 17,000원',
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.budgetComfortable,
+                    color: isDark ? AppColors.darkTextSub : AppColors.textSub,
                   ),
                 ),
               ],
@@ -97,6 +96,57 @@ class CarryoverToggleSection extends ConsumerWidget {
           ),
         ],
       ],
+    );
+  }
+
+  void _showPolicyChangedDialog(BuildContext context, bool isDark) {
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.white;
+    final textMain = isDark ? AppColors.darkTextMain : AppColors.textMain;
+    final textSub = isDark ? AppColors.darkTextSub : AppColors.textSub;
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: bgColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '정책 변경',
+                style: AppTypography.titleMedium.copyWith(color: textMain),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '내일부터 적용됩니다.\n오늘 예산은 유지됩니다.',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: textSub,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(dialogContext).pop(),
+                  child: Text(
+                    '확인',
+                    style: AppTypography.labelMedium.copyWith(
+                      color: textMain,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
