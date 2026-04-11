@@ -51,6 +51,7 @@ class NotificationSettingsDatasource {
 
     await _db.into(_db.notificationSettings).insertOnConflictUpdate(
           NotificationSettingsCompanion.insert(
+            id: const Value(1),
             lunchEnabled: Value(settings.lunchEnabled),
             lunchTime: Value(lunchTime),
             dinnerEnabled: Value(settings.dinnerEnabled),

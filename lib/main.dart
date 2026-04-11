@@ -32,12 +32,14 @@ void main() async {
   final isOnboardingCompleted = await datasource.getIsOnboardingCompleted();
   final isDarkMode = await datasource.getIsDarkMode();
 
-  runApp(ProviderScope(
-    child: DailyManwonApp(
-      isOnboardingCompleted: isOnboardingCompleted,
-      isDarkMode: isDarkMode,
+  runApp(
+    ProviderScope(
+      child: DailyManwonApp(
+        isOnboardingCompleted: isOnboardingCompleted,
+        isDarkMode: isDarkMode,
+      ),
     ),
-  ));
+  );
 }
 
 class DailyManwonApp extends ConsumerStatefulWidget {
@@ -63,9 +65,9 @@ class _DailyManwonAppState extends ConsumerState<DailyManwonApp> {
     _router = createRouter(isOnboardingCompleted: widget.isOnboardingCompleted);
     // runApp 전에 미리 로드한 isDarkMode 값으로 초기 테마를 설정
     Future.microtask(() {
-      ref.read(appThemeModeProvider.notifier).setMode(
-        widget.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      );
+      ref
+          .read(appThemeModeProvider.notifier)
+          .setMode(widget.isDarkMode ? ThemeMode.dark : ThemeMode.light);
     });
   }
 

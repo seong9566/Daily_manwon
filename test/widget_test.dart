@@ -18,7 +18,7 @@ void main() {
     testWidgets('앱이 ProviderScope로 감싸져 정상 실행된다', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
-          child: DailyManwonApp(isOnboardingCompleted: true),
+          child: DailyManwonApp(isOnboardingCompleted: true, isDarkMode: false),
         ),
       );
 
