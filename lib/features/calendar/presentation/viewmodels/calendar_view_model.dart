@@ -69,6 +69,39 @@ class CalendarState {
     return monthlyExpenses[selectedDate] ?? [];
   }
 
+  /// 이번 달 오늘까지의 총 예산 합산 (effectiveBudget → baseAmount → dailyBudget 순 폴백)
+  int get monthlyTotalBudget {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysInMonth =
+        DateTime(selectedMonth.year, selectedMonth.month + 1, 0).day;
+    int total = 0;
+    for (int d = 1; d <= daysInMonth; d++) {
+      final date = DateTime(selectedMonth.year, selectedMonth.month, d);
+      if (date.isAfter(today)) continue;
+      total += monthlyEffectiveBudgets[date] ??
+          monthlyBaseAmounts[date] ??
+          AppConstants.dailyBudget;
+    }
+    return total;
+  }
+
+  /// 이번 달 오늘까지의 총 지출 합산
+  int get monthlyTotalSpent {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysInMonth =
+        DateTime(selectedMonth.year, selectedMonth.month + 1, 0).day;
+    int total = 0;
+    for (int d = 1; d <= daysInMonth; d++) {
+      final date = DateTime(selectedMonth.year, selectedMonth.month, d);
+      if (date.isAfter(today)) continue;
+      total +=
+          (monthlyExpenses[date] ?? []).fold<int>(0, (s, e) => s + e.amount);
+    }
+    return total;
+  }
+
   /// 현재 표시 중인 월의 성공일 수 (오늘 이전 날짜 기준)
   /// 지출이 없는 날(0원)도 성공으로 카운트한다
   int get monthlySuccessCount {
@@ -164,6 +197,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       selectedMonth: DateTime(now.year, now.month, 1),
       selectedDate: DateTime(now.year, now.month, now.day),
       selectedWeekStart: AppDateUtils.weekStartOf(now),
+      isLoading: true, // invalidate 후 빈 화면 flash 방지 — loadMonthData()에서 false로 전환
     );
     Future.microtask(() async {
       await _restoreViewMode();
@@ -330,7 +364,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
   }
 
   /// 현재 주의 지출 요약 계산 (캐시 활용, 별도 DB 쿼리 없음)
-  ({int totalSpent, int dailyAverage, int savingDays, int totalDays})
+  ({int totalSpent, int dailyAverage, int savingDays, int totalDays, int weeklyBudget})
       getWeeklySummary() {
     final today = DateTime(
       DateTime.now().year,
@@ -338,7 +372,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       DateTime.now().day,
     );
     final weekDays = AppDateUtils.weekDaysFrom(state.selectedWeekStart);
-    int totalSpent = 0, savingDays = 0, countedDays = 0;
+    int totalSpent = 0, savingDays = 0, countedDays = 0, weeklyBudget = 0;
     for (final day in weekDays) {
       if (day.isAfter(today)) continue;
       countedDays++;
@@ -348,6 +382,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       final dayBudget = _effectiveBudgetCache[_cacheKey(day.year, day.month)]?[day]
           ?? _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
           ?? AppConstants.dailyBudget;
+      weeklyBudget += dayBudget;
       if (dayTotal == 0 || dayTotal <= dayBudget) savingDays++;
     }
     return (
@@ -355,6 +390,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       dailyAverage: countedDays > 0 ? totalSpent ~/ countedDays : 0,
       savingDays: savingDays,
       totalDays: weekDays.length,
+      weeklyBudget: weeklyBudget,
     );
   }
 

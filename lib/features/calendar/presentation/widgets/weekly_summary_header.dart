@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -7,12 +8,16 @@ import '../../../../core/utils/currency_formatter.dart';
 /// 주간 예산 요약 헤더
 ///
 /// 총지출, 일평균, 절약일 수를 표시한다.
-/// 총지출 색상은 금액에 따라 comfortable / warning / danger로 분기한다.
+/// 총지출 색상은 [weeklyBudget] 대비 잔액 비율로 결정한다 (홈과 동일한 ratio 기반 로직).
 class WeeklySummaryHeader extends StatelessWidget {
   final int totalSpent;
   final int dailyAverage;
   final int savingDays;
   final int totalDays;
+
+  /// 이번 주 오늘까지의 예산 합산 (0이면 색상 fallback)
+  final int weeklyBudget;
+
   final bool isDark;
 
   const WeeklySummaryHeader({
@@ -21,22 +26,28 @@ class WeeklySummaryHeader extends StatelessWidget {
     required this.dailyAverage,
     required this.savingDays,
     required this.totalDays,
+    required this.weeklyBudget,
     required this.isDark,
   });
 
+  /// 잔액 비율 기반 총지출 색상 (CharacterMood.fromRatio 통일)
   Color _totalSpentColor() {
-    if (totalSpent <= 50000) {
-      return isDark
-          ? AppColors.budgetComfortableDark
-          : AppColors.budgetComfortable;
+    if (weeklyBudget <= 0) {
+      return isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable;
     }
-    if (totalSpent <= 70000) return AppColors.budgetWarning;
-    return AppColors.budgetDanger;
+    final ratio = (weeklyBudget - totalSpent) / weeklyBudget;
+    return switch (CharacterMood.fromRatio(ratio)) {
+      CharacterMood.comfortable || CharacterMood.newWeek =>
+        isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable,
+      CharacterMood.normal => AppColors.budgetWarning,
+      CharacterMood.danger => AppColors.budgetDanger,
+      CharacterMood.over   => AppColors.budgetOver,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final subTextColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+    final subTextColor  = isDark ? AppColors.darkTextSub  : AppColors.textSub;
     final mainTextColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
 
     return Row(

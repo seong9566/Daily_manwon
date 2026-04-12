@@ -1,33 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/currency_formatter.dart';
+
+/// mood → 색상 바 색상 매핑 (home_budget_header.dart와 동일한 ratio 기반 로직)
+/// comfortable(>70% 잔액) → 녹, normal(30~70%) → 앰버, danger(0~30%) → 레드, over → 딥레드
+Color _moodBarColor(CharacterMood mood) {
+  return switch (mood) {
+    CharacterMood.comfortable || CharacterMood.newWeek =>
+      AppColors.statusComfortable,
+    CharacterMood.normal => AppColors.budgetWarning,
+    CharacterMood.danger => AppColors.budgetDanger,
+    CharacterMood.over   => AppColors.budgetOver,
+  };
+}
 
 /// 주간 캘린더 셀
 ///
+/// 월간 뷰의 1주 슬라이스 — 동일한 시각 언어(날짜 원 + 색상 바)로 일관성 유지
 /// - 상단: 날짜 숫자 (원형 배경, 오늘/선택 강조)
-/// - 중단: 지출 금액 텍스트(있을 경우) 또는 도토리 아이콘(지출 없는 과거 날짜)
-/// - 하단: 성공/실패 색상 dot
+/// - 하단: 예산 상태 색상 바 (comfortable→녹 / danger→앰버 / over→딥레드)
 class WeeklyCalendarDayCell extends StatelessWidget {
   final DateTime date;
   final bool isToday;
   final bool isSelected;
   final bool isFuture;
-
-  /// null = 미래 (dot 없음)
-  final bool? isSuccess;
-  final int? totalAmount;
-
-  /// 지출 없는 과거 날짜 = true → 도토리 아이콘 표시
-  final bool showAcornIcon;
   final VoidCallback? onTap;
   final bool isDark;
 
-  /// 해당일 고양이 감정 상태 (null = 표시 안 함)
+  /// 해당일 예산 감정 상태 (null = 미래·데이터 없음 → 색상 바 숨김)
   final CharacterMood? mood;
+
+  /// 예산 잔여 비율 (0.0 ~ 1.0) — LinearProgressIndicator fill 값
+  final double? remainingRatio;
 
   const WeeklyCalendarDayCell({
     super.key,
@@ -35,20 +41,28 @@ class WeeklyCalendarDayCell extends StatelessWidget {
     required this.isToday,
     required this.isSelected,
     required this.isFuture,
-    required this.isSuccess,
-    required this.totalAmount,
-    required this.showAcornIcon,
     this.onTap,
     required this.isDark,
     this.mood,
+    this.remainingRatio,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
         width: 48,
+        // 선택 시: 날짜 원 + 색상 바를 하나의 선택 영역으로 묶는 셀 배경
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppColors.white : AppColors.primary)
+                  .withValues(alpha: 0.07)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -58,16 +72,28 @@ class WeeklyCalendarDayCell extends StatelessWidget {
               isSelected: isSelected,
               isDark: isDark,
             ),
-            const SizedBox(height: 4),
-            _MiddleContent(
-              totalAmount: totalAmount,
-              showAcornIcon: showAcornIcon,
-              isFuture: isFuture,
-              isDark: isDark,
-              mood: mood,
-            ),
-            const SizedBox(height: 4),
-            _StatusDot(isSuccess: isSuccess),
+            const SizedBox(height: 6),
+
+            // 예산 상태 색상 바 — 월간 뷰와 동일한 히트맵 방식
+            if (!isFuture && mood != null && remainingRatio != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(1.5),
+                  child: LinearProgressIndicator(
+                    value: remainingRatio!.clamp(0.0, 1.0),
+                    minHeight: 3,
+                    backgroundColor: isDark
+                        ? AppColors.darkDivider
+                        : AppColors.border,
+                    valueColor: AlwaysStoppedAnimation(
+                      _moodBarColor(mood!),
+                    ),
+                  ),
+                ),
+              )
+            else
+              const SizedBox(height: 3),
           ],
         ),
       ),
@@ -90,14 +116,11 @@ class _DateCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color? bgColor;
-    Color textColor;
-    BoxBorder? border;
+    final Color bgColor;
+    final Color textColor;
 
-    if (isSelected) {
-      bgColor = isDark ? AppColors.white : AppColors.primary;
-      textColor = isDark ? AppColors.black : AppColors.white;
-    } else if (isToday) {
+    // 선택 상태는 셀 배경(alpha 0.07)으로만 표현 — 원 fill 없음
+    if (isToday) {
       bgColor = isDark ? AppColors.darkCard : AppColors.primaryLight;
       textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     } else {
@@ -105,13 +128,14 @@ class _DateCircle extends StatelessWidget {
       textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
       width: 32,
       height: 32,
       decoration: BoxDecoration(
         color: bgColor,
         shape: BoxShape.circle,
-        border: border,
       ),
       child: Center(
         child: Text(
@@ -123,86 +147,6 @@ class _DateCircle extends StatelessWidget {
                 : FontWeight.w400,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MiddleContent extends StatelessWidget {
-  final int? totalAmount;
-  final bool showAcornIcon;
-  final bool isFuture;
-  final bool isDark;
-  final CharacterMood? mood;
-
-  const _MiddleContent({
-    required this.totalAmount,
-    required this.showAcornIcon,
-    required this.isFuture,
-    required this.isDark,
-    this.mood,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (isFuture) {
-      return const SizedBox(height: 16);
-    }
-
-    // 과거 날짜이고 mood가 있으면 미니 고양이 이미지 표시
-    if (mood != null) {
-      return Image.asset(
-        mood!.assetPath,
-        width: 20,
-        height: 20,
-        fit: BoxFit.contain,
-        color: isDark ? AppColors.white : AppColors.black,
-      );
-    }
-
-    // if (showAcornIcon) {
-    //   return const Text(
-    //     '🌰',
-    //     style: TextStyle(fontSize: 14),
-    //   ).animate().scale(duration: 300.ms, curve: Curves.easeOut);
-    // }
-
-    if (totalAmount != null && totalAmount! > 0) {
-      return Text(
-        CurrencyFormatter.formatWithWon(totalAmount!),
-        style: AppTypography.bodySmall.copyWith(
-          color: isDark ? AppColors.darkTextSub : AppColors.textSub,
-          fontSize: 10,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
-    return const SizedBox(height: 16);
-  }
-}
-
-class _StatusDot extends StatelessWidget {
-  final bool? isSuccess;
-
-  const _StatusDot({required this.isSuccess});
-
-  @override
-  Widget build(BuildContext context) {
-    if (isSuccess == null) {
-      return const SizedBox(height: 6);
-    }
-    return Container(
-      width: 6,
-      height: 6,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkTextMain
-            : isSuccess!
-            ? AppColors.budgetComfortable
-            : AppColors.budgetDanger,
       ),
     );
   }

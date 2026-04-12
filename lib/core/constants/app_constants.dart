@@ -153,7 +153,7 @@ enum CharacterMood {
   /// 말풍선에 표시될 한마디 코멘트
   String get comment {
     return switch (this) {
-      CharacterMood.comfortable => '오늘은 여유롭네요~',
+      CharacterMood.comfortable => '여유롭네요~',
       CharacterMood.normal => '적당히 쓰고 있어요',
       CharacterMood.danger => '조금 아껴야 해요...',
       CharacterMood.over => '으아, 많이 썼어요!',

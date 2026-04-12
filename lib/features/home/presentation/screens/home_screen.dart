@@ -135,9 +135,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           totalBudget: state.totalBudget,
                           isDark: isDark,
                           subTextColor: subTextColor,
-                          lastExpenseId: state.expenses.isNotEmpty
-                              ? state.expenses.last.id
-                              : null,
                         ),
                         // 이월 배지
                         if (state.carryOver != 0)

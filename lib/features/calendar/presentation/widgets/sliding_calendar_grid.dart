@@ -6,6 +6,10 @@ import '../../../../core/utils/budget_mood_calculator.dart';
 import '../viewmodels/calendar_view_model.dart';
 import 'calendar_day_cell.dart';
 
+// 그리드 레이아웃 공유 상수 — _SlidingCalendarGridState와 _CalendarGrid가 함께 참조
+const double _kAspectRatio = 0.90;
+const double _kRowSpacing = 6.0;
+
 // ── 실시간 드래그 슬라이드 위젯 ─────────────────────────────────
 //
 // ±2달 그리드를 미리 렌더링하고 손가락 위치를 실시간으로 추적한다.
@@ -153,10 +157,11 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
       builder: (context, constraints) {
         _width = constraints.maxWidth;
 
-        // 셀 크기 계산 — _CalendarGrid의 패딩(12*2)과 childAspectRatio(0.85)에 맞춤
+        // 셀 크기 계산 — _CalendarGrid의 패딩(12*2)과 _kAspectRatio에 맞춤
+        // _kRowSpacing: 6행 기준 5개 간격 포함
         final cellWidth = (_width - 24) / 7;
-        final cellHeight = cellWidth / 0.85;
-        final gridHeight = cellHeight * 6; // 6행 고정 (42칸)
+        final cellHeight = cellWidth / _kAspectRatio;
+        final gridHeight = cellHeight * 6 + _kRowSpacing * 5; // 6행 + 5개 행 간격
 
         return GestureDetector(
           onHorizontalDragUpdate: _onDragUpdate,
@@ -205,16 +210,17 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
                               currentMonth.month + i,
                             ).month,
                           ),
-                          monthlyEffectiveBudgets: notifier.getCachedEffectiveBudgets(
-                            DateTime(
-                              currentMonth.year,
-                              currentMonth.month + i,
-                            ).year,
-                            DateTime(
-                              currentMonth.year,
-                              currentMonth.month + i,
-                            ).month,
-                          ),
+                          monthlyEffectiveBudgets: notifier
+                              .getCachedEffectiveBudgets(
+                                DateTime(
+                                  currentMonth.year,
+                                  currentMonth.month + i,
+                                ).year,
+                                DateTime(
+                                  currentMonth.year,
+                                  currentMonth.month + i,
+                                ).month,
+                              ),
                           selectedWeekStart: widget.state.selectedWeekStart,
                         ),
                         isDark: widget.isDark,
@@ -270,7 +276,8 @@ class _CalendarGrid extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 7,
-          childAspectRatio: 0.85,
+          childAspectRatio: _kAspectRatio,
+          mainAxisSpacing: _kRowSpacing,
         ),
         itemCount: totalCells,
         itemBuilder: (context, index) {
@@ -287,9 +294,10 @@ class _CalendarGrid extends StatelessWidget {
           final expenses = state.monthlyExpenses[cellDate];
           bool? isSuccess;
           int? totalSpent;
-          final baseAmount = state.monthlyEffectiveBudgets[cellDate]
-              ?? state.monthlyBaseAmounts[cellDate]
-              ?? AppConstants.dailyBudget;
+          final baseAmount =
+              state.monthlyEffectiveBudgets[cellDate] ??
+              state.monthlyBaseAmounts[cellDate] ??
+              AppConstants.dailyBudget;
           if (expenses != null && expenses.isNotEmpty) {
             totalSpent = expenses.fold<int>(0, (sum, e) => sum + e.amount);
             isSuccess = totalSpent <= baseAmount;
@@ -299,10 +307,14 @@ class _CalendarGrid extends StatelessWidget {
             isSuccess = true;
           }
 
-          // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
+          // 과거 날짜이고 지출 데이터가 있을 때 mood + 잔여 비율 계산
           CharacterMood? mood;
+          double? remainingRatio;
           if (!isFuture && totalSpent != null) {
             mood = calculateMood(baseAmount, totalSpent);
+            remainingRatio = baseAmount > 0
+                ? ((baseAmount - totalSpent) / baseAmount)
+                : 0.0;
           }
 
           return CalendarDayCell(
@@ -313,6 +325,7 @@ class _CalendarGrid extends StatelessWidget {
             isFuture: isFuture,
             isSuccess: isSuccess,
             mood: mood,
+            remainingRatio: remainingRatio,
             onTap: () => onDateSelected(cellDate),
           );
         },

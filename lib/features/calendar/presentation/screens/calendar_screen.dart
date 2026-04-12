@@ -34,9 +34,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(calendarViewModelProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
-
+    final summary = ref
+        .read(calendarViewModelProvider.notifier)
+        .getWeeklySummary();
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -65,7 +66,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             Expanded(
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: state.viewMode == CalendarViewMode.monthly
+                                child:
+                                    state.viewMode == CalendarViewMode.monthly
                                     ? _MonthlyNavRow(
                                         selectedMonth: state.selectedMonth,
                                         onPrev: () => _onMonthChange(-1),
@@ -102,19 +104,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       Center(
                         child: Builder(
                           builder: (_) {
-                            final isMonthly = state.viewMode ==
-                                CalendarViewMode.monthly;
+                            final isMonthly =
+                                state.viewMode == CalendarViewMode.monthly;
                             final successCount = isMonthly
                                 ? state.monthlySuccessCount
                                 : ref
-                                    .read(calendarViewModelProvider.notifier)
-                                    .getWeeklySummary()
-                                    .savingDays;
+                                      .read(calendarViewModelProvider.notifier)
+                                      .getWeeklySummary()
+                                      .savingDays;
                             return AcornStreakBadge(
                               totalAcorns: successCount,
                               streakDays: state.streakDays,
-                              rewardLabel:
-                                  isMonthly ? '이달 성공' : '이번주 성공',
+                              rewardLabel: isMonthly ? '이달 성공' : '이번주 성공',
                             );
                           },
                         ),
@@ -131,7 +132,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         firstCurve: Curves.easeOut,
                         secondCurve: Curves.easeOut,
                         sizeCurve: Curves.easeInOut,
-                        crossFadeState: state.viewMode == CalendarViewMode.monthly
+                        crossFadeState:
+                            state.viewMode == CalendarViewMode.monthly
                             ? CrossFadeState.showFirst
                             : CrossFadeState.showSecond,
                         firstChild: SlidingCalendarGrid(
@@ -158,7 +160,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 horizontal: 20,
                                 vertical: 4,
                               ),
-                              child: _buildWeeklySummary(isDark),
+                              child: WeeklySummaryHeader(
+                                totalSpent: summary.totalSpent,
+                                dailyAverage: summary.dailyAverage,
+                                savingDays: summary.savingDays,
+                                totalDays: summary.totalDays,
+                                weeklyBudget: summary.weeklyBudget,
+                                isDark: isDark,
+                              ),
                             ),
                           ],
                         ),
@@ -172,7 +181,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           date: state.selectedDate!,
                           expenses: state.selectedDateExpenses,
                           onExpenseTap: (expense) {
-                            showExpenseAddBottomSheet(context, expense: expense);
+                            showExpenseAddBottomSheet(
+                              context,
+                              expense: expense,
+                            );
                           },
                         ),
 
@@ -182,19 +194,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ),
       ),
-    );
-  }
-
-  Widget _buildWeeklySummary(bool isDark) {
-    final summary = ref
-        .read(calendarViewModelProvider.notifier)
-        .getWeeklySummary();
-    return WeeklySummaryHeader(
-      totalSpent: summary.totalSpent,
-      dailyAverage: summary.dailyAverage,
-      savingDays: summary.savingDays,
-      totalDays: summary.totalDays,
-      isDark: isDark,
     );
   }
 }

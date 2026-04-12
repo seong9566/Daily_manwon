@@ -146,8 +146,6 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
           final monthExpenses = notifier.getCachedExpenses(day.year, day.month);
           final dayExpenses = monthExpenses[day];
 
-          int? totalAmount;
-          bool? isSuccess;
           final monthEffectiveBudgets =
               notifier.getCachedEffectiveBudgets(day.year, day.month);
           final monthBaseAmounts =
@@ -155,20 +153,29 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
           final dayBudget = monthEffectiveBudgets[day]
               ?? monthBaseAmounts[day]
               ?? AppConstants.dailyBudget;
+
+          // 지출 합계 → mood 계산 (색상 바 표시용)
+          // 월간 그리드와 동일한 규칙:
+          //   - 지출 있음       → 실제 합계로 mood 결정
+          //   - 지출 없는 과거  → 0원 지출 = comfortable (오늘 제외 — 아직 진행 중)
+          int? totalSpent;
           if (!isFuture) {
             if (dayExpenses != null && dayExpenses.isNotEmpty) {
-              totalAmount = dayExpenses.fold<int>(0, (s, e) => s + e.amount);
-              isSuccess = totalAmount <= dayBudget;
+              totalSpent = dayExpenses.fold<int>(0, (s, e) => s + e.amount);
+            } else if (!isToday) {
+              totalSpent = 0;
             }
           }
 
-          final showAcornIcon = !isFuture && totalAmount == null;
+          final CharacterMood? mood =
+              (!isFuture && totalSpent != null)
+                  ? calculateMood(dayBudget, totalSpent)
+                  : null;
 
-          // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
-          CharacterMood? mood;
-          if (!isFuture && totalAmount != null) {
-            mood = calculateMood(dayBudget, totalAmount);
-          }
+          final double? remainingRatio =
+              (!isFuture && totalSpent != null && dayBudget > 0)
+                  ? (dayBudget - totalSpent) / dayBudget
+                  : null;
 
           return Expanded(
             child: Center(
@@ -177,12 +184,10 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
                 isToday: isToday,
                 isSelected: isSelected,
                 isFuture: isFuture,
-                isSuccess: isSuccess,
-                totalAmount: totalAmount,
-                showAcornIcon: showAcornIcon,
                 onTap: () => widget.onDateSelected(day),
                 isDark: widget.isDark,
                 mood: mood,
+                remainingRatio: remainingRatio,
               ),
             ),
           );
@@ -209,7 +214,9 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
     return LayoutBuilder(
       builder: (context, constraints) {
         _width = constraints.maxWidth;
-        const rowHeight = 80.0;
+        // 월간 셀 높이(cellWidth/0.90)와 시각적으로 통일
+        // 390px 기준 ≈ 58px → 60px로 정렬
+        const rowHeight = 60.0;
 
         return GestureDetector(
           onHorizontalDragUpdate: _onDragUpdate,
