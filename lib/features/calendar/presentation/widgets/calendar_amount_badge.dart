@@ -14,6 +14,8 @@ import '../../../../core/utils/currency_formatter.dart';
 /// - over                 → 짙은 빨강 배경
 ///
 /// 월간([CalendarDayCell])과 주간([WeeklyCalendarDayCell]) 셀 공용으로 사용한다.
+///
+/// [totalSpent]은 반드시 0보다 커야 한다. 0원이면 호출부에서 뱃지를 생성하지 않는다.
 class CalendarAmountBadge extends StatelessWidget {
   /// 당일 지출 합계 (원)
   final int totalSpent;
@@ -29,7 +31,7 @@ class CalendarAmountBadge extends StatelessWidget {
     required this.totalSpent,
     required this.mood,
     required this.isDark,
-  });
+  }) : assert(totalSpent > 0, 'totalSpent > 0 이어야 합니다. 0원이면 호출부에서 뱃지를 생성하지 않아야 합니다.');
 
   @override
   Widget build(BuildContext context) {
