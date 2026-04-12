@@ -14,25 +14,24 @@ import '../widgets/expense_delete_dialog.dart';
 import '../widgets/number_keypad.dart';
 
 /// 지출 입력 바텀시트를 표시하는 헬퍼 함수
+/// [date]를 지정하면 해당 날짜로 지출을 기록한다. 미지정 시 오늘 날짜로 기록한다.
+/// 편집 모드([expense] 전달 시)에서는 [date]가 무시되며 기존 지출의 날짜가 표시된다.
 /// 저장 성공 시 true를 반환하며, 취소/닫기 시 false 또는 null 반환
 Future<bool?> showExpenseAddBottomSheet(
   BuildContext context, {
   ExpenseEntity? expense,
+  DateTime? date,
 }) {
   return showModalBottomSheet<bool>(
     context: context,
     useSafeArea: true,
-    // 화면 높이의 대부분을 차지하도록 설정
     isScrollControlled: true,
-    // 둥근 상단 모서리
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    // 배경 클릭 시 닫기 허용
     isDismissible: true,
-    // 키보드 등장 시 바텀시트 위로 밀리지 않도록 (커스텀 키패드 사용)
     useRootNavigator: true,
-    builder: (context) => _ExpenseAddBottomSheet(expense: expense),
+    builder: (context) => _ExpenseAddBottomSheet(expense: expense, date: date),
   );
 }
 
@@ -41,7 +40,10 @@ Future<bool?> showExpenseAddBottomSheet(
 class _ExpenseAddBottomSheet extends ConsumerStatefulWidget {
   final ExpenseEntity? expense;
 
-  const _ExpenseAddBottomSheet({this.expense});
+  /// 새 지출을 기록할 날짜. null이면 오늘. 편집 모드에서는 무시된다.
+  final DateTime? date;
+
+  const _ExpenseAddBottomSheet({this.expense, this.date});
 
   @override
   ConsumerState<_ExpenseAddBottomSheet> createState() =>
@@ -58,6 +60,17 @@ class _ExpenseAddBottomSheetState
 
   /// 저장 진행 중 여부 — 버튼 로딩 상태 표시용
   bool _isSaving = false;
+
+  /// 헤더 및 createdAt에 사용할 실제 날짜.
+  /// 편집 모드: 기존 지출의 날짜 / 신규 모드: date 파라미터 또는 오늘
+  DateTime get _recordDate {
+    if (widget.expense != null) {
+      final d = widget.expense!.createdAt;
+      return DateTime(d.year, d.month, d.day);
+    }
+    final d = widget.date ?? DateTime.now();
+    return DateTime(d.year, d.month, d.day);
+  }
 
   /// 현재 입력된 금액 (int 변환)
   int get _amount => _amountString.isEmpty ? 0 : int.parse(_amountString);
@@ -133,7 +146,7 @@ class _ExpenseAddBottomSheetState
                 id: 0,
                 amount: _amount,
                 category: _selectedCategory.index,
-                createdAt: DateTime.now(),
+                createdAt: _recordDate,
               ),
             );
       }
@@ -204,7 +217,7 @@ class _ExpenseAddBottomSheetState
             child: Row(
               children: [
                 Text(
-                  '지출 기록',
+                  '${_recordDate.month}월 ${_recordDate.day}일 지출 기록',
                   style: AppTypography.titleMedium.copyWith(
                     color: textMainColor,
                   ),
