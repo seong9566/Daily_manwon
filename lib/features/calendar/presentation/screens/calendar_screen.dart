@@ -40,6 +40,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         .getWeeklySummary();
     return Scaffold(
       backgroundColor: bgColor,
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'calendar_add_expense',
+        backgroundColor: isDark ? AppColors.darkTextMain : AppColors.textMain,
+        foregroundColor: isDark ? AppColors.darkBackground : AppColors.white,
+        onPressed: () async {
+          final date = state.selectedDate ?? DateTime.now();
+          await showExpenseAddBottomSheet(context, date: date);
+          // 캘린더 갱신은 HomeViewModel.addExpense 내부의
+          // ref.invalidate(calendarViewModelProvider)가 처리한다.
+        },
+        child: const Icon(Icons.add_rounded, size: 28),
+      ),
       body: SafeArea(
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator())
