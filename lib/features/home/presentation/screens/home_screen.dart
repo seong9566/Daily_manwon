@@ -210,6 +210,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
         // FAB — 라이트: black(primary) + white 아이콘, 다크: white + black 아이콘
         floatingActionButton: FloatingActionButton(
+          heroTag: 'home_add_expense',
           tooltip: '지출 추가',
           backgroundColor: isDark ? AppColors.white : AppColors.primary,
           foregroundColor: isDark ? AppColors.black : AppColors.white,
