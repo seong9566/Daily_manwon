@@ -27,10 +27,21 @@ class DailyBudgetLocalDatasource {
   }
 
   /// carryOver는 UseCase가 계산하여 전달 (Clean Architecture)
+  ///
+  /// 오늘 row가 이미 존재하더라도 carryOver가 변경된 경우 업데이트한다.
+  /// 이는 어제 지출이 늦게 입력되어 carryOver가 재계산된 경우를 올바르게 반영하기 위함이다.
   Future<DailyBudgetEntity> getOrCreateTodayBudget({required int carryOver}) async {
     final today = DateTime.now();
     final existing = await getBudgetByDate(today);
-    if (existing != null) return existing;
+    if (existing != null) {
+      if (existing.carryOver != carryOver) {
+        await (_db.update(_db.dailyBudgets)
+              ..where((t) => t.id.equals(existing.id)))
+            .write(DailyBudgetsCompanion(carryOver: Value(carryOver)));
+        return existing.copyWith(carryOver: carryOver);
+      }
+      return existing;
+    }
 
     final prefRow = await (_db.select(_db.userPreferences)
           ..where((t) => t.id.equals(1)))

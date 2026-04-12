@@ -61,10 +61,14 @@ class _ExpenseAddBottomSheetState
   /// 저장 진행 중 여부 — 버튼 로딩 상태 표시용
   bool _isSaving = false;
 
-  /// 헤더 및 createdAt에 사용할 실제 날짜.
-  /// 편집 모드: 기존 지출의 날짜 / 신규 모드: date 파라미터 또는 오늘.
-  /// initState에서 한 번만 계산되어 고정됨 — 자정 경계 버그 방지
+  /// 헤더에 표시할 날짜 (시분초=0, 표시 전용)
   late final DateTime _recordDate;
+
+  /// DB에 저장될 실제 createdAt 값.
+  /// - 홈 FAB(date=null): DateTime.now() — 실제 시각 보존 (00:00 저장 방지)
+  /// - 캘린더 과거 날짜: 정오(12:00) — UTC 날짜 경계 이탈 방지
+  /// - 편집 모드: 기존 expense.createdAt — 날짜 변경 없음
+  late final DateTime _saveCreatedAt;
 
   /// 현재 입력된 금액 (int 변환)
   int get _amount => _amountString.isEmpty ? 0 : int.parse(_amountString);
@@ -76,13 +80,24 @@ class _ExpenseAddBottomSheetState
   void initState() {
     super.initState();
     if (widget.expense != null) {
+      // 편집 모드 — 기존 날짜·시각 그대로 유지
       final d = widget.expense!.createdAt;
       _recordDate = DateTime(d.year, d.month, d.day);
+      _saveCreatedAt = d;
       _amountString = widget.expense!.amount.toString();
       _selectedCategory = ExpenseCategory.values[widget.expense!.category];
-    } else {
-      final d = widget.date ?? DateTime.now();
+    } else if (widget.date != null) {
+      // 캘린더 과거 날짜 지정 모드 — 정오(12:00)로 저장해 UTC 날짜 경계 이탈 방지
+      final d = widget.date!;
       _recordDate = DateTime(d.year, d.month, d.day);
+      _saveCreatedAt = DateTime(d.year, d.month, d.day, 12);
+      _amountString = '';
+      _selectedCategory = ExpenseCategory.cafe;
+    } else {
+      // 홈 FAB 모드 — 실제 현재 시각 보존 (자정 저장 방지)
+      final now = DateTime.now();
+      _recordDate = DateTime(now.year, now.month, now.day);
+      _saveCreatedAt = now;
       _amountString = '';
       _selectedCategory = ExpenseCategory.cafe;
     }
@@ -144,7 +159,7 @@ class _ExpenseAddBottomSheetState
                 id: 0,
                 amount: _amount,
                 category: _selectedCategory.index,
-                createdAt: _recordDate,
+                createdAt: _saveCreatedAt,
               ),
             );
       }
