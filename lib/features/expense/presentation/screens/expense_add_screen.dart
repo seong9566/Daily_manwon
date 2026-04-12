@@ -62,15 +62,9 @@ class _ExpenseAddBottomSheetState
   bool _isSaving = false;
 
   /// 헤더 및 createdAt에 사용할 실제 날짜.
-  /// 편집 모드: 기존 지출의 날짜 / 신규 모드: date 파라미터 또는 오늘
-  DateTime get _recordDate {
-    if (widget.expense != null) {
-      final d = widget.expense!.createdAt;
-      return DateTime(d.year, d.month, d.day);
-    }
-    final d = widget.date ?? DateTime.now();
-    return DateTime(d.year, d.month, d.day);
-  }
+  /// 편집 모드: 기존 지출의 날짜 / 신규 모드: date 파라미터 또는 오늘.
+  /// initState에서 한 번만 계산되어 고정됨 — 자정 경계 버그 방지
+  late final DateTime _recordDate;
 
   /// 현재 입력된 금액 (int 변환)
   int get _amount => _amountString.isEmpty ? 0 : int.parse(_amountString);
@@ -82,9 +76,13 @@ class _ExpenseAddBottomSheetState
   void initState() {
     super.initState();
     if (widget.expense != null) {
+      final d = widget.expense!.createdAt;
+      _recordDate = DateTime(d.year, d.month, d.day);
       _amountString = widget.expense!.amount.toString();
       _selectedCategory = ExpenseCategory.values[widget.expense!.category];
     } else {
+      final d = widget.date ?? DateTime.now();
+      _recordDate = DateTime(d.year, d.month, d.day);
       _amountString = '';
       _selectedCategory = ExpenseCategory.cafe;
     }
