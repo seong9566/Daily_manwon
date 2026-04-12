@@ -139,7 +139,7 @@ class CalendarDayCell extends StatelessWidget {
               //   comfortable / normal → 녹색 (budgetOK)
               //   danger              → 앰버 (budgetWarning)
               //   over                → 딥레드 (budgetOver)
-              if (isCurrentMonth && !isFuture && mood != null && totalSpent != null)
+              if (isCurrentMonth && !isFuture && mood != null && totalSpent != null && totalSpent! > 0)
                 CalendarAmountBadge(
                   totalSpent: totalSpent!,
                   mood: mood!,
