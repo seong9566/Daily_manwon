@@ -151,27 +151,21 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
               ?? monthBaseAmounts[day]
               ?? AppConstants.dailyBudget;
 
-          // 지출 합계 → mood 계산 (색상 바 표시용)
+          // 지출 합계 → mood 계산 (금액 뱃지 표시용)
           // 월간 그리드와 동일한 규칙:
           //   - 지출 있음       → 실제 합계로 mood 결정
-          //   - 지출 없는 과거  → 0원 지출 = comfortable (오늘 제외 — 아직 진행 중)
+          //   - 지출 없는 과거  → totalSpent = null → 뱃지 미표시
           int? totalSpent;
           if (!isFuture) {
             if (dayExpenses != null && dayExpenses.isNotEmpty) {
               totalSpent = dayExpenses.fold<int>(0, (s, e) => s + e.amount);
-            } else if (!isToday) {
-              totalSpent = 0;
             }
+            // 지출 없는 과거 날짜: totalSpent = null → 뱃지 미표시
           }
 
           final CharacterMood? mood =
               (!isFuture && totalSpent != null)
                   ? calculateMood(dayBudget, totalSpent)
-                  : null;
-
-          final double? remainingRatio =
-              (!isFuture && totalSpent != null && dayBudget > 0)
-                  ? (dayBudget - totalSpent) / dayBudget
                   : null;
 
           return Expanded(
@@ -183,7 +177,7 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
                 isFuture: isFuture,
                 onTap: () => widget.onDateSelected(day),
                 mood: mood,
-                remainingRatio: remainingRatio,
+                totalSpent: totalSpent,
               ),
             ),
           );

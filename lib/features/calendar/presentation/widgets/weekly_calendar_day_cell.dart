@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/budget_mood_calculator.dart';
+import 'calendar_amount_badge.dart';
 
 /// 주간 캘린더 셀
 ///
-/// 월간 뷰의 1주 슬라이스 — 동일한 시각 언어(날짜 원 + 색상 바)로 일관성 유지
+/// 월간 뷰의 1주 슬라이스 — 동일한 시각 언어(날짜 원 + 금액 뱃지)로 일관성 유지
 /// - 상단: 날짜 숫자 (원형 배경, 오늘/선택 강조)
-/// - 하단: 예산 상태 색상 바 (comfortable→녹 / normal→앰버 / danger→레드 / over→딥레드)
+/// - 하단: 지출 금액 컬러 뱃지 (지출이 있는 과거 날짜만 표시)
 class WeeklyCalendarDayCell extends StatelessWidget {
   final DateTime date;
   final bool isToday;
@@ -17,11 +17,11 @@ class WeeklyCalendarDayCell extends StatelessWidget {
   final bool isFuture;
   final VoidCallback? onTap;
 
-  /// 해당일 예산 감정 상태 (null = 미래·데이터 없음 → 색상 바 숨김)
+  /// 해당일 예산 감정 상태 (null = 미래·데이터 없음 → 뱃지 숨김)
   final CharacterMood? mood;
 
-  /// 예산 잔여 비율 (0.0 ~ 1.0) — LinearProgressIndicator fill 값
-  final double? remainingRatio;
+  /// 해당일 지출 합계 (null 또는 0 = 뱃지 미표시)
+  final int? totalSpent;
 
   const WeeklyCalendarDayCell({
     super.key,
@@ -31,7 +31,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
     required this.isFuture,
     this.onTap,
     this.mood,
-    this.remainingRatio,
+    this.totalSpent,
   });
 
   @override
@@ -44,7 +44,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
         width: 48,
-        // 선택 시: 날짜 원 + 색상 바를 하나의 선택 영역으로 묶는 셀 배경
+        // 선택 시: 날짜 원 + 금액 뱃지를 하나의 선택 영역으로 묶는 셀 배경
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark ? AppColors.white : AppColors.primary)
@@ -63,26 +63,15 @@ class WeeklyCalendarDayCell extends StatelessWidget {
             ),
             const SizedBox(height: 6),
 
-            // 예산 상태 색상 바 — 월간 뷰와 동일한 히트맵 방식
-            if (!isFuture && mood != null && remainingRatio != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(1.5),
-                  child: LinearProgressIndicator(
-                    value: remainingRatio!.clamp(0.0, 1.0),
-                    minHeight: 3,
-                    backgroundColor: isDark
-                        ? AppColors.darkDivider
-                        : AppColors.border,
-                    valueColor: AlwaysStoppedAnimation(
-                      moodBarColor(mood!, isDark: isDark),
-                    ),
-                  ),
-                ),
+            // 지출 금액 뱃지 — 지출이 있는 과거 날짜만 표시
+            if (!isFuture && mood != null && totalSpent != null && totalSpent! > 0)
+              CalendarAmountBadge(
+                totalSpent: totalSpent!,
+                mood: mood!,
+                isDark: isDark,
               )
             else
-              const SizedBox(height: 3),
+              const SizedBox(height: 3), // 바 높이(3px)와 맞춤
           ],
         ),
       ),
