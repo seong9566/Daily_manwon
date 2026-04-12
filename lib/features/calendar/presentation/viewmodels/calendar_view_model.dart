@@ -443,15 +443,15 @@ class CalendarViewModel extends Notifier<CalendarState> {
       }
 
       _inFlightLoads.add(key);
-      Future.wait([
+      (
         _useCase.getMonthlyExpenses(year: dt.year, month: dt.month),
         _useCase.getMonthlyBaseAmounts(year: dt.year, month: dt.month),
         _useCase.getMonthlyEffectiveBudgets(year: dt.year, month: dt.month),
-      ]).then((results) {
-            _expenseCache[key] =
-                results[0] as Map<DateTime, List<ExpenseEntity>>;
-            _baseAmountCache[key] = results[1] as Map<DateTime, int>;
-            _effectiveBudgetCache[key] = results[2] as Map<DateTime, int>;
+      ).wait.then((results) {
+            final (expenses, baseAmounts, effectiveBudgets) = results;
+            _expenseCache[key] = expenses;
+            _baseAmountCache[key] = baseAmounts;
+            _effectiveBudgetCache[key] = effectiveBudgets;
             // 인접 달 그리드에 데이터가 반영되도록 state 변경 유발
             state = state.copyWith(cacheVersion: state.cacheVersion + 1);
           })

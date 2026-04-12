@@ -3,18 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-
-/// mood → 색상 바 색상 매핑 (home_budget_header.dart와 동일한 ratio 기반 로직)
-/// comfortable(>70% 잔액) → 녹, normal(30~70%) → 앰버, danger(0~30%) → 레드, over → 딥레드
-Color _moodBarColor(CharacterMood mood) {
-  return switch (mood) {
-    CharacterMood.comfortable || CharacterMood.newWeek =>
-      AppColors.statusComfortable,
-    CharacterMood.normal => AppColors.budgetWarning,
-    CharacterMood.danger => AppColors.budgetDanger,
-    CharacterMood.over   => AppColors.budgetOver,
-  };
-}
+import '../../../../core/utils/budget_mood_calculator.dart';
 
 /// 캘린더 날짜 셀 위젯
 /// 날짜 숫자 + 선택/오늘 강조 표시
@@ -90,7 +79,7 @@ class CalendarDayCell extends StatelessWidget {
     if (isSelected) {
       // 선택된 날: 라이트=black, 다크=white
       bgColor = isDark ? AppColors.white : AppColors.primary;
-    } else if (isToday && !isSelected) {
+    } else if (isToday) {
       // 오늘(미선택): 연한 회색 배경
       bgColor = isDark ? AppColors.darkCard : AppColors.primaryLight;
     }
@@ -163,7 +152,7 @@ class CalendarDayCell extends StatelessWidget {
                           ? AppColors.darkDivider
                           : AppColors.border,
                       valueColor: AlwaysStoppedAnimation(
-                        _moodBarColor(mood!),
+                        moodBarColor(mood!, isDark: isDark),
                       ),
                     ),
                   ),

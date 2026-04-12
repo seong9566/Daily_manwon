@@ -133,7 +133,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         HomeBudgetHeader(
                           remainingBudget: state.remainingBudget,
                           totalBudget: state.totalBudget,
-                          isDark: isDark,
                           subTextColor: subTextColor,
                         ),
                         // 이월 배지

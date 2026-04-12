@@ -127,11 +127,8 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
   /// getCachedExpenses를 사용하여 월 경계 주도 올바르게 처리한다.
   Widget _buildWeekRow(DateTime weekStart, CalendarState state) {
     final notifier = ref.read(calendarViewModelProvider.notifier);
-    final today = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final days = AppDateUtils.weekDaysFrom(weekStart);
 
     return Padding(
@@ -185,7 +182,6 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
                 isSelected: isSelected,
                 isFuture: isFuture,
                 onTap: () => widget.onDateSelected(day),
-                isDark: widget.isDark,
                 mood: mood,
                 remainingRatio: remainingRatio,
               ),

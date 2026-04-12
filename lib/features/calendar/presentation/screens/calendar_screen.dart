@@ -108,10 +108,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 state.viewMode == CalendarViewMode.monthly;
                             final successCount = isMonthly
                                 ? state.monthlySuccessCount
-                                : ref
-                                      .read(calendarViewModelProvider.notifier)
-                                      .getWeeklySummary()
-                                      .savingDays;
+                                : summary.savingDays;
                             return AcornStreakBadge(
                               totalAcorns: successCount,
                               streakDays: state.streakDays,

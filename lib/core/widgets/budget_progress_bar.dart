@@ -18,17 +18,16 @@ class BudgetProgressBar extends StatelessWidget {
   /// 총 예산 (0이면 danger 처리)
   final int total;
 
-  final bool isDark;
-
   const BudgetProgressBar({
     super.key,
     required this.remaining,
     required this.total,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // ratio: mood 계산에는 원시값(음수 허용), bar fill에는 clamp(0,1)
     final ratio = total > 0 ? remaining / total : 0.0;
     final mood = CharacterMood.fromRatio(ratio);
@@ -45,6 +44,7 @@ class BudgetProgressBar extends StatelessWidget {
     const double catSize      = 88.0;
     const double bubbleHeight = 32.0;
     const double barHeight    = 4.0;
+    // + 4: 말풍선→고양이 SizedBox(2px) + 고양이→바 bottom offset(2px)
     const double totalHeight  = catSize + bubbleHeight + barHeight + 4;
 
     return Padding(
@@ -98,7 +98,7 @@ class BudgetProgressBar extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _SpeechBubble(text: mood.comment, isDark: isDark),
+                        _SpeechBubble(text: mood.comment),
                         const SizedBox(height: 2),
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 400),
@@ -141,12 +141,12 @@ class BudgetProgressBar extends StatelessWidget {
 /// 고양이 말풍선 — mood 코멘트 표시용 소형 말풍선
 class _SpeechBubble extends StatelessWidget {
   final String text;
-  final bool isDark;
 
-  const _SpeechBubble({required this.text, required this.isDark});
+  const _SpeechBubble({required this.text});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor   = isDark ? AppColors.darkSurface  : AppColors.background;
     final textColor = isDark ? AppColors.darkTextSub  : AppColors.textSub;
 

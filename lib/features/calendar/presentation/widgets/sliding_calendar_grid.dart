@@ -175,58 +175,46 @@ class _SlidingCalendarGridState extends ConsumerState<SlidingCalendarGrid>
                 children: [
                   // ±2달 그리드를 나란히 배치하여 PageView 방식으로 슬라이드
                   for (int i = -2; i <= 2; i++)
-                    Transform.translate(
+                    Builder(
                       key: ValueKey(
                         '${currentMonth.year}-${currentMonth.month}-$i',
                       ),
-                      offset: Offset(i * _width + _dragOffset, 0),
-                      child: _CalendarGrid(
-                        state: CalendarState(
-                          selectedMonth: DateTime(
-                            currentMonth.year,
-                            currentMonth.month + i,
-                          ),
-                          // 현재 달만 선택 날짜 표시, 나머지는 생략
-                          selectedDate: i == 0
-                              ? widget.state.selectedDate
-                              : null,
-                          monthlyExpenses: notifier.getCachedExpenses(
-                            DateTime(
-                              currentMonth.year,
-                              currentMonth.month + i,
-                            ).year,
-                            DateTime(
-                              currentMonth.year,
-                              currentMonth.month + i,
-                            ).month,
-                          ),
-                          monthlyBaseAmounts: notifier.getCachedBaseAmounts(
-                            DateTime(
-                              currentMonth.year,
-                              currentMonth.month + i,
-                            ).year,
-                            DateTime(
-                              currentMonth.year,
-                              currentMonth.month + i,
-                            ).month,
-                          ),
-                          monthlyEffectiveBudgets: notifier
-                              .getCachedEffectiveBudgets(
-                                DateTime(
-                                  currentMonth.year,
-                                  currentMonth.month + i,
-                                ).year,
-                                DateTime(
-                                  currentMonth.year,
-                                  currentMonth.month + i,
-                                ).month,
+                      builder: (_) {
+                        final targetMonth = DateTime(
+                          currentMonth.year,
+                          currentMonth.month + i,
+                        );
+                        return Transform.translate(
+                          offset: Offset(i * _width + _dragOffset, 0),
+                          child: _CalendarGrid(
+                            state: CalendarState(
+                              selectedMonth: targetMonth,
+                              // 현재 달만 선택 날짜 표시, 나머지는 생략
+                              selectedDate: i == 0
+                                  ? widget.state.selectedDate
+                                  : null,
+                              monthlyExpenses: notifier.getCachedExpenses(
+                                targetMonth.year,
+                                targetMonth.month,
                               ),
-                          selectedWeekStart: widget.state.selectedWeekStart,
-                        ),
-                        isDark: widget.isDark,
-                        // 현재 달만 날짜 선택 활성화
-                        onDateSelected: i == 0 ? widget.onDateSelected : (_) {},
-                      ),
+                              monthlyBaseAmounts: notifier.getCachedBaseAmounts(
+                                targetMonth.year,
+                                targetMonth.month,
+                              ),
+                              monthlyEffectiveBudgets:
+                                  notifier.getCachedEffectiveBudgets(
+                                targetMonth.year,
+                                targetMonth.month,
+                              ),
+                              selectedWeekStart: widget.state.selectedWeekStart,
+                            ),
+                            isDark: widget.isDark,
+                            // 현재 달만 날짜 선택 활성화
+                            onDateSelected:
+                                i == 0 ? widget.onDateSelected : (_) {},
+                          ),
+                        );
+                      },
                     ),
                 ],
               ),
@@ -263,11 +251,8 @@ class _CalendarGrid extends StatelessWidget {
     // 항상 42칸(6행) 고정 — _SlidingCalendarGrid의 SizedBox height와 일치
     const totalCells = 42;
 
-    final today = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),

@@ -3,31 +3,19 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-
-/// mood → 색상 바 색상 매핑 (home_budget_header.dart와 동일한 ratio 기반 로직)
-/// comfortable(>70% 잔액) → 녹, normal(30~70%) → 앰버, danger(0~30%) → 레드, over → 딥레드
-Color _moodBarColor(CharacterMood mood) {
-  return switch (mood) {
-    CharacterMood.comfortable || CharacterMood.newWeek =>
-      AppColors.statusComfortable,
-    CharacterMood.normal => AppColors.budgetWarning,
-    CharacterMood.danger => AppColors.budgetDanger,
-    CharacterMood.over   => AppColors.budgetOver,
-  };
-}
+import '../../../../core/utils/budget_mood_calculator.dart';
 
 /// 주간 캘린더 셀
 ///
 /// 월간 뷰의 1주 슬라이스 — 동일한 시각 언어(날짜 원 + 색상 바)로 일관성 유지
 /// - 상단: 날짜 숫자 (원형 배경, 오늘/선택 강조)
-/// - 하단: 예산 상태 색상 바 (comfortable→녹 / danger→앰버 / over→딥레드)
+/// - 하단: 예산 상태 색상 바 (comfortable→녹 / normal→앰버 / danger→레드 / over→딥레드)
 class WeeklyCalendarDayCell extends StatelessWidget {
   final DateTime date;
   final bool isToday;
   final bool isSelected;
   final bool isFuture;
   final VoidCallback? onTap;
-  final bool isDark;
 
   /// 해당일 예산 감정 상태 (null = 미래·데이터 없음 → 색상 바 숨김)
   final CharacterMood? mood;
@@ -42,13 +30,14 @@ class WeeklyCalendarDayCell extends StatelessWidget {
     required this.isSelected,
     required this.isFuture,
     this.onTap,
-    required this.isDark,
     this.mood,
     this.remainingRatio,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -87,7 +76,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
                         ? AppColors.darkDivider
                         : AppColors.border,
                     valueColor: AlwaysStoppedAnimation(
-                      _moodBarColor(mood!),
+                      moodBarColor(mood!, isDark: isDark),
                     ),
                   ),
                 ),
