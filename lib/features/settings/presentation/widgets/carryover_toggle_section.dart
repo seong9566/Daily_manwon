@@ -28,7 +28,9 @@ class CarryoverToggleSection extends ConsumerWidget {
                   Text(
                     '남은 예산 이월',
                     style: AppTypography.bodyLarge.copyWith(
-                      color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+                      color: isDark
+                          ? AppColors.darkTextMain
+                          : AppColors.textMain,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -56,12 +58,13 @@ class CarryoverToggleSection extends ConsumerWidget {
                 },
                 activeThumbColor: isDark ? AppColors.black : AppColors.white,
                 activeTrackColor: isDark ? AppColors.white : AppColors.black,
-                inactiveThumbColor:
-                    isDark ? Colors.grey[400] : AppColors.white,
-                inactiveTrackColor:
-                    isDark ? Colors.grey[800] : Colors.grey[300],
-                trackOutlineColor:
-                    const WidgetStatePropertyAll(Colors.transparent),
+                inactiveThumbColor: isDark ? Colors.grey[400] : AppColors.white,
+                inactiveTrackColor: isDark
+                    ? Colors.grey[800]
+                    : Colors.grey[300],
+                trackOutlineColor: const WidgetStatePropertyAll(
+                  Colors.transparent,
+                ),
               ),
             ),
           ],
@@ -72,9 +75,7 @@ class CarryoverToggleSection extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.darkSurface
-                  : AppColors.primaryLight,
+              color: isDark ? AppColors.darkSurface : AppColors.primaryLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -86,7 +87,7 @@ class CarryoverToggleSection extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '예) 오늘 3,000원 사용 시 → 내일 17,000원',
+                  '예) 일일 예산 10,000원\n오늘 3,000원 사용 시 → 내일 17,000원',
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark ? AppColors.darkTextSub : AppColors.textSub,
                   ),
@@ -108,9 +109,7 @@ class CarryoverToggleSection extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => Dialog(
         backgroundColor: bgColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
           child: Column(
