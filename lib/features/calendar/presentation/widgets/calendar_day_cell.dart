@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/budget_mood_calculator.dart';
+import 'calendar_amount_badge.dart';
 
 /// 캘린더 날짜 셀 위젯
 /// 날짜 숫자 + 선택/오늘 강조 표시
@@ -31,9 +31,8 @@ class CalendarDayCell extends StatelessWidget {
   /// 해당일 예산 감정 상태 (null = 미래·데이터 없음 → 색상 바 숨김)
   final CharacterMood? mood;
 
-  /// 예산 잔여 비율 (0.0 ~ 1.0) — LinearProgressIndicator fill 값
-  /// null이면 색상 바 자체를 숨김 (미래 날짜, 데이터 없음)
-  final double? remainingRatio;
+  /// 당일 지출 합계 (원) — null이면 뱃지 숨김 (미래 날짜, 데이터 없음)
+  final int? totalSpent;
 
   /// 탭 콜백
   final VoidCallback? onTap;
@@ -47,7 +46,7 @@ class CalendarDayCell extends StatelessWidget {
     required this.isFuture,
     this.isSuccess,
     this.mood,
-    this.remainingRatio,
+    this.totalSpent,
     this.onTap,
   });
 
@@ -140,22 +139,11 @@ class CalendarDayCell extends StatelessWidget {
               //   comfortable / normal → 녹색 (budgetOK)
               //   danger              → 앰버 (budgetWarning)
               //   over                → 딥레드 (budgetOver)
-              if (isCurrentMonth && !isFuture && mood != null && remainingRatio != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(1.5),
-                    child: LinearProgressIndicator(
-                      value: remainingRatio!.clamp(0.0, 1.0),
-                      minHeight: 3,
-                      backgroundColor: isDark
-                          ? AppColors.darkDivider
-                          : AppColors.border,
-                      valueColor: AlwaysStoppedAnimation(
-                        moodBarColor(mood!, isDark: isDark),
-                      ),
-                    ),
-                  ),
+              if (isCurrentMonth && !isFuture && mood != null && totalSpent != null)
+                CalendarAmountBadge(
+                  totalSpent: totalSpent!,
+                  mood: mood!,
+                  isDark: isDark,
                 )
               else
                 const SizedBox(height: 3),

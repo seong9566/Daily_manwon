@@ -287,19 +287,15 @@ class _CalendarGrid extends StatelessWidget {
             totalSpent = expenses.fold<int>(0, (sum, e) => sum + e.amount);
             isSuccess = totalSpent <= baseAmount;
           } else if (!isFuture && !isToday) {
-            // 지출 없는 과거 날 → 0원 지출 = 성공(comfortable)
-            totalSpent = 0;
+            // 지출 없는 과거 날 → 뱃지 없음, semantics는 성공
             isSuccess = true;
+            // totalSpent는 null 유지 — 뱃지 미표시
           }
 
-          // 과거 날짜이고 지출 데이터가 있을 때 mood + 잔여 비율 계산
+          // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
           CharacterMood? mood;
-          double? remainingRatio;
           if (!isFuture && totalSpent != null) {
             mood = calculateMood(baseAmount, totalSpent);
-            remainingRatio = baseAmount > 0
-                ? ((baseAmount - totalSpent) / baseAmount)
-                : 0.0;
           }
 
           return CalendarDayCell(
@@ -310,7 +306,7 @@ class _CalendarGrid extends StatelessWidget {
             isFuture: isFuture,
             isSuccess: isSuccess,
             mood: mood,
-            remainingRatio: remainingRatio,
+            totalSpent: totalSpent,
             onTap: () => onDateSelected(cellDate),
           );
         },
