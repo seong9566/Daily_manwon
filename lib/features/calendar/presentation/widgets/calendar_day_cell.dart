@@ -88,8 +88,12 @@ class CalendarDayCell extends StatelessWidget {
       selected: isSelected,
       label: isCurrentMonth
           ? '${date.month}월 ${date.day}일'
-              '${isToday ? ', 오늘' : ''}'
-              '${isSuccess == true ? ', 성공' : isSuccess == false ? ', 초과' : ', 지출없음'}'
+                '${isToday ? ', 오늘' : ''}'
+                '${isSuccess == true
+                    ? ', 성공'
+                    : isSuccess == false
+                    ? ', 초과'
+                    : ', 지출없음'}'
           : null,
       excludeSemantics: !isCurrentMonth,
       child: GestureDetector(
@@ -98,15 +102,7 @@ class CalendarDayCell extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOut,
-          // 선택 시: 날짜 원 + 색상 바를 하나의 선택 영역으로 묶는 셀 배경
-          // 날짜 원의 강한 fill 과 경쟁하지 않도록 alpha를 낮게 유지
-          decoration: BoxDecoration(
-            color: isSelected && isCurrentMonth
-                ? (isDark ? AppColors.white : AppColors.primary)
-                    .withValues(alpha: 0.07)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
+
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -139,7 +135,11 @@ class CalendarDayCell extends StatelessWidget {
               //   comfortable / normal → 녹색 (budgetOK)
               //   danger              → 앰버 (budgetWarning)
               //   over                → 딥레드 (budgetOver)
-              if (isCurrentMonth && !isFuture && mood != null && totalSpent != null && totalSpent! > 0)
+              if (isCurrentMonth &&
+                  !isFuture &&
+                  mood != null &&
+                  totalSpent != null &&
+                  totalSpent! > 0)
                 CalendarAmountBadge(
                   totalSpent: totalSpent!,
                   mood: mood!,
