@@ -5,6 +5,7 @@
 //  Created by stecdev_mac on 4/1/26.
 //
 
+import AppIntents
 import WidgetKit
 import SwiftUI
 
