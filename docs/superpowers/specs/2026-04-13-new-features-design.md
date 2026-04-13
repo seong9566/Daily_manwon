@@ -87,15 +87,40 @@ LIMIT 3
 - **패키지**: `home_widget 0.6.0` (iOS WidgetKit + Android AppWidget 통합)
 - **데이터 동기화**: 지출 추가/삭제/수정 시 `HomeWidget.saveWidgetData()` 호출 → 위젯 리렌더
 - **빠른 입력 (대형) — 앱 열지 않고 백그라운드 저장 가능**:
+
+  **iOS 실행 흐름** (`openAppWhenRun = false`, Widget Extension 프로세스에서 실행):
   ```
   위젯 버튼 탭
-    → iOS AppIntent 실행 (Widget Extension 내)
-    → App Group UserDefaults에 지출 데이터 기록
-    → HomeWidget.registerInteractivityCallback 트리거
-    → Flutter 백그라운드 isolate에서 Drift DB 저장
-    → 위젯 리렌더 (앱 포그라운드 전환 없음)
+    → AppIntent.perform() [Widget Extension 프로세스]
+    → HomeWidgetBackgroundWorker.run(url:appGroup:)
+    → Flutter 백그라운드 isolate 실행
+    → Drift DB 저장 (App Group 경로)
+    → WidgetCenter.shared.reloadAllTimelines()
   ```
+
+  **Android 실행 흐름** (BroadcastReceiver 기반):
+  ```
+  위젯 버튼 탭
+    → PendingIntent → HomeWidgetBackgroundReceiver
+    → Flutter 헤드리스 엔진 초기화
+    → Dart backgroundCallback 실행
+    → SQLite 쓰기 (10초 제한 내)
+  ```
+
+  **Dart 콜백 등록** (`@pragma` 어노테이션 필수 — 없으면 릴리즈 빌드에서 tree shaking으로 제거됨):
+  ```dart
+  @pragma('vm:entry-point')
+  FutureOr<void> backgroundCallback(Uri? data) async {
+    // 앱 열지 않고 Drift DB 저장
+  }
+  HomeWidget.registerInteractivityCallback(backgroundCallback);
+  ```
+
+- **플랫폼 버전 요건**:
+  - iOS: **17.0 이상** (현 앱 `IPHONEOS_DEPLOYMENT_TARGET = 17.0` — 이미 충족, fallback 불필요)
+  - Android: API 21 이상 (위젯 클릭 PendingIntent는 Android 12+ 백그라운드 제한 예외 적용)
 - **전제 조건**: Drift DB가 App Group 컨테이너(`group.com.xxx.dailyManwon`)에 위치해야 함 — 기존 계획서(`2026-04-13-quick-expense-recording.md`) Task 2 참조
+- **실행 시간 제한**: iOS 수 초 이내 (Apple 비공개), Android BroadcastReceiver 10초 이내 (초과 시 WorkManager 위임)
 - **네이티브 번들링**: 고양이 PNG 4장을 iOS (`Runner/Assets.xcassets`) 및 Android (`res/drawable`) 양쪽에 포함
 
 ### 기존 계획서와의 관계
