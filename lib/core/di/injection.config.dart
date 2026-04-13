@@ -91,6 +91,12 @@ import '../../features/settings/domain/usecases/get_notification_settings_use_ca
     as _i1007;
 import '../../features/settings/domain/usecases/save_notification_settings_use_case.dart'
     as _i836;
+import '../../features/stats/data/datasources/stats_local_datasource.dart'
+    as _i1071;
+import '../../features/stats/data/repositories/stats_repository_impl.dart'
+    as _i845;
+import '../../features/stats/domain/repositories/stats_repository.dart'
+    as _i804;
 import '../database/app_database.dart' as _i982;
 import '../services/notification_service.dart' as _i941;
 import '../services/widget_service.dart' as _i511;
@@ -133,6 +139,9 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i723.SettingsLocalDatasource>(
     () => _i723.SettingsLocalDatasource(gh<_i982.AppDatabase>()),
   );
+  gh.lazySingleton<_i1071.StatsLocalDatasource>(
+    () => _i1071.StatsLocalDatasource(gh<_i982.AppDatabase>()),
+  );
   gh.lazySingleton<_i200.AchievementRepository>(
     () =>
         _i640.AchievementRepositoryImpl(gh<_i484.AchievementLocalDatasource>()),
@@ -147,6 +156,9 @@ _i174.GetIt $initGetIt(
   );
   gh.lazySingleton<_i486.CheckAndAwardTitleUseCase>(
     () => _i486.CheckAndAwardTitleUseCase(gh<_i200.AchievementRepository>()),
+  );
+  gh.lazySingleton<_i804.StatsRepository>(
+    () => _i845.StatsRepositoryImpl(gh<_i1071.StatsLocalDatasource>()),
   );
   gh.lazySingleton<_i91.NotificationSettingsRepository>(
     () => _i414.NotificationSettingsRepositoryImpl(
