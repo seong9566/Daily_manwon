@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:home_widget/home_widget.dart';
 
 import 'core/di/injection.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/widget_background_callback.dart';
 import 'core/services/widget_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
@@ -14,6 +16,9 @@ import 'features/settings/data/datasources/settings_local_datasource.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 위젯 인터랙티비티 콜백 등록 (백그라운드 지출 저장)
+  HomeWidget.registerInteractivityCallback(widgetBackgroundCallback);
 
   // GetIt DI 초기화
   await configureDependencies();
