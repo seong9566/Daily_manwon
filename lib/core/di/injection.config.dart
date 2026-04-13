@@ -97,6 +97,12 @@ import '../../features/stats/data/repositories/stats_repository_impl.dart'
     as _i845;
 import '../../features/stats/domain/repositories/stats_repository.dart'
     as _i804;
+import '../../features/stats/domain/usecases/get_category_stats_use_case.dart'
+    as _i292;
+import '../../features/stats/domain/usecases/get_expense_summary_use_case.dart'
+    as _i348;
+import '../../features/stats/domain/usecases/get_weekday_stats_use_case.dart'
+    as _i1049;
 import '../database/app_database.dart' as _i982;
 import '../services/notification_service.dart' as _i941;
 import '../services/widget_service.dart' as _i511;
@@ -191,6 +197,15 @@ _i174.GetIt $initGetIt(
     () => _i78.FavoriteExpenseRepositoryImpl(
       gh<_i338.FavoriteExpenseDatasource>(),
     ),
+  );
+  gh.lazySingleton<_i292.GetCategoryStatsUseCase>(
+    () => _i292.GetCategoryStatsUseCase(gh<_i804.StatsRepository>()),
+  );
+  gh.lazySingleton<_i348.GetExpenseSummaryUseCase>(
+    () => _i348.GetExpenseSummaryUseCase(gh<_i804.StatsRepository>()),
+  );
+  gh.lazySingleton<_i1049.GetWeekdayStatsUseCase>(
+    () => _i1049.GetWeekdayStatsUseCase(gh<_i804.StatsRepository>()),
   );
   gh.lazySingleton<_i1018.GetAcornStatsUseCase>(
     () => _i1018.GetAcornStatsUseCase(gh<_i837.AcornRepository>()),
