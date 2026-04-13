@@ -29,16 +29,21 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths
   end
-end
 
-# 위젯 익스텐션 타깃 — 별도 Pod 없음, CocoaPods 빌드 페이즈 순서 교정용
-target 'DailyHomeWidgetExtension' do
-  use_frameworks!
+  # 위젯 익스텐션 — Runner의 search paths를 상속하여 Flutter/home_widget 접근 가능
+  target 'DailyHomeWidgetExtension' do
+    use_frameworks!
+    use_modular_headers!
+    inherit! :search_paths
+
+    pod 'home_widget', :path => File.join('.symlinks', 'plugins', 'home_widget', 'ios')
+  end
 end
 
 post_install do |installer|
