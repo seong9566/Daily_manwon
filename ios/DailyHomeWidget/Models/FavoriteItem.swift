@@ -13,14 +13,14 @@ struct FavoriteItem: Codable, Identifiable {
     let category: Int   // ExpenseCategory enum index (0=식비,1=교통,2=카페,3=쇼핑,4=기타)
     let memo: String
 
-    /// 카테고리 index → 이모지
-    var emoji: String {
+    /// 카테고리 index → Asset Catalog 이미지 이름 (앱과 동일한 _clean PNG 사용)
+    var categoryAssetName: String {
         switch category {
-        case 0: return "🍱"
-        case 1: return "🚌"
-        case 2: return "☕"
-        case 3: return "🛍️"
-        default: return "💳"
+        case 0: return "CategoryFood"
+        case 1: return "CategoryTransport"
+        case 2: return "CategoryCoffee"
+        case 3: return "CategoryShopping"
+        default: return "CategoryEtc"
         }
     }
 

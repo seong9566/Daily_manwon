@@ -138,8 +138,12 @@ struct DailyHomeLargeView: View {
                             memo: fav.memo
                         )) {
                             VStack(spacing: 4) {
-                                Text(fav.emoji)
-                                    .font(.system(size: 18))
+                                Image(fav.categoryAssetName)
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .scaledToFit()
+                                    .foregroundColor(colors.primaryText)
+                                    .frame(width: 22, height: 22)
                                 Text(fav.formattedAmount)
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundColor(colors.primaryText)
