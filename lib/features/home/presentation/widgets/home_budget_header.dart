@@ -36,7 +36,7 @@ class HomeBudgetHeader extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         // 히어로 금액
-        HeroBudgetNumber(remainingBudget: remainingBudget),
+        HeroBudgetNumber(remainingBudget: remainingBudget, totalBudget: totalBudget),
         const SizedBox(height: 20),
         // 고양이 마커 + 말풍선 통합 progress bar
         BudgetProgressBar(

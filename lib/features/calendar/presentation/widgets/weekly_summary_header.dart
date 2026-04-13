@@ -33,16 +33,9 @@ class WeeklySummaryHeader extends StatelessWidget {
   /// 잔액 비율 기반 총지출 색상 (CharacterMood.fromRatio 통일)
   Color _totalSpentColor() {
     if (weeklyBudget <= 0) {
-      return isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable;
+      return CharacterMood.comfortable.getColor(isDark: isDark);
     }
-    final ratio = (weeklyBudget - totalSpent) / weeklyBudget;
-    return switch (CharacterMood.fromRatio(ratio)) {
-      CharacterMood.comfortable || CharacterMood.newWeek =>
-        isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable,
-      CharacterMood.normal => AppColors.budgetWarning,
-      CharacterMood.danger => AppColors.budgetDanger,
-      CharacterMood.over   => AppColors.budgetOver,
-    };
+    return CharacterMood.fromSpent(weeklyBudget, totalSpent).getColor(isDark: isDark);
   }
 
   @override

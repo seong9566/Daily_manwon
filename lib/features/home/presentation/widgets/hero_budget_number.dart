@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/currency_formatter.dart';
 
 /// 남은 예산을 크게 표시하는 히어로 위젯
@@ -9,24 +9,27 @@ import '../../../../core/utils/currency_formatter.dart';
 class HeroBudgetNumber extends StatelessWidget {
   final int remainingBudget;
 
-  const HeroBudgetNumber({super.key, required this.remainingBudget});
+  /// 실제 오늘 총 예산 — 비율 기반 상태 계산에 사용 (BudgetProgressBar와 동일 기준)
+  final int totalBudget;
 
-  /// 상태별 폰트 웨이트
-  FontWeight _getFontWeight(int value) {
-    if (value >= 5000) return FontWeight.w900;
-    if (value >= 1000) return FontWeight.w800;
+  const HeroBudgetNumber({
+    super.key,
+    required this.remainingBudget,
+    required this.totalBudget,
+  });
+
+  /// 상태별 폰트 웨이트 (remaining/total 비율 기준)
+  FontWeight _getFontWeight(int remaining, int total) {
+    final ratio = total > 0 ? remaining / total : 0.0;
+    if (ratio >= AppConstants.comfortableRatioThreshold) return FontWeight.w900;
+    if (ratio >= AppConstants.normalRatioThreshold) return FontWeight.w800;
     return FontWeight.w700;
   }
 
-  /// 상태별 색상
-  Color _getColor(BuildContext context, int value) {
-    if (value >= 5000) {
-      final isDark = Theme.of(context).brightness == Brightness.dark;
-      return isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable;
-    }
-    if (value >= 1000) return AppColors.budgetWarning;
-    if (value >= 0) return AppColors.budgetDanger;
-    return AppColors.budgetOver;
+  /// 상태별 색상 (BudgetProgressBar와 동일한 비율 기준 사용)
+  Color _getColor(BuildContext context, int remaining, int total) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return CharacterMood.fromRemaining(remaining, total).getColor(isDark: isDark);
   }
 
   @override
@@ -46,7 +49,8 @@ class HeroBudgetNumber extends StatelessWidget {
         Widget textWidget = Text(formattedAmount);
 
         // 위험/초과 상태: 흔들림(shake) 효과는 금액이 부족할 때의 경고성을 위해 유지
-        if (value < 1000 && value >= 0) {
+        final ratio = totalBudget > 0 ? value / totalBudget : 0.0;
+        if (ratio < AppConstants.normalRatioThreshold && value >= 0) {
           textWidget = textWidget.animate(key: ValueKey('warn_$value')).shakeX(amount: 2, duration: 600.ms);
         } else if (value < 0) {
           textWidget = textWidget.animate(key: ValueKey('over_$value')).shakeX(amount: 4, hz: 4, duration: 400.ms);
@@ -62,8 +66,8 @@ class HeroBudgetNumber extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 44, // 폰트 크기를 고정하여 카운팅 시 레이아웃 흔들림 방지
-              fontWeight: _getFontWeight(value),
-              color: _getColor(context, value),
+              fontWeight: _getFontWeight(value, totalBudget),
+              color: _getColor(context, value, totalBudget),
               height: 1.2,
               letterSpacing: -0.5,
               fontFeatures: const [FontFeature.tabularFigures()],

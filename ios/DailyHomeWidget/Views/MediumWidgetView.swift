@@ -19,7 +19,7 @@ import WidgetKit
 struct DailyHomeMediumView: View {
     var entry: Provider.Entry
 
-    private var status: BudgetStatus { BudgetStatus(remaining: entry.remaining) }
+    private var status: BudgetStatus { BudgetStatus(catMood: entry.catMood) }
     private var colors: WidgetColorPalette { WidgetColorPalette.palette(for: status) }
 
     private var remainingText: String {

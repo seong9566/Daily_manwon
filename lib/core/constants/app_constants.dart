@@ -11,16 +11,16 @@ abstract final class AppConstants {
   static const int dailyBudget = 10000;
 
   // -------------------------
-  // 캐릭터 감정 상태 임계값
-  // 남은 금액 기준으로 고양이 캐릭터의 표정이 변한다
+  // 캐릭터 감정 상태 임계값 (비율 기준)
   // -------------------------
+  /// 행복 상태 최소 잔액 비율 (50% 이상)
+  static const double comfortableRatioThreshold = 0.5;
 
-  /// 행복 상태 최소 잔액 - 이 금액 이상이면 여유 있는 표정
-  static const int happyThreshold = 5000;
+  /// 걱정 상태 최소 잔액 비율 (30% 이상)
+  static const double normalRatioThreshold = 0.3;
 
-  /// 걱정 상태 최소 잔액 - 이 금액 이상~행복 미만이면 걱정 표정
-  /// 이 값 미만은 위험(sad) 상태로 분류한다
-  static const int worriedThreshold = 1000;
+  /// 위험 상태 최소 잔액 비율 (0% 이상)
+  static const double dangerRatioThreshold = 0.0;
 }
 
 /// 지출 카테고리 분류
@@ -103,18 +103,34 @@ enum ExpenseCategory {
 
 /// 고양이 캐릭터 감정 상태 — 잔액 비율(remaining/total) 기준
 enum CharacterMood {
-  comfortable, // 여유: 잔액 > 70%
-  normal, // 보통: 잔액 30~70%
-  danger, // 위험: 잔액 0~30%
+  comfortable, // 여유: 잔액 >= 50%
+  normal, // 보통: 잔액 10~50%
+  danger, // 위험: 잔액 0~10%
   over, // 초과: 잔액 < 0%
   newWeek; // 새 주 시작
 
   /// 잔액 비율(remaining / total)로 감정 상태를 결정한다
   static CharacterMood fromRatio(double ratio) {
-    if (ratio > 0.7) return CharacterMood.comfortable;
-    if (ratio > 0.3) return CharacterMood.normal;
-    if (ratio >= 0.0) return CharacterMood.danger;
+    if (ratio >= AppConstants.comfortableRatioThreshold) {
+      return CharacterMood.comfortable;
+    }
+    if (ratio >= AppConstants.normalRatioThreshold) return CharacterMood.normal;
+    if (ratio >= AppConstants.dangerRatioThreshold) return CharacterMood.danger;
     return CharacterMood.over;
+  }
+
+  /// 잔액(remaining)과 총 예산(total)을 기준으로 감정 상태를 결정한다
+  static CharacterMood fromRemaining(int remaining, int total) {
+    if (total <= 0) {
+      return remaining >= 0 ? CharacterMood.comfortable : CharacterMood.danger;
+    }
+    return fromRatio(remaining / total);
+  }
+
+  /// 예산(budget)과 지출(spent)을 기준으로 감정 상태를 결정한다
+  static CharacterMood fromSpent(int budget, int spent) {
+    if (budget <= 0) return CharacterMood.danger;
+    return fromRatio((budget - spent) / budget);
   }
 
   /// 감정 상태별 고양이 이미지 경로
@@ -129,13 +145,13 @@ enum CharacterMood {
   }
 
   /// 감정 상태에 대응하는 색상
-  Color get statusColor {
+  Color getColor({bool isDark = false}) {
     return switch (this) {
-      CharacterMood.comfortable => AppColors.budgetComfortable,
+      CharacterMood.comfortable || CharacterMood.newWeek =>
+        isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable,
       CharacterMood.normal => AppColors.budgetWarning,
       CharacterMood.danger => AppColors.budgetDanger,
       CharacterMood.over => AppColors.budgetOver,
-      CharacterMood.newWeek => AppColors.budgetComfortable,
     };
   }
 

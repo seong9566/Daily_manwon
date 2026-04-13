@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/utils/budget_mood_calculator.dart';
 import '../viewmodels/calendar_view_model.dart';
 import 'calendar_day_cell.dart';
 
@@ -294,7 +293,7 @@ class _CalendarGrid extends StatelessWidget {
           // 과거 날짜이고 지출 데이터가 있을 때 mood 계산
           CharacterMood? mood;
           if (!isFuture && totalSpent != null) {
-            mood = calculateMood(baseAmount, totalSpent);
+            mood = CharacterMood.fromSpent(baseAmount, totalSpent);
           }
 
           return CalendarDayCell(

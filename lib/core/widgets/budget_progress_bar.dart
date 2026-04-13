@@ -7,8 +7,8 @@ import '../theme/app_typography.dart';
 /// 예산 잔액 진행 바 — 홈/주간/월간 공용
 ///
 /// [remaining] / [total] 비율로 고양이 마커 위치와 색상을 결정한다.
-/// - ratio > 0.7 (여유): 고양이 이미지 여유_clean, 바 색상 budgetComfortable
-/// - ratio > 0.3 (보통): 보통_clean, budgetWarning
+/// - ratio >= 0.5 (여유): 고양이 이미지 여유_clean, 바 색상 budgetComfortable
+/// - ratio >= 0.3 (보통): 보통_clean, budgetWarning
 /// - ratio >= 0.0 (위험): 위험_clean, budgetDanger
 /// - ratio < 0.0 (초과): 초과_clean, budgetOver
 class BudgetProgressBar extends StatelessWidget {
@@ -33,13 +33,7 @@ class BudgetProgressBar extends StatelessWidget {
     final mood = CharacterMood.fromRatio(ratio);
     final barRatio = ratio.clamp(0.0, 1.0);
 
-    final Color barColor = switch (mood) {
-      CharacterMood.comfortable || CharacterMood.newWeek =>
-        isDark ? AppColors.budgetComfortableDark : AppColors.budgetComfortable,
-      CharacterMood.normal => AppColors.budgetWarning,
-      CharacterMood.danger => AppColors.budgetDanger,
-      CharacterMood.over   => AppColors.budgetOver,
-    };
+    final Color barColor = mood.getColor(isDark: isDark);
 
     const double catSize      = 88.0;
     const double bubbleHeight = 32.0;

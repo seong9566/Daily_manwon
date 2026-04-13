@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/app_date_utils.dart';
-import '../../../../core/utils/budget_mood_calculator.dart';
 import '../viewmodels/calendar_view_model.dart';
 import 'weekly_calendar_day_cell.dart';
 
@@ -165,7 +164,7 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
 
           final CharacterMood? mood =
               (!isFuture && totalSpent != null)
-                  ? calculateMood(dayBudget, totalSpent)
+                  ? CharacterMood.fromSpent(dayBudget, totalSpent)
                   : null;
 
           return Expanded(
