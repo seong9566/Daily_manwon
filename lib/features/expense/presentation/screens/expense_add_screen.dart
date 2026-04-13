@@ -150,6 +150,7 @@ class _ExpenseAddBottomSheetState
 
   /// 지출 저장 처리
   /// HomeViewModel.addExpense()를 통해 저장 후 바텀시트를 닫는다
+  /// 신규 지출 모드에서 [_addToFavorite]가 true이면 AddFavoriteUseCase를 호출하고 favoritesProvider를 갱신한다
   Future<void> _onSave() async {
     if (!_canSave) return;
 
