@@ -69,6 +69,11 @@ class AppShell extends StatelessWidget {
               label: '캘린더',
             ),
             NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart_rounded),
+              label: '통계',
+            ),
+            NavigationDestination(
               icon: Icon(Icons.settings_outlined),
               selectedIcon: Icon(Icons.settings_rounded),
               label: '설정',
