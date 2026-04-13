@@ -295,6 +295,14 @@ class HomeViewModel extends Notifier<HomeState> {
     ref.invalidate(calendarViewModelProvider);
   }
 
+  /// 위젯 버튼 탭으로 기록된 pending 지출을 처리한다.
+  ///
+  /// HomeScreen의 AppLifecycleState.resumed 콜백에서 호출한다.
+  /// 처리 후 [_watchExpenses] 스트림이 자동으로 변경을 감지해 UI를 갱신한다.
+  Future<void> processPendingWidgetExpense() async {
+    await getIt<WidgetService>().processPendingWidgetExpense();
+  }
+
   /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다
   Future<void> repeatExpense(ExpenseEntity expense) async {
     await addExpense(

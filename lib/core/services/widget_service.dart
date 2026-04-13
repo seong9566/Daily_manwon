@@ -32,16 +32,20 @@ class WidgetService {
       debugPrint('WidgetService: App Group 접근 불가 — Xcode 설정을 확인하세요. ($e)');
     }
 
-    // 위젯에서 기록한 pending 지출이 있으면 처리 (fallback 안전장치)
-    await _processPendingExpense();
+    // 위젯에서 기록한 pending 지출이 있으면 처리 (콜드 스타트 경로)
+    await processPendingWidgetExpense();
   }
 
-  /// UserDefaults의 pending 지출 URL을 확인하고, 존재하면 콜백을 실행한 뒤 삭제한다.
+  /// UserDefaults의 pending 지출 URL을 확인하고, 존재하면 지출을 저장한 뒤 키를 삭제한다.
   ///
-  /// HomeWidgetBackgroundWorker가 정상 동작하면 이 메서드는 no-op이다.
-  /// 앱이 완전히 종료된 상태에서 위젯 버튼을 탭한 경우 등
-  /// 백그라운드 콜백이 실행되지 못한 케이스를 보완한다.
-  Future<void> _processPendingExpense() async {
+  /// 호출 위치:
+  ///  - [init]: 콜드 스타트 시
+  ///  - HomeViewModel.processPendingWidgetExpense: 앱 포그라운드 복귀 시
+  ///
+  /// 위젯 버튼 탭 시 [openAppWhenRun = false]이므로 앱이 열리지 않는다.
+  /// 이후 사용자가 앱을 수동으로 열거나(포그라운드 복귀) 콜드 스타트할 때
+  /// 이 메서드가 pending URL을 처리하여 Drift DB에 지출을 저장한다.
+  Future<void> processPendingWidgetExpense() async {
     if (!_appGroupAvailable) return;
     try {
       final pendingUrl = await HomeWidget.getWidgetData<String>(
@@ -52,10 +56,8 @@ class WidgetService {
       debugPrint('WidgetService: pending 지출 발견 — $pendingUrl');
 
       // pending 키 즉시 삭제 (중복 처리 방지)
-      await HomeWidget.saveWidgetData<String?>(
-        'widget.pendingExpenseUrl',
-        null,
-      );
+      // null 대신 빈 문자열로 저장 — iOS UserDefaults에서 null 저장이 불안정할 수 있음
+      await HomeWidget.saveWidgetData<String>('widget.pendingExpenseUrl', '');
 
       // 콜백에 위임
       final uri = Uri.tryParse(pendingUrl);

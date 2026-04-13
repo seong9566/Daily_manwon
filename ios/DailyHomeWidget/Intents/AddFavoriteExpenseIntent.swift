@@ -49,13 +49,23 @@ struct AddFavoriteExpenseIntent: AppIntent {
         let encodedMemo = memo.addingPercentEncoding(withAllowedCharacters: valueAllowed) ?? ""
         let urlString = "addFavoriteExpense://add?amount=\(amount)&category=\(category)&favoriteId=\(favoriteId)&memo=\(encodedMemo)"
 
-        // UserDefaults(App Group)에 pending URL 저장
-        // 앱을 열면 HomeWidget.widgetClicked 스트림으로 전달되어 widgetBackgroundCallback이 실행됨
         let defaults = UserDefaults(suiteName: WidgetConstants.appGroup)
+
+        // ── 낙관적(optimistic) 잔액 업데이트 ─────────────────────────────
+        // Flutter 콜백 실행 전에 위젯에 즉시 반영되도록 잔액을 미리 차감한다.
+        // 앱이 열리면 Flutter가 정확한 값으로 덮어쓴다.
+        let currentRemaining = defaults?.integer(forKey: "remainingKey") ?? 0
+        let currentUsed      = defaults?.integer(forKey: "usedKey")      ?? 0
+        defaults?.set(currentRemaining - amount, forKey: "remainingKey")
+        defaults?.set(currentUsed + amount,      forKey: "usedKey")
+
+        // ── pending URL 저장 ──────────────────────────────────────────────
+        // 앱이 foreground로 전환되면 WidgetService._processPendingExpense()가
+        // 이 URL을 읽어 Drift DB에 지출을 저장하고 키를 삭제한다.
         defaults?.set(urlString, forKey: WidgetConstants.pendingExpenseKey)
         defaults?.synchronize()
 
-        // 위젯 타임라인 갱신
+        // 위젯 타임라인 갱신 — 낙관적 잔액을 즉시 표시
         WidgetCenter.shared.reloadAllTimelines()
         return .result()
     }

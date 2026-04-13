@@ -51,6 +51,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(homeViewModelProvider.notifier).checkDateChange();
+      // 위젯 버튼 탭 후 pending 지출이 있으면 처리 (백그라운드 복귀 경로)
+      ref.read(homeViewModelProvider.notifier).processPendingWidgetExpense();
       // Background에서 알림 탭으로 재개된 경우 pending payload 소비
       _handlePendingNotification();
     }

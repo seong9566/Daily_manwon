@@ -17,6 +17,12 @@ import 'features/settings/data/datasources/settings_local_datasource.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // iOS: registerInteractivityCallback 전에 App Group ID를 설정해야
+  // PlatformException(-7, AppGroupId not set) 에러를 방지할 수 있다.
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    await HomeWidget.setAppGroupId('group.seong.dailyManwon.homeWidget');
+  }
+
   // 위젯 인터랙티비티 콜백 등록 (백그라운드 지출 저장)
   HomeWidget.registerInteractivityCallback(widgetBackgroundCallback);
 
