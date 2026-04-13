@@ -66,7 +66,7 @@ struct AddFavoriteExpenseIntent: AppIntent {
         defaults?.synchronize()
 
         // 위젯 타임라인 갱신 — 낙관적 잔액을 즉시 표시
-        WidgetCenter.shared.reloadAllTimelines()
+        WidgetCenter.shared.reloadTimelines(ofKind: "DailyHomeWidget")
         return .result()
     }
 }

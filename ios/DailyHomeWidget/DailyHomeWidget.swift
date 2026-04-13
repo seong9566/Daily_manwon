@@ -45,6 +45,8 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let userDefault = UserDefaults(suiteName: appGroupSuite)
+        // 다른 프로세스(Intent, Flutter)가 기록한 최신값을 읽도록 강제 동기화
+        userDefault?.synchronize()
 
         let total     = userDefault?.integer(forKey: "totalKey")     ?? 0
         let used      = userDefault?.integer(forKey: "usedKey")      ?? 0
