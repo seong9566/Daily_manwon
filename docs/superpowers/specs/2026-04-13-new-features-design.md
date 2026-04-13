@@ -6,38 +6,50 @@
 
 ---
 
-## 1. 즐겨찾기 템플릿 + 빠른 반복 입력
+## 1. 템플릿 + 빠른 반복 입력
 
 ### 목적
 반복 지출(매일 커피, 버스 등)을 탭 한 번으로 입력할 수 있도록 한다.
 
 ### 기능 설명
 
-#### 1-1. 즐겨찾기 템플릿
-- 지출 입력 바텀시트 상단에 즐겨찾기 칩 목록 표시
-- 칩 탭 시 금액 + 카테고리 + 메모 자동 채움 → "저장" 버튼만 누르면 완료
-- 지출 저장 시 "즐겨찾기에 추가" 체크박스로 등록
-- 즐겨찾기는 `usageCount` 내림차순 자동 정렬
-- 최대 10개 저장, 초과 시 가로 스크롤
+#### 1-1. 자동학습 템플릿
+- 최근 30일 지출을 `(금액, 카테고리)` 기준 `GROUP BY` 집계 → 빈도 상위 3개 자동 추출
+- 지출 입력 바텀시트 하단 영역에 "자주 쓰는 항목" 칩으로 표시
+- 칩 탭 시 금액 + 카테고리 자동 채움 → "저장"만 누르면 완료
+- **새 테이블 없음** — 기존 `Expenses` 테이블 집계 쿼리로 동작
 
-#### 1-2. 빠른 반복 입력
+#### 1-2. 수동 Favorite (고정 즐겨찾기)
+- 지출 저장 시 "즐겨찾기에 추가 ⭐" 체크박스로 수동 등록
+- 바텀시트 상단에 **고정 즐겨찾기(수동)** 먼저, 그 아래 **자동학습 추천** 표시
+- 수동 즐겨찾기는 `usageCount` 내림차순 정렬, 최대 10개 (초과 시 가로 스크롤)
+- 자동학습과 수동 즐겨찾기가 중복될 경우 수동 즐겨찾기 우선 표시 (중복 제거)
+
+#### 1-3. 빠른 반복 입력
 - 홈 화면 지출 목록 각 항목에 **↩ 반복** 버튼 추가
 - 탭 시 현재 시각으로 동일 금액/카테고리/메모의 새 지출 즉시 저장 (확인 다이얼로그 없음)
 
 ### 데이터 모델
 ```
-// 신규 테이블: FavoriteExpenses (Drift)
+// 신규 테이블: FavoriteExpenses (Drift) — 수동 즐겨찾기 전용
 id         INTEGER PRIMARY KEY
 amount     INTEGER NOT NULL
 category   TEXT NOT NULL        -- ExpenseCategory enum 값
 memo       TEXT
 usageCount INTEGER DEFAULT 0
 createdAt  DATETIME NOT NULL
+
+// 자동학습: Expenses 테이블 집계 쿼리 (테이블 변경 없음)
+SELECT amount, category, COUNT(*) AS frequency
+FROM expenses
+WHERE created_at >= [30일 전]
+GROUP BY amount, category
+ORDER BY frequency DESC
+LIMIT 3
 ```
-기존 `Expenses` 테이블 변경 없음. 반복 입력은 새 레코드 INSERT만 수행.
 
 ### UX 규칙
-- 즐겨찾기 칩이 0개일 때는 바텀시트에 즐겨찾기 섹션 미표시
+- 수동 즐겨찾기 + 자동학습 모두 0개일 때는 템플릿 섹션 미표시
 - ↩ 반복 후 홈 화면 잔액/목록 즉시 리프레시 (기존 Riverpod 상태 갱신 방식 그대로)
 
 ---
@@ -72,11 +84,24 @@ createdAt  DATETIME NOT NULL
 | 초과 | 잔액 ≤ 0% | `초과_clean.png` |
 
 ### 기술 구현
-- **패키지**: `home_widget` (iOS WidgetKit + Android AppWidget 통합)
+- **패키지**: `home_widget 0.6.0` (iOS WidgetKit + Android AppWidget 통합)
 - **데이터 동기화**: 지출 추가/삭제/수정 시 `HomeWidget.saveWidgetData()` 호출 → 위젯 리렌더
-- **빠른 입력 (대형)**: 즐겨찾기 탭 → 딥링크로 앱 실행 → 해당 항목 자동 저장
-- **제약**: iOS WidgetKit은 백그라운드 DB 직접 저장 불가. 탭 시 앱이 포그라운드로 전환되며 저장됨 (약 1초)
+- **빠른 입력 (대형) — 앱 열지 않고 백그라운드 저장 가능**:
+  ```
+  위젯 버튼 탭
+    → iOS AppIntent 실행 (Widget Extension 내)
+    → App Group UserDefaults에 지출 데이터 기록
+    → HomeWidget.registerInteractivityCallback 트리거
+    → Flutter 백그라운드 isolate에서 Drift DB 저장
+    → 위젯 리렌더 (앱 포그라운드 전환 없음)
+  ```
+- **전제 조건**: Drift DB가 App Group 컨테이너(`group.com.xxx.dailyManwon`)에 위치해야 함 — 기존 계획서(`2026-04-13-quick-expense-recording.md`) Task 2 참조
 - **네이티브 번들링**: 고양이 PNG 4장을 iOS (`Runner/Assets.xcassets`) 및 Android (`res/drawable`) 양쪽에 포함
+
+### 기존 계획서와의 관계
+`docs/superpowers/plans/2026-04-13-quick-expense-recording.md`의 Task 2(위젯 프리셋)를 기반으로 확장:
+- 기존: 소형 + 중형 위젯
+- 추가: 대형 위젯 (4×4), 고양이 캐릭터 PNG 연동
 
 ### 데이터 모델 변경 없음
 위젯은 기존 `DailyBudgets`, `Expenses`, `UserPreferences` 테이블 읽기 전용으로 사용.
@@ -116,7 +141,7 @@ createdAt  DATETIME NOT NULL
 
 ## 구현 순서 (권장)
 
-1. **즐겨찾기 템플릿 + 빠른 반복** — DB 변경 최소, 즉각적인 체감 효과
+1. **자동학습 + 수동 Favorite 템플릿 + 빠른 반복** — DB 변경 최소(`FavoriteExpenses` 1개), 즉각적인 체감 효과
 2. **인사이트 (카테고리 차트 → 요일 패턴 → 요약 리포트)** — DB 변경 없음, UI만 추가
 3. **홈 위젯** — 네이티브 플랫폼 작업 필요, 별도 스프린트 권장
 
@@ -126,7 +151,7 @@ createdAt  DATETIME NOT NULL
 
 | 항목 | 변경 유형 |
 |------|-----------|
-| DB 스키마 | `FavoriteExpenses` 테이블 신규 추가 (마이그레이션 필요) |
+| DB 스키마 | `FavoriteExpenses` 테이블 신규 추가 (마이그레이션 필요), 자동학습은 기존 테이블 집계 |
 | 기존 테이블 | 변경 없음 |
 | 신규 화면 | 캘린더 내 "통계" 탭 |
 | 변경 화면 | 지출 입력 바텀시트, 홈 화면 지출 목록 |
