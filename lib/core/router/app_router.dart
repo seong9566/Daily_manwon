@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'app_shell.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
+import '../../features/stats/presentation/screens/stats_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/achievement/presentation/screens/achievement_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -12,6 +13,7 @@ import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 abstract class AppRoutes {
   static const home = '/home';
   static const calendar = '/calendar';
+  static const stats = '/stats';
   static const settings = '/settings';
   static const achievement = '/achievement';
   static const onboarding = '/onboarding';
@@ -49,6 +51,15 @@ GoRouter createRouter({bool isOnboardingCompleted = true}) {
               GoRoute(
                 path: AppRoutes.calendar,
                 builder: (context, state) => const CalendarScreen(),
+              ),
+            ],
+          ),
+          // 통계 탭
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.stats,
+                builder: (context, state) => const StatsScreen(),
               ),
             ],
           ),
