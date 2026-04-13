@@ -46,6 +46,12 @@ class _ExpenseSummarySheetBody extends ConsumerWidget {
         ]),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
+            if (snapshot.hasError) {
+              return const SizedBox(
+                height: 120,
+                child: Center(child: Text('데이터를 불러오지 못했습니다.')),
+              );
+            }
             return const SizedBox(
               height: 120,
               child: Center(child: CircularProgressIndicator()),
@@ -106,7 +112,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = isDark ? AppColors.darkCard : const Color(0xFFFFF9F5);
+    final cardBg = isDark ? AppColors.darkCard : AppColors.cardWarm;
     final textMain = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSub = isDark ? AppColors.darkTextSub : AppColors.textSub;
     final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
@@ -136,6 +142,7 @@ class _SummaryCard extends StatelessWidget {
           _Row(
             label: '총 지출',
             value: CurrencyFormatter.format(summary.totalSpent),
+            isFirst: true,
             textMain: textMain,
             textSub: textSub,
             dividerColor: dividerColor,
@@ -143,7 +150,7 @@ class _SummaryCard extends StatelessWidget {
           _Row(
             label: '예산 달성일',
             value: '${summary.successDays}일 / ${summary.totalDays}일',
-            valueColor: const Color(0xFF2DBD8E),
+            valueColor: AppColors.statusComfortableStrong,
             textMain: textMain,
             textSub: textSub,
             dividerColor: dividerColor,
@@ -168,6 +175,7 @@ class _Row extends StatelessWidget {
   final String label;
   final String value;
   final Color? valueColor;
+  final bool isFirst;
   final bool isLast;
   final Color textMain;
   final Color textSub;
@@ -177,6 +185,7 @@ class _Row extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
+    this.isFirst = false,
     this.isLast = false,
     required this.textMain,
     required this.textSub,
@@ -187,7 +196,7 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (!isLast) Divider(color: dividerColor, height: 1),
+        if (!isFirst) Divider(color: dividerColor, height: 1),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(

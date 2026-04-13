@@ -63,6 +63,9 @@ abstract final class AppColors {
   /// 여유 상태 - 파스텔 그린 (레거시)
   static const Color statusComfortable = Color(0xFF7EC8A0);
 
+  /// 여유 상태 강조 — 진한 에메랄드 그린 (예산 달성 표시, 통계 시트)
+  static const Color statusComfortableStrong = Color(0xFF2DBD8E);
+
   /// 주의 상태 - 파스텔 옐로 (레거시)
   static const Color statusWarning = Color(0xFFFFD966);
 
@@ -125,6 +128,9 @@ abstract final class AppColors {
 
   /// 카드 배경
   static const Color card = Color(0xFFFFFFFF);
+
+  /// 웜 카드 배경 — 라이트 모드 요약 카드용 (통계/요약 시트)
+  static const Color cardWarm = Color(0xFFFFF9F5);
 
   // =========================================================================
   // Dark Mode

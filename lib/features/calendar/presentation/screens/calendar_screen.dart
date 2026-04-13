@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/presentation/screens/expense_add_screen.dart';
 import '../../../stats/presentation/screens/stats_screen.dart';
 import '../../../../core/widgets/acorn_streak_badge.dart';
@@ -11,7 +10,10 @@ import '../viewmodels/calendar_view_model.dart';
 import '../widgets/daily_expense_detail.dart';
 import '../widgets/sliding_calendar_grid.dart';
 import '../widgets/sliding_weekly_grid.dart';
+import '../widgets/monthly_nav_row.dart';
 import '../widgets/view_mode_toggle.dart';
+import '../widgets/weekday_header.dart';
+import '../widgets/weekly_nav_row.dart';
 import '../widgets/weekly_summary_header.dart';
 
 /// 월간/주간 캘린더 화면 (캘린더 탭 + 통계 탭)
@@ -137,7 +139,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                                           alignment: Alignment.centerLeft,
                                           child: state.viewMode ==
                                                   CalendarViewMode.monthly
-                                              ? _MonthlyNavRow(
+                                              ? MonthlyNavRow(
                                                   selectedMonth:
                                                       state.selectedMonth,
                                                   onPrev: () =>
@@ -146,7 +148,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                                                       _onMonthChange(1),
                                                   isDark: isDark,
                                                 )
-                                              : _WeeklyNavRow(
+                                              : WeeklyNavRow(
                                                   weekStart:
                                                       state.selectedWeekStart,
                                                   onPrev: () =>
@@ -197,7 +199,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                                 const SizedBox(height: 16),
 
                                 // 요일 헤더
-                                _WeekdayHeader(isDark: isDark),
+                                WeekdayHeader(isDark: isDark),
                                 const SizedBox(height: 4),
 
                                 // 캘린더 그리드
@@ -284,157 +286,3 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
   }
 }
 
-// ── 월간 네비게이터 ──────────────────────────────────────────────────
-
-class _MonthlyNavRow extends StatelessWidget {
-  final DateTime selectedMonth;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
-  final bool isDark;
-
-  const _MonthlyNavRow({
-    required this.selectedMonth,
-    required this.onPrev,
-    required this.onNext,
-    required this.isDark,
-  });
-
-  String get _label {
-    final now = DateTime.now();
-    if (selectedMonth.year == now.year) {
-      return '${selectedMonth.month}월';
-    }
-    return '${selectedMonth.year}년 ${selectedMonth.month}월';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: onPrev,
-            icon: Icon(Icons.chevron_left, color: textColor, size: 24),
-          ),
-        ),
-        Flexible(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              _label,
-              style: AppTypography.titleMedium.copyWith(color: textColor),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: onNext,
-            icon: Icon(Icons.chevron_right, color: textColor, size: 24),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── 주간 네비게이터 ──────────────────────────────────────────────────
-
-class _WeeklyNavRow extends StatelessWidget {
-  final DateTime weekStart;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
-  final bool isDark;
-
-  const _WeeklyNavRow({
-    required this.weekStart,
-    required this.onPrev,
-    required this.onNext,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: onPrev,
-            icon: Icon(Icons.chevron_left, color: textColor, size: 24),
-          ),
-        ),
-        Flexible(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              AppDateUtils.weekRangeLabel(weekStart),
-              style: AppTypography.titleMedium.copyWith(color: textColor),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: onNext,
-            icon: Icon(Icons.chevron_right, color: textColor, size: 24),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── 요일 헤더 위젯 ───────────────────────────────────────────────────
-
-class _WeekdayHeader extends StatelessWidget {
-  final bool isDark;
-
-  const _WeekdayHeader({required this.isDark});
-
-  static const _weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-
-  @override
-  Widget build(BuildContext context) {
-    final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
-
-    return ExcludeSemantics(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: _weekdays.map((day) {
-            final isWeekend = day == '일' || day == '토';
-            return Expanded(
-              child: Center(
-                child: Text(
-                  day,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: isWeekend
-                        ? (day == '일'
-                              ? AppColors.statusDanger.withAlpha(200)
-                              : AppColors.categoryTransport.withAlpha(200))
-                        : textSubColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-}
