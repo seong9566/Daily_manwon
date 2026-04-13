@@ -8,11 +8,10 @@ import '../../features/expense/domain/entities/expense.dart';
 import '../../features/expense/domain/usecases/add_expense_use_case.dart';
 import '../../features/expense/domain/usecases/increment_favorite_usage_use_case.dart';
 
-/// 위젯 버튼 탭 시 앱 없이 백그라운드에서 실행되는 콜백
+/// 위젯 버튼 탭 시 앱을 열면 home_widget이 이 콜백을 호출한다.
 ///
-/// home_widget의 [HomeWidget.registerInteractivityCallback]으로 등록된다.
-/// URI scheme: `addFavoriteExpense://add?amount=X&category=Y&favoriteId=Z&memo=M`
-///
+/// iOS AppIntent.perform()이 UserDefaults(App Group)에 URL을 기록하고,
+/// 앱이 foreground로 전환될 때 HomeWidget.widgetClicked 스트림이 URL을 전달한다.
 /// @pragma('vm:entry-point') 필수 — 릴리즈 빌드에서 tree shaking 방지
 @pragma('vm:entry-point')
 FutureOr<void> widgetBackgroundCallback(Uri? uri) async {
