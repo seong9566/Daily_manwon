@@ -35,6 +35,7 @@ class WidgetService {
     required int streak,
     required List<Map<String, dynamic>> expenses,
     required String catMood,
+    List<Map<String, dynamic>> favorites = const [],
   }) async {
     if (!_appGroupAvailable) {
       debugPrint('WidgetService: updateWidget 스킵 — App Group 미초기화');
@@ -50,6 +51,7 @@ class WidgetService {
       await HomeWidget.saveWidgetData<int>('streakKey', streak);
       await HomeWidget.saveWidgetData<String>('expensesKey', jsonEncode(expenses));
       await HomeWidget.saveWidgetData<String>('cat_mood', catMood);
+      await HomeWidget.saveWidgetData<String>('favoritesKey', jsonEncode(favorites));
       await HomeWidget.updateWidget(iOSName: 'DailyHomeWidget');
       debugPrint('WidgetService: 위젯 갱신 완료');
     } catch (e) {

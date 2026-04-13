@@ -9,6 +9,7 @@ import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
+import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
@@ -166,6 +167,7 @@ class HomeViewModel extends Notifier<HomeState> {
           : (remaining < 0 || totalBudget <= 0
               ? CharacterMood.over.name
               : CharacterMood.fromRatio(remaining / totalBudget).name);
+      final favoritesList = await getIt<GetFavoritesUseCase>().execute();
       unawaited(getIt<WidgetService>().updateWidget(
         total: totalBudget,
         used: totalBudget - remaining,
@@ -179,6 +181,14 @@ class HomeViewModel extends Notifier<HomeState> {
                 })
             .toList(),
         catMood: catMood,
+        favorites: favoritesList
+            .map((f) => {
+                  'id': f.id,
+                  'amount': f.amount,
+                  'category': f.category,
+                  'memo': f.memo,
+                })
+            .toList(),
       ));
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -211,6 +221,7 @@ class HomeViewModel extends Notifier<HomeState> {
       // 지출 변동 시 홈 위젯 실시간 갱신
       // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
       if (!state.isLoading) {
+        final favoritesList = await getIt<GetFavoritesUseCase>().execute();
         unawaited(getIt<WidgetService>().updateWidget(
           total: state.totalBudget,
           used: state.totalBudget - remaining,
@@ -228,6 +239,14 @@ class HomeViewModel extends Notifier<HomeState> {
               : (remaining < 0 || state.totalBudget <= 0
                   ? CharacterMood.over.name
                   : CharacterMood.fromRatio(remaining / state.totalBudget).name),
+          favorites: favoritesList
+              .map((f) => {
+                    'id': f.id,
+                    'amount': f.amount,
+                    'category': f.category,
+                    'memo': f.memo,
+                  })
+              .toList(),
         ));
       }
     });
