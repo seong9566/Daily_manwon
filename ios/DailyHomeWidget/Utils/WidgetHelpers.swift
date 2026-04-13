@@ -45,7 +45,7 @@ struct StreakBadgeView: View {
                 .font(.system(size: iconSize))
             Text("\(streak)일째")
                 .font(.system(size: textSize, weight: .semibold))
-                .foregroundColor(colors.primaryText)
+                .foregroundColor(.black)
         }
         .padding(.horizontal, hPadding)
         .padding(.vertical, vPadding)
