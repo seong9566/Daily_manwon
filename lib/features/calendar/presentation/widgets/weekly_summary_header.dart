@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -31,25 +29,28 @@ class WeeklySummaryHeader extends StatelessWidget {
   });
 
   /// 잔액 비율 기반 총지출 색상 (CharacterMood.fromRatio 통일)
-  Color _totalSpentColor() {
-    if (weeklyBudget <= 0) {
-      return CharacterMood.comfortable.getColor(isDark: isDark);
-    }
-    return CharacterMood.fromSpent(weeklyBudget, totalSpent).getColor(isDark: isDark);
-  }
+  // Color _totalSpentColor() {
+  //   if (weeklyBudget <= 0) {
+  //     return CharacterMood.comfortable.getColor(isDark: isDark);
+  //   }
+  //   return CharacterMood.fromSpent(
+  //     weeklyBudget,
+  //     totalSpent,
+  //   ).getColor(isDark: isDark);
+  // }
 
   @override
   Widget build(BuildContext context) {
-    final subTextColor  = isDark ? AppColors.darkTextSub  : AppColors.textSub;
+    final subTextColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
     final mainTextColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
 
     return Row(
       children: [
         Expanded(
           child: _SummaryItem(
-            label: '총 지출',
+            label: '이번주 총 지출',
             value: CurrencyFormatter.formatWithWon(totalSpent),
-            valueColor: _totalSpentColor(),
+            valueColor: mainTextColor,
             labelColor: subTextColor,
           ),
         ),
