@@ -276,6 +276,19 @@ class HomeViewModel extends Notifier<HomeState> {
     // 캘린더 화면 데이터 동기화 (활성 상태면 즉시 재로드, 미방문이면 다음 진입 시 갱신)
     ref.invalidate(calendarViewModelProvider);
   }
+
+  /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다
+  Future<void> repeatExpense(ExpenseEntity expense) async {
+    await addExpense(
+      ExpenseEntity(
+        id: 0,
+        amount: expense.amount,
+        category: expense.category,
+        memo: expense.memo,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
 }
 
 /// 홈 뷰모델 프로바이더

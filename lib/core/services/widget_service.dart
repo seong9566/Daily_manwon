@@ -9,7 +9,7 @@ import 'package:injectable/injectable.dart';
 /// App Group 미설정 환경(Xcode 설정 전, 시뮬레이터 등)에서는 안전하게 no-op 처리한다.
 @lazySingleton
 class WidgetService {
-  static const _appGroupId = 'group.dailyManWon.homeWidget';
+  static const _appGroupId = 'group.seong.dailyManwon.homeWidget';
 
   /// App Group 접근 가능 여부 — init() 호출 전까지 false
   bool _appGroupAvailable = false;

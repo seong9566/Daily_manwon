@@ -124,7 +124,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             return AcornStreakBadge(
                               totalAcorns: successCount,
                               streakDays: state.streakDays,
-                              rewardLabel: isMonthly ? '이달 성공' : '이번주 성공',
+                              rewardLabel: isMonthly ? '이번달 절약 성공' : '이번주 성공',
                             );
                           },
                         ),
@@ -188,7 +188,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       if (state.selectedDate != null)
                         DailyExpenseDetail(
                           date: state.selectedDate!,
-                          expenses: state.selectedDateExpenses,
+                          expenses: ref
+                              .read(calendarViewModelProvider.notifier)
+                              .getExpensesForDate(state.selectedDate),
                           onExpenseTap: (expense) {
                             showExpenseAddBottomSheet(
                               context,

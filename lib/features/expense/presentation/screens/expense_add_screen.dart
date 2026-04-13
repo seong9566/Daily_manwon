@@ -4,13 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/expense.dart';
+import '../../domain/usecases/add_favorite_use_case.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/expense_delete_dialog.dart';
+import '../widgets/favorite_templates_section.dart';
 import '../widgets/number_keypad.dart';
 
 /// 지출 입력 바텀시트를 표시하는 헬퍼 함수
@@ -60,6 +63,17 @@ class _ExpenseAddBottomSheetState
 
   /// 저장 진행 중 여부 — 버튼 로딩 상태 표시용
   bool _isSaving = false;
+
+  /// 저장 시 즐겨찾기에도 추가할지 여부
+  bool _addToFavorite = false;
+
+  /// 즐겨찾기/자동학습 칩 탭 시 금액·카테고리 자동 채움
+  void _applyTemplate(({int amount, int category, String memo}) template) {
+    setState(() {
+      _amountString = template.amount.toString();
+      _selectedCategory = ExpenseCategory.values[template.category];
+    });
+  }
 
   /// 헤더에 표시할 날짜 (시분초=0, 표시 전용)
   late final DateTime _recordDate;
@@ -136,6 +150,7 @@ class _ExpenseAddBottomSheetState
 
   /// 지출 저장 처리
   /// HomeViewModel.addExpense()를 통해 저장 후 바텀시트를 닫는다
+  /// 신규 지출 모드에서 [_addToFavorite]가 true이면 AddFavoriteUseCase를 호출하고 favoritesProvider를 갱신한다
   Future<void> _onSave() async {
     if (!_canSave) return;
 
@@ -166,6 +181,14 @@ class _ExpenseAddBottomSheetState
 
       // 홈 화면 데이터 동기화 (캘린더 invalidate는 HomeViewModel.addExpense에서 처리)
       ref.read(homeViewModelProvider.notifier).refresh();
+
+      if (_addToFavorite && widget.expense == null) {
+        await getIt<AddFavoriteUseCase>().execute(
+          amount: _amount,
+          category: _selectedCategory.index,
+        );
+        ref.invalidate(favoritesProvider);
+      }
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -260,6 +283,10 @@ class _ExpenseAddBottomSheetState
           ),
           const SizedBox(height: 12),
 
+          // ── 즐겨찾기 / 자동학습 칩 ──────────────────────
+          if (widget.expense == null)
+            FavoriteTemplatesSection(onTemplateTap: _applyTemplate),
+
           // ── 중앙 영역 (금액, 카테고리, 키패드) - 스크롤 처리로 오버플로우 방지 ──
           Flexible(
             child: SingleChildScrollView(
@@ -350,6 +377,23 @@ class _ExpenseAddBottomSheetState
               ),
             ),
           ),
+
+          // ── 즐겨찾기 추가 체크박스 ────────────────────────
+          if (widget.expense == null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Checkbox(
+                  value: _addToFavorite,
+                  onChanged: (v) =>
+                      setState(() => _addToFavorite = v ?? false),
+                ),
+                Text(
+                  '즐겨찾기에 추가',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
 
           // ── 기록하기 버튼 (하단 고정) ────────────────────────
           Padding(

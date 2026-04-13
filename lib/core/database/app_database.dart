@@ -81,6 +81,17 @@ class NotificationSettings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// 수동 즐겨찾기 지출 템플릿 테이블
+/// - usageCount: 탭 횟수 (자동 정렬 기준)
+class FavoriteExpenses extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get amount => integer()();
+  IntColumn get category => integer()(); // ExpenseCategory enum index
+  TextColumn get memo => text().withDefault(const Constant(''))();
+  IntColumn get usageCount => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 /// 앱 전체에서 사용하는 Drift 데이터베이스 클래스
 /// drift_flutter의 driftDatabase()를 사용하여 플랫폼별 DB 연결을 자동 처리
 @DriftDatabase(tables: [
@@ -90,6 +101,7 @@ class NotificationSettings extends Table {
   Achievements,
   UserPreferences,
   NotificationSettings,
+  FavoriteExpenses,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -98,7 +110,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(DatabaseConnection connection) : super(connection);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -129,6 +141,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 7) {
             await m.addColumn(
                 userPreferences, userPreferences.carryoverEnabled);
+          }
+          // schema v8: FavoriteExpenses 테이블 추가
+          if (from < 8) {
+            await m.createTable(favoriteExpenses);
           }
         },
       );

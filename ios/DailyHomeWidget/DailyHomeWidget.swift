@@ -36,7 +36,7 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let userDefault = UserDefaults(suiteName: "group.dailyManWon.homeWidget")
+        let userDefault = UserDefaults(suiteName: "group.seong.dailyManwon.homeWidget")
 
         let total     = userDefault?.integer(forKey: "totalKey")     ?? 0
         let used      = userDefault?.integer(forKey: "usedKey")      ?? 0

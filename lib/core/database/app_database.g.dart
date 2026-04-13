@@ -1968,6 +1968,400 @@ class NotificationSettingsCompanion
   }
 }
 
+class $FavoriteExpensesTable extends FavoriteExpenses
+    with TableInfo<$FavoriteExpensesTable, FavoriteExpense> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FavoriteExpensesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<int> category = GeneratedColumn<int>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _memoMeta = const VerificationMeta('memo');
+  @override
+  late final GeneratedColumn<String> memo = GeneratedColumn<String>(
+    'memo',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _usageCountMeta = const VerificationMeta(
+    'usageCount',
+  );
+  @override
+  late final GeneratedColumn<int> usageCount = GeneratedColumn<int>(
+    'usage_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    amount,
+    category,
+    memo,
+    usageCount,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'favorite_expenses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FavoriteExpense> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('memo')) {
+      context.handle(
+        _memoMeta,
+        memo.isAcceptableOrUnknown(data['memo']!, _memoMeta),
+      );
+    }
+    if (data.containsKey('usage_count')) {
+      context.handle(
+        _usageCountMeta,
+        usageCount.isAcceptableOrUnknown(data['usage_count']!, _usageCountMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FavoriteExpense map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FavoriteExpense(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category'],
+      )!,
+      memo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}memo'],
+      )!,
+      usageCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}usage_count'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FavoriteExpensesTable createAlias(String alias) {
+    return $FavoriteExpensesTable(attachedDatabase, alias);
+  }
+}
+
+class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
+  final int id;
+  final int amount;
+  final int category;
+  final String memo;
+  final int usageCount;
+  final DateTime createdAt;
+  const FavoriteExpense({
+    required this.id,
+    required this.amount,
+    required this.category,
+    required this.memo,
+    required this.usageCount,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['amount'] = Variable<int>(amount);
+    map['category'] = Variable<int>(category);
+    map['memo'] = Variable<String>(memo);
+    map['usage_count'] = Variable<int>(usageCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FavoriteExpensesCompanion toCompanion(bool nullToAbsent) {
+    return FavoriteExpensesCompanion(
+      id: Value(id),
+      amount: Value(amount),
+      category: Value(category),
+      memo: Value(memo),
+      usageCount: Value(usageCount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FavoriteExpense.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FavoriteExpense(
+      id: serializer.fromJson<int>(json['id']),
+      amount: serializer.fromJson<int>(json['amount']),
+      category: serializer.fromJson<int>(json['category']),
+      memo: serializer.fromJson<String>(json['memo']),
+      usageCount: serializer.fromJson<int>(json['usageCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'amount': serializer.toJson<int>(amount),
+      'category': serializer.toJson<int>(category),
+      'memo': serializer.toJson<String>(memo),
+      'usageCount': serializer.toJson<int>(usageCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FavoriteExpense copyWith({
+    int? id,
+    int? amount,
+    int? category,
+    String? memo,
+    int? usageCount,
+    DateTime? createdAt,
+  }) => FavoriteExpense(
+    id: id ?? this.id,
+    amount: amount ?? this.amount,
+    category: category ?? this.category,
+    memo: memo ?? this.memo,
+    usageCount: usageCount ?? this.usageCount,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FavoriteExpense copyWithCompanion(FavoriteExpensesCompanion data) {
+    return FavoriteExpense(
+      id: data.id.present ? data.id.value : this.id,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      category: data.category.present ? data.category.value : this.category,
+      memo: data.memo.present ? data.memo.value : this.memo,
+      usageCount: data.usageCount.present
+          ? data.usageCount.value
+          : this.usageCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteExpense(')
+          ..write('id: $id, ')
+          ..write('amount: $amount, ')
+          ..write('category: $category, ')
+          ..write('memo: $memo, ')
+          ..write('usageCount: $usageCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, amount, category, memo, usageCount, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FavoriteExpense &&
+          other.id == this.id &&
+          other.amount == this.amount &&
+          other.category == this.category &&
+          other.memo == this.memo &&
+          other.usageCount == this.usageCount &&
+          other.createdAt == this.createdAt);
+}
+
+class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
+  final Value<int> id;
+  final Value<int> amount;
+  final Value<int> category;
+  final Value<String> memo;
+  final Value<int> usageCount;
+  final Value<DateTime> createdAt;
+  const FavoriteExpensesCompanion({
+    this.id = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.category = const Value.absent(),
+    this.memo = const Value.absent(),
+    this.usageCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  FavoriteExpensesCompanion.insert({
+    this.id = const Value.absent(),
+    required int amount,
+    required int category,
+    this.memo = const Value.absent(),
+    this.usageCount = const Value.absent(),
+    required DateTime createdAt,
+  }) : amount = Value(amount),
+       category = Value(category),
+       createdAt = Value(createdAt);
+  static Insertable<FavoriteExpense> custom({
+    Expression<int>? id,
+    Expression<int>? amount,
+    Expression<int>? category,
+    Expression<String>? memo,
+    Expression<int>? usageCount,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (amount != null) 'amount': amount,
+      if (category != null) 'category': category,
+      if (memo != null) 'memo': memo,
+      if (usageCount != null) 'usage_count': usageCount,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  FavoriteExpensesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? amount,
+    Value<int>? category,
+    Value<String>? memo,
+    Value<int>? usageCount,
+    Value<DateTime>? createdAt,
+  }) {
+    return FavoriteExpensesCompanion(
+      id: id ?? this.id,
+      amount: amount ?? this.amount,
+      category: category ?? this.category,
+      memo: memo ?? this.memo,
+      usageCount: usageCount ?? this.usageCount,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<int>(category.value);
+    }
+    if (memo.present) {
+      map['memo'] = Variable<String>(memo.value);
+    }
+    if (usageCount.present) {
+      map['usage_count'] = Variable<int>(usageCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteExpensesCompanion(')
+          ..write('id: $id, ')
+          ..write('amount: $amount, ')
+          ..write('category: $category, ')
+          ..write('memo: $memo, ')
+          ..write('usageCount: $usageCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1980,6 +2374,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $NotificationSettingsTable notificationSettings =
       $NotificationSettingsTable(this);
+  late final $FavoriteExpensesTable favoriteExpenses = $FavoriteExpensesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1991,6 +2388,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     achievements,
     userPreferences,
     notificationSettings,
+    favoriteExpenses,
   ];
 }
 
@@ -3129,6 +3527,227 @@ typedef $$NotificationSettingsTableProcessedTableManager =
       NotificationSetting,
       PrefetchHooks Function()
     >;
+typedef $$FavoriteExpensesTableCreateCompanionBuilder =
+    FavoriteExpensesCompanion Function({
+      Value<int> id,
+      required int amount,
+      required int category,
+      Value<String> memo,
+      Value<int> usageCount,
+      required DateTime createdAt,
+    });
+typedef $$FavoriteExpensesTableUpdateCompanionBuilder =
+    FavoriteExpensesCompanion Function({
+      Value<int> id,
+      Value<int> amount,
+      Value<int> category,
+      Value<String> memo,
+      Value<int> usageCount,
+      Value<DateTime> createdAt,
+    });
+
+class $$FavoriteExpensesTableFilterComposer
+    extends Composer<_$AppDatabase, $FavoriteExpensesTable> {
+  $$FavoriteExpensesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get usageCount => $composableBuilder(
+    column: $table.usageCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FavoriteExpensesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FavoriteExpensesTable> {
+  $$FavoriteExpensesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get memo => $composableBuilder(
+    column: $table.memo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get usageCount => $composableBuilder(
+    column: $table.usageCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FavoriteExpensesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FavoriteExpensesTable> {
+  $$FavoriteExpensesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<int> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get memo =>
+      $composableBuilder(column: $table.memo, builder: (column) => column);
+
+  GeneratedColumn<int> get usageCount => $composableBuilder(
+    column: $table.usageCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FavoriteExpensesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FavoriteExpensesTable,
+          FavoriteExpense,
+          $$FavoriteExpensesTableFilterComposer,
+          $$FavoriteExpensesTableOrderingComposer,
+          $$FavoriteExpensesTableAnnotationComposer,
+          $$FavoriteExpensesTableCreateCompanionBuilder,
+          $$FavoriteExpensesTableUpdateCompanionBuilder,
+          (
+            FavoriteExpense,
+            BaseReferences<
+              _$AppDatabase,
+              $FavoriteExpensesTable,
+              FavoriteExpense
+            >,
+          ),
+          FavoriteExpense,
+          PrefetchHooks Function()
+        > {
+  $$FavoriteExpensesTableTableManager(
+    _$AppDatabase db,
+    $FavoriteExpensesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FavoriteExpensesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FavoriteExpensesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FavoriteExpensesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<int> category = const Value.absent(),
+                Value<String> memo = const Value.absent(),
+                Value<int> usageCount = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => FavoriteExpensesCompanion(
+                id: id,
+                amount: amount,
+                category: category,
+                memo: memo,
+                usageCount: usageCount,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int amount,
+                required int category,
+                Value<String> memo = const Value.absent(),
+                Value<int> usageCount = const Value.absent(),
+                required DateTime createdAt,
+              }) => FavoriteExpensesCompanion.insert(
+                id: id,
+                amount: amount,
+                category: category,
+                memo: memo,
+                usageCount: usageCount,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FavoriteExpensesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FavoriteExpensesTable,
+      FavoriteExpense,
+      $$FavoriteExpensesTableFilterComposer,
+      $$FavoriteExpensesTableOrderingComposer,
+      $$FavoriteExpensesTableAnnotationComposer,
+      $$FavoriteExpensesTableCreateCompanionBuilder,
+      $$FavoriteExpensesTableUpdateCompanionBuilder,
+      (
+        FavoriteExpense,
+        BaseReferences<_$AppDatabase, $FavoriteExpensesTable, FavoriteExpense>,
+      ),
+      FavoriteExpense,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3145,4 +3764,6 @@ class $AppDatabaseManager {
       $$UserPreferencesTableTableManager(_db, _db.userPreferences);
   $$NotificationSettingsTableTableManager get notificationSettings =>
       $$NotificationSettingsTableTableManager(_db, _db.notificationSettings);
+  $$FavoriteExpensesTableTableManager get favoriteExpenses =>
+      $$FavoriteExpensesTableTableManager(_db, _db.favoriteExpenses);
 }

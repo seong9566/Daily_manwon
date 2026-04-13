@@ -28,12 +28,28 @@ import '../../features/calendar/domain/usecases/get_monthly_calendar_data_use_ca
     as _i814;
 import '../../features/expense/data/datasources/expense_local_datasource.dart'
     as _i272;
+import '../../features/expense/data/datasources/favorite_expense_datasource.dart'
+    as _i338;
 import '../../features/expense/data/repositories/expense_repository_impl.dart'
     as _i587;
+import '../../features/expense/data/repositories/favorite_expense_repository_impl.dart'
+    as _i78;
 import '../../features/expense/domain/repositories/expense_repository.dart'
     as _i31;
+import '../../features/expense/domain/repositories/favorite_expense_repository.dart'
+    as _i758;
 import '../../features/expense/domain/usecases/add_expense_use_case.dart'
     as _i367;
+import '../../features/expense/domain/usecases/add_favorite_use_case.dart'
+    as _i407;
+import '../../features/expense/domain/usecases/delete_favorite_use_case.dart'
+    as _i175;
+import '../../features/expense/domain/usecases/get_favorites_use_case.dart'
+    as _i314;
+import '../../features/expense/domain/usecases/get_frequent_templates_use_case.dart'
+    as _i988;
+import '../../features/expense/domain/usecases/increment_favorite_usage_use_case.dart'
+    as _i157;
 import '../../features/expense/domain/usecases/update_expense_use_case.dart'
     as _i920;
 import '../../features/home/data/datasources/acorn_local_datasource.dart'
@@ -102,6 +118,9 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i272.ExpenseLocalDatasource>(
     () => _i272.ExpenseLocalDatasource(gh<_i982.AppDatabase>()),
   );
+  gh.lazySingleton<_i338.FavoriteExpenseDatasource>(
+    () => _i338.FavoriteExpenseDatasource(gh<_i982.AppDatabase>()),
+  );
   gh.lazySingleton<_i717.AcornLocalDatasource>(
     () => _i717.AcornLocalDatasource(gh<_i982.AppDatabase>()),
   );
@@ -156,11 +175,35 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i837.AcornRepository>(
     () => _i1051.AcornRepositoryImpl(gh<_i717.AcornLocalDatasource>()),
   );
+  gh.lazySingleton<_i758.FavoriteExpenseRepository>(
+    () => _i78.FavoriteExpenseRepositoryImpl(
+      gh<_i338.FavoriteExpenseDatasource>(),
+    ),
+  );
   gh.lazySingleton<_i1018.GetAcornStatsUseCase>(
     () => _i1018.GetAcornStatsUseCase(gh<_i837.AcornRepository>()),
   );
   gh.lazySingleton<_i31.ExpenseRepository>(
     () => _i587.ExpenseRepositoryImpl(gh<_i272.ExpenseLocalDatasource>()),
+  );
+  gh.lazySingleton<_i407.AddFavoriteUseCase>(
+    () => _i407.AddFavoriteUseCase(gh<_i758.FavoriteExpenseRepository>()),
+  );
+  gh.lazySingleton<_i175.DeleteFavoriteUseCase>(
+    () => _i175.DeleteFavoriteUseCase(gh<_i758.FavoriteExpenseRepository>()),
+  );
+  gh.lazySingleton<_i314.GetFavoritesUseCase>(
+    () => _i314.GetFavoritesUseCase(gh<_i758.FavoriteExpenseRepository>()),
+  );
+  gh.lazySingleton<_i988.GetFrequentTemplatesUseCase>(
+    () => _i988.GetFrequentTemplatesUseCase(
+      gh<_i758.FavoriteExpenseRepository>(),
+    ),
+  );
+  gh.lazySingleton<_i157.IncrementFavoriteUsageUseCase>(
+    () => _i157.IncrementFavoriteUsageUseCase(
+      gh<_i758.FavoriteExpenseRepository>(),
+    ),
   );
   gh.lazySingleton<_i367.AddExpenseUseCase>(
     () => _i367.AddExpenseUseCase(gh<_i31.ExpenseRepository>()),

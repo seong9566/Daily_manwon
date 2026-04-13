@@ -35,7 +35,7 @@ class CarryoverToggleSection extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '매주 월요일 초기화됩니다',
+                    '매주 일요일 초기화됩니다',
                     style: AppTypography.bodySmall.copyWith(
                       color: isDark ? AppColors.darkTextSub : AppColors.textSub,
                     ),
