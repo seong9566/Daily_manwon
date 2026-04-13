@@ -16,7 +16,7 @@ import SwiftUI
 struct Provider: TimelineProvider {
     typealias Entry = SimpleEntry
 
-    private let appGroupSuite = "group.seong.dailyManwon.homeWidget"
+    private let appGroupSuite = WidgetConstants.appGroup
 
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(
