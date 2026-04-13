@@ -212,6 +212,15 @@ class CalendarViewModel extends Notifier<CalendarState> {
     return _expenseCache[_cacheKey(year, month)] ?? const {};
   }
 
+  /// 특정 날짜의 지출 목록을 캐시에서 직접 반환한다.
+  /// selectedMonth와 무관하게 해당 날짜 소속 월의 캐시를 조회하므로,
+  /// 주간 뷰에서 월 경계를 넘는 주 이동 후에도 올바른 데이터를 반환한다.
+  List<ExpenseEntity> getExpensesForDate(DateTime? date) {
+    if (date == null) return const [];
+    final key = _cacheKey(date.year, date.month);
+    return _expenseCache[key]?[date] ?? const [];
+  }
+
   /// 특정 월의 baseAmount 캐시를 반환한다.
   /// 캐시 미스 시 빈 Map을 반환한다 (fallback은 UI에서 AppConstants.dailyBudget 사용).
   Map<DateTime, int> getCachedBaseAmounts(int year, int month) {
