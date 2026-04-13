@@ -22,9 +22,9 @@ DateTime get _today {
   return DateTime(now.year, now.month, now.day);
 }
 
-/// 테스트가 실행되는 날이 월요일이면 이월 계산이 0으로 리셋되므로,
-/// 정확한 carryOver 금액을 검증하는 테스트는 월요일에 건너뛴다.
-bool get _isMonday => DateTime.now().weekday == DateTime.monday;
+/// 테스트가 실행되는 날이 일요일이면 이월 계산이 0으로 리셋되므로,
+/// 정확한 carryOver 금액을 검증하는 테스트는 일요일에 건너뛴다.
+bool get _isSunday => DateTime.now().weekday == DateTime.sunday;
 
 void main() {
   late MockDailyBudgetRepository mockBudgetRepo;
@@ -132,8 +132,8 @@ void main() {
   group('T-CRY-3: 이월 ON — 절약 잔액 이월', () {
     test('어제 10,000원 예산에서 3,000원 지출 → carryOver=+7,000이 전달된다',
         () async {
-      if (_isMonday) {
-        // 월요일은 강제 리셋 정책으로 carryOver=0 — 별도 케이스(T-CRY-5)에서 검증
+      if (_isSunday) {
+        // 일요일은 강제 리셋 정책으로 carryOver=0 — 별도 케이스(T-CRY-6)에서 검증
         return;
       }
 
@@ -175,7 +175,7 @@ void main() {
 
     test('어제 effectiveBudget(이월 포함 15,000)에서 8,000원 지출 → carryOver=+7,000',
         () async {
-      if (_isMonday) return;
+      if (_isSunday) return;
 
       // given: 어제도 이월이 있어서 effectiveBudget=15,000이었던 경우
       skipGapFill();
@@ -221,7 +221,7 @@ void main() {
   group('T-CRY-4: 이월 ON — 초과 지출 음수 이월', () {
     test('어제 10,000원 예산에서 12,000원 초과 지출 → carryOver=-2,000이 전달된다',
         () async {
-      if (_isMonday) return;
+      if (_isSunday) return;
 
       // given
       skipGapFill();
@@ -304,16 +304,16 @@ void main() {
   //       향후 개선: GetTodayBudgetUseCase 생성자에 Clock 파라미터 추가 권장.
   // ──────────────────────────────────────────────────────────────────────────
 
-  group('T-CRY-6: 월요일 강제 리셋 (실행일이 월요일일 때만 검증)', () {
-    test('오늘이 월요일이면 이월 ON이어도 carryOver=0이 전달된다', () async {
-      if (!_isMonday) {
-        // 월요일이 아닌 날은 이 케이스를 검증할 수 없으므로 스킵
+  group('T-CRY-6: 일요일 강제 리셋 (실행일이 일요일일 때만 검증)', () {
+    test('오늘이 일요일이면 이월 ON이어도 carryOver=0이 전달된다', () async {
+      if (!_isSunday) {
+        // 일요일이 아닌 날은 이 케이스를 검증할 수 없으므로 스킵
         // ignore: avoid_print
-        print('[SKIP] 월요일에만 실행 가능한 테스트 — 오늘은 월요일이 아님');
+        print('[SKIP] 일요일에만 실행 가능한 테스트 — 오늘은 일요일이 아님');
         return;
       }
 
-      // given: 이월 ON, 어제 잔액 충분
+      // given: 이월 ON, 어제(토요일) 잔액 충분
       skipGapFill();
       when(() => mockSettingsRepo.getCarryoverEnabled())
           .thenAnswer((_) async => true);
@@ -326,7 +326,7 @@ void main() {
         ),
       );
       when(() => mockBudgetRepo.getTotalExpensesByDate(any()))
-          .thenAnswer((_) async => 3000); // 잔액 12,000이 있어도 월요일이면 0
+          .thenAnswer((_) async => 3000); // 잔액 12,000이 있어도 일요일이면 0
 
       final todayBudget = DailyBudgetEntity(id: 2, date: _today);
       when(() => mockBudgetRepo.getOrCreateTodayBudget(
@@ -339,14 +339,14 @@ void main() {
       // when
       await useCase.getOrCreateTodayBudget();
 
-      // then: 월요일 → 강제 리셋
+      // then: 일요일(주 시작) → 강제 리셋
       final captured = verify(
         () => mockBudgetRepo.getOrCreateTodayBudget(
           carryOver: captureAny(named: 'carryOver'),
         ),
       ).captured;
       expect(captured.last, equals(0),
-          reason: '월요일은 이전 주 이월이 소멸되어 항상 0이어야 한다');
+          reason: '일요일은 새 주의 시작이므로 이전 주 이월이 소멸되어 항상 0이어야 한다');
     });
   });
 }

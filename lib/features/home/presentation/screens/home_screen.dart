@@ -15,7 +15,6 @@ import '../viewmodels/home_view_model.dart';
 import '../widgets/carryover_badge_widget.dart';
 import '../widgets/expense_list_item.dart';
 import '../widgets/home_budget_header.dart';
-import '../widgets/new_week_interstitial_widget.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -87,31 +86,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 신규 칭호 획득 시 Snackbar로 알림 (S-26g)
-    ref.listen<HomeState>(homeViewModelProvider, (prev, next) {
-      if (next.newlyAchievedTitle != null &&
-          next.newlyAchievedTitle != prev?.newlyAchievedTitle) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '새 칭호 획득! ${next.newlyAchievedTitle}',
-              style: AppTypography.bodyMedium.copyWith(
-                color: isDark ? AppColors.black : AppColors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            backgroundColor: isDark
-                ? AppColors.white
-                : AppColors.budgetComfortable,
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-        ref.read(homeViewModelProvider.notifier).clearAchievedTitle();
-      }
-    });
+    // ref.listen<HomeState>(homeViewModelProvider, (prev, next) {
+    //   if (next.newlyAchievedTitle != null &&
+    //       next.newlyAchievedTitle != prev?.newlyAchievedTitle) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(
+    //         content: Text(
+    //           '새 칭호 획득! ${next.newlyAchievedTitle}',
+    //           style: AppTypography.bodyMedium.copyWith(
+    //             color: isDark ? AppColors.black : AppColors.white,
+    //             fontWeight: FontWeight.w600,
+    //           ),
+    //         ),
+    //         backgroundColor: isDark
+    //             ? AppColors.white
+    //             : AppColors.budgetComfortable,
+    //         duration: const Duration(seconds: 3),
+    //         behavior: SnackBarBehavior.floating,
+    //         shape: RoundedRectangleBorder(
+    //           borderRadius: BorderRadius.circular(12),
+    //         ),
+    //       ),
+    //     );
+    //     ref.read(homeViewModelProvider.notifier).clearAchievedTitle();
+    //   }
+    // });
 
     final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
     final textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
@@ -125,88 +124,75 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         backgroundColor: Colors.transparent,
         body: state.isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Stack(
-                children: [
-                  SafeArea(
-                    child: Column(
-                      children: [
-                        HomeBudgetHeader(
-                          remainingBudget: state.remainingBudget,
-                          totalBudget: state.totalBudget,
-                          subTextColor: subTextColor,
-                        ),
-                        // 이월 배지
-                        if (state.carryOver != 0)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: CarryoverBadgeWidget(
-                                carryOver: state.carryOver),
+            : SafeArea(
+                child: Column(
+                  children: [
+                    HomeBudgetHeader(
+                      remainingBudget: state.remainingBudget,
+                      totalBudget: state.totalBudget,
+                      subTextColor: subTextColor,
+                    ),
+                    // 이월 배지
+                    if (state.carryOver != 0)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: CarryoverBadgeWidget(carryOver: state.carryOver),
+                      ),
+                    // "오늘의 지출" 헤더
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '오늘의 지출',
+                            style: AppTypography.titleMedium.copyWith(
+                              color: textColor,
+                            ),
                           ),
-                        // "오늘의 지출" 헤더
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '오늘의 지출',
-                                style: AppTypography.titleMedium.copyWith(
-                                  color: textColor,
-                                ),
-                              ),
-                              Text(
-                                '${state.expenses.length}건',
+                          Text(
+                            '${state.expenses.length}건',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: subTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // 지출 리스트
+                    Expanded(
+                      child: state.expenses.isEmpty
+                          ? Center(
+                              child: Text(
+                                '아직 지출이 없어요',
                                 style: AppTypography.bodySmall.copyWith(
                                   color: subTextColor,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // 지출 리스트
-                        Expanded(
-                          child: state.expenses.isEmpty
-                              ? Center(
-                                  child: Text(
-                                    '아직 지출이 없어요',
-                                    style: AppTypography.bodySmall.copyWith(
-                                      color: subTextColor,
+                            )
+                          : ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: state.expenses.length,
+                              itemBuilder: (context, index) {
+                                final expense = state.expenses[index];
+                                final category =
+                                    ExpenseCategory.values[expense.category];
+                                return Semantics(
+                                  label: '${category.label} ${expense.amount}원',
+                                  child: ExpenseListItem(
+                                    expense: expense,
+                                    onTap: () => showExpenseAddBottomSheet(
+                                      context,
+                                      expense: expense,
                                     ),
                                   ),
-                                )
-                              : ListView.builder(
-                                  padding: EdgeInsets.zero,
-                                  itemCount: state.expenses.length,
-                                  itemBuilder: (context, index) {
-                                    final expense = state.expenses[index];
-                                    final category =
-                                        ExpenseCategory.values[expense.category];
-                                    return Semantics(
-                                      label:
-                                          '${category.label} ${expense.amount}원',
-                                      child: ExpenseListItem(
-                                        expense: expense,
-                                        onTap: () => showExpenseAddBottomSheet(
-                                          context,
-                                          expense: expense,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                        ),
-                      ],
+                                );
+                              },
+                            ),
                     ),
-                  ),
-                  // 새 주 시작 인터스티셜
-                  if (state.isNewWeek)
-                    NewWeekInterstitialWidget(
-                      onDismiss: () => ref
-                          .read(homeViewModelProvider.notifier)
-                          .markNewWeekSeen(),
-                    ),
-                ],
+                  ],
+                ),
               ),
         // FAB — 라이트: black(primary) + white 아이콘, 다크: white + black 아이콘
         floatingActionButton: FloatingActionButton(

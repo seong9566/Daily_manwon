@@ -32,11 +32,11 @@ class GetTodayBudgetUseCase {
     var cursor = DateTime(lastDate.year, lastDate.month, lastDate.day)
         .add(const Duration(days: 1));
     while (cursor.isBefore(todayDate)) {
-      final isMonday = cursor.weekday == DateTime.monday;
+      final isSunday = cursor.weekday == DateTime.sunday;
       final carryoverEnabled = await _settingsRepository.getCarryoverEnabled();
       int carryOver = 0;
       int? baseAmount;
-      if (carryoverEnabled && !isMonday) {
+      if (carryoverEnabled && !isSunday) {
         final prev = cursor.subtract(const Duration(days: 1));
         final prevBudget = await _repository.getBudgetByDate(prev);
         if (prevBudget != null) {
@@ -45,7 +45,7 @@ class GetTodayBudgetUseCase {
           baseAmount = prevBudget.baseAmount;
         }
       } else {
-        // 월요일이거나 이월 비활성 — 당일 예산도 이전 날과 동일한 baseAmount 유지
+        // 일요일(주 시작)이거나 이월 비활성 — 당일 예산도 이전 날과 동일한 baseAmount 유지
         final prev = cursor.subtract(const Duration(days: 1));
         final prevBudget = await _repository.getBudgetByDate(prev);
         baseAmount = prevBudget?.baseAmount;
@@ -62,8 +62,8 @@ class GetTodayBudgetUseCase {
   Future<int> _computeTodayCarryOver() async {
     final carryoverEnabled = await _settingsRepository.getCarryoverEnabled();
     final today = DateTime.now();
-    final isMonday = today.weekday == DateTime.monday;
-    if (!carryoverEnabled || isMonday) return 0;
+    final isSunday = today.weekday == DateTime.sunday;
+    if (!carryoverEnabled || isSunday) return 0;
     final yesterday = today.subtract(const Duration(days: 1));
     final yesterdayBudget = await _repository.getBudgetByDate(yesterday);
     if (yesterdayBudget == null) return 0;
