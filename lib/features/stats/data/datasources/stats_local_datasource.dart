@@ -1,0 +1,159 @@
+import 'package:drift/drift.dart';
+import 'package:injectable/injectable.dart';
+
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/database/app_database.dart';
+import '../../domain/entities/category_stat.dart';
+import '../../domain/entities/expense_summary.dart';
+import '../../domain/entities/weekday_stat.dart';
+
+/// 통계 화면용 Drift 로컬 데이터 접근 객체
+/// Expenses + DailyBudgets 테이블을 읽기 전용으로 집계한다
+@lazySingleton
+class StatsLocalDatasource {
+  final AppDatabase _db;
+
+  StatsLocalDatasource(this._db);
+
+  /// 특정 월의 카테고리별 지출 합계를 내림차순으로 반환한다
+  Future<List<CategoryStat>> getCategoryStats({
+    required int year,
+    required int month,
+  }) async {
+    final start = DateTime(year, month, 1);
+    final end = DateTime(year, month + 1, 1);
+
+    final rows = await _db.customSelect(
+      'SELECT category, SUM(amount) AS total '
+      'FROM expenses '
+      'WHERE created_at >= ? AND created_at < ? '
+      'GROUP BY category '
+      'ORDER BY total DESC',
+      variables: [
+        Variable.withDateTime(start),
+        Variable.withDateTime(end),
+      ],
+      readsFrom: {_db.expenses},
+    ).get();
+
+    if (rows.isEmpty) return [];
+
+    final grandTotal =
+        rows.fold<int>(0, (sum, r) => sum + r.read<int>('total'));
+    return rows.map((r) {
+      final total = r.read<int>('total');
+      return CategoryStat(
+        categoryIndex: r.read<int>('category'),
+        totalAmount: total,
+        percentage: grandTotal > 0 ? total / grandTotal : 0.0,
+      );
+    }).toList();
+  }
+
+  /// 최근 28일(4주) 요일별 일평균 지출을 반환한다
+  ///
+  /// SQLite strftime('%w') 기준: 0=일, 1=월 … 6=토
+  /// Drift는 DateTime을 밀리초 단위 정수로 저장하므로 /1000 후 unixepoch 변환
+  Future<List<WeekdayStat>> getWeekdayStats() async {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final tomorrow = todayStart.add(const Duration(days: 1));
+    final from = todayStart.subtract(const Duration(days: 27));
+
+    final rows = await _db.customSelect(
+      'SELECT weekday, AVG(day_total) AS avg_amount '
+      'FROM ('
+      '  SELECT strftime(\'%w\', created_at/1000, \'unixepoch\') AS weekday, '
+      '         strftime(\'%Y-%m-%d\', created_at/1000, \'unixepoch\') AS day_str, '
+      '         SUM(amount) AS day_total '
+      '  FROM expenses '
+      '  WHERE created_at >= ? AND created_at < ? '
+      '  GROUP BY day_str'
+      ') '
+      'GROUP BY weekday '
+      'ORDER BY CAST(weekday AS INTEGER)',
+      variables: [
+        Variable.withDateTime(from),
+        Variable.withDateTime(tomorrow),
+      ],
+      readsFrom: {_db.expenses},
+    ).get();
+
+    return rows.map((r) {
+      return WeekdayStat(
+        weekday: int.parse(r.read<String>('weekday')),
+        avgAmount: (r.read<double>('avg_amount')).round(),
+      );
+    }).toList();
+  }
+
+  /// [from] 이상 [to] 미만 기간의 지출 요약을 반환한다
+  Future<ExpenseSummary> getExpenseSummary({
+    required DateTime from,
+    required DateTime to,
+    int dailyBudget = AppConstants.dailyBudget,
+  }) async {
+    final expenses = await (_db.select(_db.expenses)
+          ..where(
+            (e) =>
+                e.createdAt.isBiggerOrEqualValue(from) &
+                e.createdAt.isSmallerThanValue(to),
+          ))
+        .get();
+
+    if (expenses.isEmpty) {
+      return const ExpenseSummary(
+        totalSpent: 0,
+        totalDays: 0,
+        successDays: 0,
+        topCategoryIndex: null,
+      );
+    }
+
+    final Map<DateTime, int> dailyTotals = {};
+    final Map<int, int> categoryTotals = {};
+    for (final e in expenses) {
+      final dayKey = DateTime(
+        e.createdAt.year,
+        e.createdAt.month,
+        e.createdAt.day,
+      );
+      dailyTotals[dayKey] = (dailyTotals[dayKey] ?? 0) + e.amount;
+      categoryTotals[e.category] =
+          (categoryTotals[e.category] ?? 0) + e.amount;
+    }
+
+    final budgetRows = await (_db.select(_db.dailyBudgets)
+          ..where(
+            (b) =>
+                b.date.isBiggerOrEqualValue(from) &
+                b.date.isSmallerThanValue(to),
+          ))
+        .get();
+    final Map<DateTime, int> effectiveBudgets = {
+      for (final b in budgetRows)
+        DateTime(b.date.year, b.date.month, b.date.day):
+            b.baseAmount + b.carryOver,
+    };
+
+    final totalSpent = dailyTotals.values.fold(0, (s, v) => s + v);
+    final successDays = dailyTotals.entries.where((entry) {
+      final budget = effectiveBudgets[entry.key] ?? dailyBudget;
+      return entry.value <= budget;
+    }).length;
+
+    int? topCategory;
+    if (categoryTotals.isNotEmpty) {
+      topCategory = categoryTotals.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
+    }
+
+    return ExpenseSummary(
+      totalSpent: totalSpent,
+      totalDays: dailyTotals.length,
+      successDays: successDays,
+      topCategoryIndex: topCategory,
+    );
+  }
+}
