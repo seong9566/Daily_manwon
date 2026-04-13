@@ -8,7 +8,7 @@ import '../widgets/category_donut_chart.dart';
 import '../widgets/expense_summary_sheet.dart';
 import '../widgets/weekday_bar_chart.dart';
 
-/// 통계 화면 — CalendarScreen의 "통계" 탭으로 진입
+/// 통계 화면 — 바텀 네비게이션 독립 탭
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
 

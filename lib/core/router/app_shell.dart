@@ -25,7 +25,7 @@ class AppShell extends StatelessWidget {
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return IconThemeData(
-                color: isDark ? Colors.white : AppColors.primary,
+                color: isDark ? AppColors.darkTextMain : AppColors.primary,
               );
             }
             return IconThemeData(
@@ -36,7 +36,7 @@ class AppShell extends StatelessWidget {
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return TextStyle(
-                color: isDark ? Colors.white : AppColors.primary,
+                color: isDark ? AppColors.darkTextMain : AppColors.primary,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               );
