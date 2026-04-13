@@ -186,6 +186,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                       context,
                                       expense: expense,
                                     ),
+                                    onRepeat: () => ref
+                                        .read(homeViewModelProvider.notifier)
+                                        .repeatExpense(expense),
                                   ),
                                 );
                               },
