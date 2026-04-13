@@ -7,15 +7,19 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../expense/domain/entities/expense.dart';
 
 /// 지출 리스트 아이템 위젯 (U-08)
-/// 이모지 + 카테고리명 + 시간 | 금액
+/// 이모지 + 카테고리명 + 시간 | 금액 | ↩ 반복 버튼(선택)
 class ExpenseListItem extends StatelessWidget {
   final ExpenseEntity expense;
   final VoidCallback? onTap;
+
+  /// 반복 버튼 콜백 — 제공 시 ↩ 버튼 표시, null이면 미표시
+  final VoidCallback? onRepeat;
 
   const ExpenseListItem({
     super.key,
     required this.expense,
     this.onTap,
+    this.onRepeat,
   });
 
   @override
@@ -71,6 +75,27 @@ class ExpenseListItem extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
             ),
+            // ↩ 반복 버튼 (onRepeat이 제공된 경우에만 표시)
+            if (onRepeat != null) ...[
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onRepeat,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : AppColors.chipEtc,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '↩',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? AppColors.darkTextSub : AppColors.textSub,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
