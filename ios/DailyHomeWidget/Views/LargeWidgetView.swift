@@ -39,11 +39,6 @@ struct DailyHomeLargeView: View {
         "총 예산 ₩\(formatNumber(entry.total))"
     }
 
-    /// 표시할 지출 목록 (최대 3건)
-    private var displayExpenses: [ExpenseItem] {
-        Array(entry.expenses.prefix(3))
-    }
-
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
 
@@ -117,52 +112,63 @@ struct DailyHomeLargeView: View {
 
             Spacer().frame(height: 12)
 
-            // ── 오늘의 지출 헤더 ─────────────────────────────────────
-            HStack {
-                Text("오늘의 지출")
-                    .font(.system(size: 12, weight: .medium))
+            // ── 즐겨찾기 빠른 입력 ───────────────────────────────────
+            if !entry.favorites.isEmpty {
+                Spacer().frame(height: 12)
+
+                Text("빠른 입력")
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundColor(colors.secondaryText)
 
-                Spacer()
+                Spacer().frame(height: 8)
 
-                Text("\(entry.expenses.count)건")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(colors.secondaryText)
-            }
-
-            Spacer().frame(height: 8)
-
-            // ── 지출 목록 ────────────────────────────────────────────
-            if displayExpenses.isEmpty {
+                // 즐겨찾기 버튼 — 최대 4개, 2×2 그리드
+                let displayFavs = Array(entry.favorites.prefix(4))
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 8),
+                        GridItem(.flexible(), spacing: 8),
+                    ],
+                    spacing: 8
+                ) {
+                    ForEach(displayFavs) { fav in
+                        Button(intent: AddFavoriteExpenseIntent(
+                            favoriteId: fav.id,
+                            amount: fav.amount,
+                            category: fav.category,
+                            memo: fav.memo
+                        )) {
+                            VStack(spacing: 4) {
+                                Text(fav.emoji)
+                                    .font(.system(size: 18))
+                                Text(fav.formattedAmount)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(colors.primaryText)
+                                    .lineLimit(1)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(colors.accentBg)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            } else {
+                // 즐겨찾기 없을 때 안내 메시지
                 Spacer()
                 HStack {
                     Spacer()
-                    Text("아직 지출이 없어요")
-                        .font(.system(size: 14, weight: .medium))
+                    Text("앱에서 즐겨찾기를 추가해보세요")
+                        .font(.system(size: 12))
                         .foregroundColor(colors.secondaryText.opacity(0.6))
                     Spacer()
                 }
-                Spacer()
-            } else {
-                VStack(spacing: 6) {
-                    ForEach(displayExpenses) { expense in
-                        ExpenseRowView(expense: expense, colors: colors)
-                    }
-
-                    // 3건 초과 시 "외 N건 더보기" 표시
-                    if entry.expenses.count > 3 {
-                        HStack {
-                            Spacer()
-                            Text("외 \(entry.expenses.count - 3)건 더보기")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(colors.secondaryText.opacity(0.7))
-                            Spacer()
-                        }
-                        .padding(.top, 4)
-                    }
-                }
-                Spacer()
             }
+
+            Spacer()
         }
 
         content.widgetBackground(colors.background)
@@ -179,7 +185,10 @@ struct DailyHomeLargeView: View {
             ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
         ],
         catMood: "comfortable",
-        favorites: []
+        favorites: [
+            FavoriteItem(id: 1, amount: 3500, category: 2, memo: ""),
+            FavoriteItem(id: 2, amount: 1500, category: 1, memo: ""),
+        ]
     )
     SimpleEntry(
         date: Date(), total: 10000, used: 11500, remaining: -1500, streak: 0,
@@ -188,6 +197,9 @@ struct DailyHomeLargeView: View {
             ExpenseItem(category: "카페", time: "15:15", amount: 2800),
         ],
         catMood: "over",
-        favorites: []
+        favorites: [
+            FavoriteItem(id: 1, amount: 3500, category: 2, memo: ""),
+            FavoriteItem(id: 2, amount: 1500, category: 1, memo: ""),
+        ]
     )
 }
