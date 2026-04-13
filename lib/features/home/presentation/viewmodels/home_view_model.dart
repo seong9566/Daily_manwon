@@ -141,7 +141,7 @@ class HomeViewModel extends Notifier<HomeState> {
       // 새 주 감지 (월요일 + 이월 활성화 + 이번 주 미확인)
       final carryoverEnabled = await settingsRepository.getCarryoverEnabled();
       final weekKey = _currentWeekKey();
-      final isNewWeek = DateTime.now().weekday == DateTime.monday
+      final isNewWeek = DateTime.now().weekday == DateTime.sunday
           && carryoverEnabled
           && !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
@@ -239,12 +239,11 @@ class HomeViewModel extends Notifier<HomeState> {
     state = state.copyWith(isNewWeek: false);
   }
 
-  /// 현재 주의 월요일 기준 키를 반환한다 (yyyy-MM-dd 형식)
+  /// 현재 주의 일요일 기준 키를 반환한다 (yyyy-MM-dd 형식)
   String _currentWeekKey() {
     final now = DateTime.now();
-    final monday = now.subtract(Duration(days: now.weekday - DateTime.monday));
-    final d = DateTime(monday.year, monday.month, monday.day);
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    final sunday = AppDateUtils.weekStartOf(now);
+    return '${sunday.year}-${sunday.month.toString().padLeft(2, '0')}-${sunday.day.toString().padLeft(2, '0')}';
   }
 
   /// 칭호 Snackbar 표시 후 상태를 초기화한다 (S-26g)

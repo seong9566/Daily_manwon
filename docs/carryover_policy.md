@@ -5,7 +5,7 @@
 ## 변경이력
 - v1: 초안 작성
 - v2: Codex 리뷰 반영 — 아키텍처 수정, DB 버전 정정, 캘린더 수정 지점 명세, 누락 날짜 알고리즘 추가, 도토리 정책 제거 반영
-- v3: new_week_clean.png 활용 — 월요일 새 주 인터스티셜 UI, CharacterMood.newWeek, HomeViewModel isNewWeek 플래그, iOS 위젯 new_week catMood 통합
+- v3: new_week_clean.png 활용 — 일요일 새 주 인터스티셜 UI, CharacterMood.newWeek, HomeViewModel isNewWeek 플래그, iOS 위젯 new_week catMood 통합
 - v4: Codex 2차 리뷰 반영 — exhaustive switch 전체 명세, SharedPreferences→Repository, getOrCreateTodayBudget 시그니처 전파, isNewWeek false positive 수정, getStreakDays/getWeeklySummary effectiveBudget, _currentWeekKey 수정
 - v5: Codex 3차 리뷰 반영 — _fillMissingDays 메서드명 수정, DailyBudgetEntity sealed→class(방법A 확정), setCarryoverEnabled ref.invalidate 추가, _loadMonth/_prefetchAdjacentMonths effectiveBudgetCache 추가, _ensureRow() 추가
 
@@ -16,7 +16,7 @@
 - 설정에서 이월 정책 ON/OFF 토글
 - **이월 ON**: 오늘 잔액(±)이 내일 예산에 반영
 - **이월 OFF**: 매일 기본예산으로 고정 리셋
-- **주간 경계**: 매주 월요일 무조건 기본예산으로 리셋 (전주 이월 소멸)
+- **주간 경계**: 매주 일요일 무조건 기본예산으로 리셋 (전주 이월 소멸)
 - 초과 지출도 이월 적용 (마이너스 이월)
 - 정책 변경 → 다음날부터 적용
 
@@ -37,7 +37,7 @@
 
 1. [ ] 설정 화면에 이월 정책 토글이 존재하며, ON/OFF 상태가 DB에 영구 저장된다
 2. [ ] 이월 ON 상태에서 오늘 앱 최초 접근 시 전날 잔액이 정확히 계산되어 오늘 DailyBudget.carryOver에 저장된다
-3. [ ] 이월 ON + 월요일 진입 시 carryOver = 0으로 강제 리셋된다 (주간 경계)
+3. [ ] 이월 ON + 일요일 진입 시 carryOver = 0으로 강제 리셋된다 (주간 경계)
 4. [ ] 이월 OFF 상태에서 carryOver = 0으로 오늘 예산이 생성된다
 5. [ ] 홈 화면의 totalBudget = baseAmount + carryOver 로 표시된다
 6. [ ] 홈 화면의 remainingBudget = effectiveBudget - 지출 로 계산된다 (carryOver 반영)
@@ -46,7 +46,7 @@
 9. [ ] 정책 변경(토글) 시 당일 예산은 유지, 다음날부터 새 정책 적용된다
 10. [ ] 이월 정책 변경 후 홈/캘린더 UI가 자동으로 갱신된다
 11. [ ] 앱을 며칠 연속 미실행 시, 접근 시점에 누락된 날짜들의 DailyBudget이 순서대로 생성된다
-12. [ ] **이월 ON** 사용자가 월요일 첫 접근 시 `new_week_clean.png` 인터스티셜이 표시되고, "시작하기" 탭 후 같은 주 내 재표시되지 않는다 (이월 OFF 사용자에게는 미표시)
+12. [ ] **이월 ON** 사용자가 일요일 첫 접근 시 `new_week_clean.png` 인터스티셜이 표시되고, "시작하기" 탭 후 같은 주 내 재표시되지 않는다 (이월 OFF 사용자에게는 미표시)
 13. [ ] 인터스티셜 표시 중 iOS 홈 위젯의 catMood가 `new_week`로 전달되어 `CatNewWeek` 이미지가 렌더링된다
 14. [ ] `CharacterMood.newWeek`의 `assetPath`가 `assets/images/character/new_week_clean.png`를 반환한다
 
@@ -359,7 +359,7 @@ enum CharacterMood {
   normal,
   danger,
   over,
-  newWeek,  // 월요일 첫 접근 전용 — 새로운 한주 시작 연출
+  newWeek,  // 일요일 첫 접근 전용 — 새로운 한주 시작 연출
 }
 ```
 
@@ -459,7 +459,7 @@ state = state.copyWith(carryoverEnabled: carryoverEnabled);
 `HomeState`에 추가:
 ```dart
 final int carryOver;      // 배지 표시용
-final bool isNewWeek;     // 월요일 첫 접근 인터스티셜 트리거
+final bool isNewWeek;     // 일요일 첫 접근 인터스티셜 트리거
 ```
 
 `HomeViewModel` 생성자에 `SettingsRepository` 주입 추가:
@@ -476,7 +476,7 @@ HomeViewModel(this._getTodayBudgetUseCase, this._settingsRepository, ...);
 final totalBudget = budget.effectiveBudget;  // baseAmount + carryOver
 final carryOver = budget.carryOver;
 
-// 새 주 감지: 월요일 + 이월 ON + SharedPreferences 미확인
+// 새 주 감지: 일요일 + 이월 ON + SharedPreferences 미확인
 // ⚠️ carryoverEnabled 체크 필수 — OFF 사용자 오탐 방지
 final carryoverEnabled = await _settingsRepository.getCarryoverEnabled();
 final weekKey = _currentWeekKey();
@@ -498,8 +498,8 @@ void markNewWeekSeen() async {
 }
 
 String _currentWeekKey() {
-  // 해당 주의 월요일 날짜를 키로 사용 (ISO 주차 연산 오류 회피)
-  // 예: 2026-04-06 (그 주 월요일)
+  // 해당 주의 일요일 날짜를 키로 사용 (ISO 주차 연산 오류 회피)
+  // 예: 2026-04-06 (그 주 일요일)
   final now = DateTime.now();
   final monday = now.subtract(Duration(days: now.weekday - DateTime.monday));
   final d = DateTime(monday.year, monday.month, monday.day);
@@ -643,7 +643,7 @@ final dayBudget = _effectiveBudgetCache[day] ?? AppConstants.dailyBudget;
 ├─ 일일 기본예산 (기존)
 └─ 이월 정책 토글
    ├─ 라벨: "남은 예산 이월"
-   ├─ 서브텍스트: "매주 월요일 초기화됩니다"
+   ├─ 서브텍스트: "매주 일요일 초기화됩니다"
    └─ [ON일 때] 인라인 시뮬레이션 카드
       예) 오늘 3,000원 사용 시 → 내일 17,000원
 ```
@@ -667,7 +667,7 @@ final dayBudget = _effectiveBudgetCache[day] ?? AppConstants.dailyBudget;
 
 **새 파일**: `lib/features/home/presentation/widgets/new_week_interstitial_widget.dart`
 
-**트리거 조건**: `HomeState.isNewWeek == true` (월요일 + SharedPreferences 미확인)
+**트리거 조건**: `HomeState.isNewWeek == true` (일요일 + SharedPreferences 미확인)
 
 **레이아웃**:
 ```
@@ -764,7 +764,7 @@ catMood: isNewWeek ? 'new_week' : CharacterMood.fromRatio(ratio).name,
 | `lib/features/calendar/domain/usecases/get_monthly_calendar_data_use_case.dart` | 수정 | `getMonthlyEffectiveBudgets()` 위임 메서드 추가 |
 | `lib/features/settings/presentation/widgets/carryover_toggle_section.dart` | 신규 | 이월 토글 + 시뮬레이션 카드 위젯 (Light/Dark) |
 | `lib/features/home/presentation/widgets/carryover_badge_widget.dart` | 신규 | 이월 금액 배지 위젯 (Light/Dark) |
-| `lib/features/home/presentation/widgets/new_week_interstitial_widget.dart` | 신규 | 월요일 새 주 인터스티셜 오버레이 (new_week_clean.png 활용) |
+| `lib/features/home/presentation/widgets/new_week_interstitial_widget.dart` | 신규 | 일요일 새 주 인터스티셜 오버레이 (new_week_clean.png 활용) |
 | `lib/core/constants/app_constants.dart` | 수정 | `CharacterMood.newWeek` 케이스 + assetPath/comment/statusColor/label 추가 |
 | `lib/features/home/presentation/widgets/budget_cat_indicator.dart` | 수정 | `_buildIdleLoop()`, `_buildMicroAnimation()` switch에 `newWeek` 케이스 추가 |
 | `ios/DailyHomeWidget/Utils/WidgetHelpers.swift` | 수정 | `catImageName()` — `"new_week": "CatNewWeek"` 추가 |
@@ -775,15 +775,15 @@ catMood: isNewWeek ? 'new_week' : CharacterMood.fromRatio(ratio).name,
 
 | 리스크 | 완화 방법 |
 |--------|---------|
-| 장기 미접속 시 갭 처리 주간 경계 복수 통과 | `_fillMissingDays()`가 날짜별 월요일 체크를 개별로 수행 — 주 수에 무관하게 정확히 처리 |
+| 장기 미접속 시 갭 처리 주간 경계 복수 통과 | `_fillMissingDays()`가 날짜별 일요일 체크를 개별로 수행 — 주 수에 무관하게 정확히 처리 |
 | DB 마이그레이션 실패 | `withDefault(false)` + `addColumn`만 사용, 기존 데이터 무결성 보장 |
 | carryOver 계산 중 어제 예산 미존재 | null 체크 → carryOver = 0 폴백 |
 | 정책 중간 변경 시 당일 예산 변경 | 변경은 다음날 적용이므로 당일 DailyBudget 건드리지 않음 |
 | `checkDateChange()` 자정 통과 시 이월 미처리 | `home_view_model.dart`의 `checkDateChange()`가 `_loadData()`를 호출 → `getOrCreateTodayBudget()`이 재실행되므로 자동 처리됨 |
 | 마이너스 이월 극단적 누적 | 현재 버전은 하한 제한 없음 (정책 결정 보류). 추후 `-baseAmount` 이하 클램핑 고려 가능 |
 | `CharacterMood.newWeek` 추가 시 exhaustive switch 컴파일 에러 | `app_constants.dart` + `budget_cat_indicator.dart` 6개 switch 사이트 모두 케이스 추가 필수 (Phase 3-3 목록 참조) |
-| 이월 OFF 사용자 월요일 인터스티셜 오탐 | `isNewWeek` 조건에 `carryoverEnabled` 체크 포함 (Phase 4-2) |
-| `_currentWeekKey()` 연도 경계 오류 | 주차 번호 대신 해당 주 월요일 날짜(`yyyy-MM-dd`)를 키로 사용 |
+| 이월 OFF 사용자 일요일 인터스티셜 오탐 | `isNewWeek` 조건에 `carryoverEnabled` 체크 포함 (Phase 4-2) |
+| `_currentWeekKey()` 연도 경계 오류 | 주차 번호 대신 해당 주 일요일 날짜(`yyyy-MM-dd`)를 키로 사용 |
 | SharedPreferences ViewModel 직접 접근 | `SettingsRepository.hasSeenNewWeekThisWeek()` / `markNewWeekSeen()`으로 경유 (Phase 3-1) |
 
 ---
@@ -793,16 +793,16 @@ catMood: isNewWeek ? 'new_week' : CharacterMood.fromRatio(ratio).name,
 1. 이월 OFF → 매일 기본예산으로 고정 (carryOver = 0)
 2. 이월 ON + 절약 → 다음날 예산 증가
 3. 이월 ON + 초과 → 다음날 예산 감소 (remainingBudget도 carryOver 반영)
-4. 이월 ON + 월요일 접근 → carryOver = 0 강제 리셋
-5. 앱 3일 미실행 후 접근 → 누락 날짜 순서대로 생성, 월요일 경계 정확히 처리
+4. 이월 ON + 일요일 접근 → carryOver = 0 강제 리셋
+5. 앱 3일 미실행 후 접근 → 누락 날짜 순서대로 생성, 일요일 경계 정확히 처리
 6. 이월 ON → OFF 변경 → 다음날 기본예산으로 리셋
 7. 홈 배지 표시/미표시 조건 (carryOver = 0이면 숨김)
 8. 캘린더 성공 판단이 effectiveBudget 기준인지 확인
 9. 홈 위젯 서비스에 effectiveBudget 전달 확인
 10. 자정 앱 활성 상태에서 날짜 변경 시 이월 정상 처리
-11. 월요일 첫 실행 → 인터스티셜 표시 → "시작하기" → 재진입 시 미표시 확인
+11. 일요일 첫 실행 → 인터스티셜 표시 → "시작하기" → 재진입 시 미표시 확인
 12. 같은 주 화요일~일요일 접근 → 인터스티셜 미표시 확인
-13. iOS 위젯 — 월요일 첫 접근 시 catMood='new_week' 전달, CatNewWeek 이미지 표시 확인
+13. iOS 위젯 — 일요일 첫 접근 시 catMood='new_week' 전달, CatNewWeek 이미지 표시 확인
 
 ---
 
@@ -815,7 +815,7 @@ feat(home): 이월 계산 — getRemainingBudget effectiveBudget 반영 및 UseC
 feat(calendar): 이월 정책 — effectiveBudget 기준 성공 판단 적용
 feat(home): 이월 배지 위젯 추가
 feat(settings): 이월 정책 토글 UI — 설정 화면 섹션 추가
-feat(home): 새 주 인터스티셜 — new_week_clean.png 활용 월요일 첫 접근 연출
+feat(home): 새 주 인터스티셜 — new_week_clean.png 활용 일요일 첫 접근 연출
 feat(constants): CharacterMood.newWeek 케이스 추가
 feat(widget): iOS 위젯 new_week catMood 연동 — CatNewWeek 에셋 추가
 ```

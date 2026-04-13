@@ -15,7 +15,7 @@ func catImageName(for mood: String) -> String {
     case "normal":      return "CatNormal"
     case "danger":      return "CatDanger"
     case "over":        return "CatOver"
-    case "new_week":    return "CatNewWeek"
+    case "new_week":    return "CatComfortable" // CatNewWeek 자산 누락으로 인한 폴백 처리
     default:            return "CatComfortable"
     }
 }
