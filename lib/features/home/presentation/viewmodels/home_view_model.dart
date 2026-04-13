@@ -164,9 +164,7 @@ class HomeViewModel extends Notifier<HomeState> {
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
       final catMood = isNewWeek
           ? 'new_week'
-          : (remaining < 0 || totalBudget <= 0
-              ? CharacterMood.over.name
-              : CharacterMood.fromRatio(remaining / totalBudget).name);
+          : CharacterMood.fromRemaining(remaining, totalBudget).name;
       final favoritesList = await getIt<GetFavoritesUseCase>().execute();
       unawaited(getIt<WidgetService>().updateWidget(
         total: totalBudget,
@@ -236,9 +234,7 @@ class HomeViewModel extends Notifier<HomeState> {
               .toList(),
           catMood: state.isNewWeek
               ? 'new_week'
-              : (remaining < 0 || state.totalBudget <= 0
-                  ? CharacterMood.over.name
-                  : CharacterMood.fromRatio(remaining / state.totalBudget).name),
+              : CharacterMood.fromRemaining(remaining, state.totalBudget).name,
           favorites: favoritesList
               .map((f) => {
                     'id': f.id,

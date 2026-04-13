@@ -381,7 +381,10 @@ class CalendarViewModel extends Notifier<CalendarState> {
       DateTime.now().day,
     );
     final weekDays = AppDateUtils.weekDaysFrom(state.selectedWeekStart);
-    int totalSpent = 0, savingDays = 0, countedDays = 0, weeklyBudget = 0;
+    int totalSpent = 0, savingDays = 0, countedDays = 0;
+    // 총지출 색상 기준: 실제 지출이 있는 날의 예산만 합산
+    // — 지출 없는 날(0원)을 포함하면 비율이 희석되어 셀 뱃지와 색상이 달라짐
+    int spentDaysBudget = 0;
     for (final day in weekDays) {
       if (day.isAfter(today)) continue;
       countedDays++;
@@ -391,7 +394,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       final dayBudget = _effectiveBudgetCache[_cacheKey(day.year, day.month)]?[day]
           ?? _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
           ?? AppConstants.dailyBudget;
-      weeklyBudget += dayBudget;
+      if (dayTotal > 0) spentDaysBudget += dayBudget;
       if (dayTotal == 0 || dayTotal <= dayBudget) savingDays++;
     }
     return (
@@ -399,7 +402,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       dailyAverage: countedDays > 0 ? totalSpent ~/ countedDays : 0,
       savingDays: savingDays,
       totalDays: weekDays.length,
-      weeklyBudget: weeklyBudget,
+      weeklyBudget: spentDaysBudget,
     );
   }
 
