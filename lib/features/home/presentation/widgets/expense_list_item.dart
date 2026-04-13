@@ -77,11 +77,14 @@ class ExpenseListItem extends StatelessWidget {
             ),
             // ↩ 반복 버튼 (onRepeat이 제공된 경우에만 표시)
             if (onRepeat != null) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               GestureDetector(
                 onTap: onRepeat,
+                behavior: HitTestBehavior.opaque,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkCard : AppColors.chipEtc,
                     borderRadius: BorderRadius.circular(8),

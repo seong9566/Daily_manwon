@@ -84,6 +84,7 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                                 category: fav.category,
                                 memo: fav.memo,
                               ));
+                              ref.invalidate(favoritesProvider);
                             },
                           ),
                         );
