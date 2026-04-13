@@ -36,66 +36,68 @@ class WidgetService {
     await processPendingWidgetExpense();
   }
 
-  /// UserDefaults의 pending 지출 URL을 확인하고, 존재하면 지출을 저장한 뒤 키를 삭제한다.
+  /// UserDefaults의 pending 지출 URL 배열을 확인하고, 존재하면 순서대로 저장한 뒤 키를 초기화한다.
   ///
   /// 호출 위치:
   ///  - [init]: 콜드 스타트 시
   ///  - HomeViewModel.processPendingWidgetExpense: 앱 포그라운드 복귀 시
   ///
-  /// 위젯 버튼 탭 시 [openAppWhenRun = false]이므로 앱이 열리지 않는다.
-  /// 이후 사용자가 앱을 수동으로 열거나(포그라운드 복귀) 콜드 스타트할 때
-  /// 이 메서드가 pending URL을 처리하여 Drift DB에 지출을 저장한다.
+  /// Swift IntentIntent는 버튼 탭마다 URL을 JSON 배열에 append 한다.
+  /// 연속 탭 시에도 모든 지출이 누락 없이 처리되도록 배열 전체를 순회한다.
   Future<void> processPendingWidgetExpense() async {
     if (!_appGroupAvailable) return;
     try {
-      final pendingUrl = await HomeWidget.getWidgetData<String>(
+      final pendingRaw = await HomeWidget.getWidgetData<String>(
         'widget.pendingExpenseUrl',
       );
-      if (pendingUrl == null || pendingUrl.isEmpty) return;
+      if (pendingRaw == null || pendingRaw.isEmpty) return;
 
-      debugPrint('WidgetService: pending 지출 발견 — $pendingUrl');
+      // Swift가 JSON 배열로 저장; 이전 버전 호환을 위해 단일 URL 포맷도 처리
+      List<String> pendingUrls;
+      if (pendingRaw.startsWith('[')) {
+        final decoded = jsonDecode(pendingRaw) as List<dynamic>;
+        pendingUrls = decoded.cast<String>();
+      } else {
+        pendingUrls = [pendingRaw];
+      }
 
-      // pending 키 즉시 삭제 (중복 처리 방지)
-      // null 대신 빈 문자열로 저장 — iOS UserDefaults에서 null 저장이 불안정할 수 있음
-      await HomeWidget.saveWidgetData<String>('widget.pendingExpenseUrl', '');
+      if (pendingUrls.isEmpty) return;
 
-      // 콜백에 위임
-      final uri = Uri.tryParse(pendingUrl);
-      if (uri != null) {
-        // widget_background_callback.dart의 widgetBackgroundCallback 재사용
-        // 단, 여기서는 이미 DI가 초기화된 상태
+      debugPrint('WidgetService: pending 지출 ${pendingUrls.length}건 발견');
+
+      // 키 즉시 초기화 — 처리 전에 비워야 이후 탭이 새 배열로 누적된다
+      await HomeWidget.saveWidgetData<String>('widget.pendingExpenseUrl', '[]');
+
+      final addExpenseUseCase = GetIt.instance<AddExpenseUseCase>();
+      final incrementUseCase = GetIt.instance<IncrementFavoriteUsageUseCase>();
+
+      for (final urlString in pendingUrls) {
+        final uri = Uri.tryParse(urlString);
+        if (uri == null) continue;
+
         final amount = int.tryParse(uri.queryParameters['amount'] ?? '');
         final category = int.tryParse(uri.queryParameters['category'] ?? '');
-        final favoriteId = int.tryParse(
-          uri.queryParameters['favoriteId'] ?? '',
-        );
-        final memo = Uri.decodeComponent(
-          uri.queryParameters['memo'] ?? '',
+        final favoriteId = int.tryParse(uri.queryParameters['favoriteId'] ?? '');
+        final memo = Uri.decodeComponent(uri.queryParameters['memo'] ?? '');
+
+        if (amount == null || category == null) continue;
+
+        await addExpenseUseCase.execute(
+          ExpenseEntity(
+            id: 0,
+            amount: amount,
+            category: category,
+            memo: memo,
+            createdAt: DateTime.now(),
+          ),
         );
 
-        if (amount != null && category != null) {
-          final addExpenseUseCase =
-              GetIt.instance<AddExpenseUseCase>();
-          await addExpenseUseCase.execute(
-            ExpenseEntity(
-              id: 0,
-              amount: amount,
-              category: category,
-              memo: memo,
-              createdAt: DateTime.now(),
-            ),
-          );
-          debugPrint(
-            'WidgetService: pending 지출 처리 완료 — amount=$amount, category=$category',
-          );
-
-          if (favoriteId != null && favoriteId > 0) {
-            final incrementUseCase =
-                GetIt.instance<IncrementFavoriteUsageUseCase>();
-            await incrementUseCase.execute(favoriteId);
-          }
+        if (favoriteId != null && favoriteId > 0) {
+          await incrementUseCase.execute(favoriteId);
         }
       }
+
+      debugPrint('WidgetService: pending 지출 ${pendingUrls.length}건 처리 완료');
     } catch (e) {
       debugPrint('WidgetService: pending 지출 처리 실패 — $e');
     }

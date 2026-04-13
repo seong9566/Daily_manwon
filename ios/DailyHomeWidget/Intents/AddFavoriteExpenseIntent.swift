@@ -59,10 +59,21 @@ struct AddFavoriteExpenseIntent: AppIntent {
         defaults?.set(currentRemaining - amount, forKey: "remainingKey")
         defaults?.set(currentUsed + amount,      forKey: "usedKey")
 
-        // ── pending URL 저장 ──────────────────────────────────────────────
-        // 앱이 foreground로 전환되면 WidgetService._processPendingExpense()가
-        // 이 URL을 읽어 Drift DB에 지출을 저장하고 키를 삭제한다.
-        defaults?.set(urlString, forKey: WidgetConstants.pendingExpenseKey)
+        // ── pending URL 배열에 추가 ───────────────────────────────────────
+        // 연속 탭 시 덮어쓰기 방지: 기존 배열을 읽어 append한 뒤 저장한다.
+        // 앱이 foreground로 전환되면 WidgetService.processPendingWidgetExpense()가
+        // 전체 배열을 읽어 순서대로 Drift DB에 저장하고 키를 삭제한다.
+        let existingJson = defaults?.string(forKey: WidgetConstants.pendingExpenseKey) ?? "[]"
+        var pendingUrls: [String] = []
+        if let data = existingJson.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode([String].self, from: data) {
+            pendingUrls = decoded
+        }
+        pendingUrls.append(urlString)
+        if let encoded = try? JSONEncoder().encode(pendingUrls),
+           let jsonString = String(data: encoded, encoding: .utf8) {
+            defaults?.set(jsonString, forKey: WidgetConstants.pendingExpenseKey)
+        }
         defaults?.synchronize()
 
         // 위젯 타임라인 갱신 — 낙관적 잔액을 즉시 표시
