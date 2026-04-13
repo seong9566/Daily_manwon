@@ -72,9 +72,13 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                             backgroundColor: isDark
                                 ? AppColors.darkCard
                                 : cat.chipColor,
-                            onPressed: () {
-                              getIt<IncrementFavoriteUsageUseCase>()
-                                  .execute(fav.id);
+                            onPressed: () async {
+                              try {
+                                await getIt<IncrementFavoriteUsageUseCase>()
+                                    .execute(fav.id);
+                              } catch (_) {
+                                // usageCount 증가 실패는 UI에 영향 없음
+                              }
                               onTemplateTap((
                                 amount: fav.amount,
                                 category: fav.category,
