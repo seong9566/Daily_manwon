@@ -61,44 +61,17 @@ class ExpenseListItem extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    timeStr,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text(timeStr, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
             // 금액
             Text(
               '-${CurrencyFormatter.formatNumberOnly(expense.amount)}',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
-            // ↩ 반복 버튼 (onRepeat이 제공된 경우에만 표시)
-            if (onRepeat != null) ...[
-              const SizedBox(width: 4),
-              GestureDetector(
-                onTap: onRepeat,
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : AppColors.chipEtc,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '↩',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? AppColors.darkTextSub : AppColors.textSub,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),

@@ -33,8 +33,10 @@ class FavoriteTemplatesSection extends ConsumerWidget {
               .map((f) => '${f.amount}_${f.category}')
               .toSet();
           final deduped = frequent
-              .where((t) =>
-                  !favoriteKeys.contains('${t['amount']}_${t['category']}'))
+              .where(
+                (t) =>
+                    !favoriteKeys.contains('${t['amount']}_${t['category']}'),
+              )
               .toList();
 
           if (favorites.isEmpty && deduped.isEmpty) {
@@ -52,16 +54,18 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      // 수동 즐겨찾기 (⭐ 표시)
                       ...favorites.map((fav) {
                         final cat = ExpenseCategory.values[fav.category];
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ActionChip(
-                            avatar: Text(cat.emoji,
-                                style: const TextStyle(fontSize: 14)),
+                            avatar: Image.asset(
+                              cat.assetPath,
+                              width: 18,
+                              height: 18,
+                            ),
                             label: Text(
-                              '⭐ ${_formatAmount(fav.amount)}',
+                              '${_formatAmount(fav.amount)}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: isDark
@@ -91,13 +95,15 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                       }),
                       // 자동학습 추천 (중복 제거된 것만)
                       ...deduped.map((t) {
-                        final cat =
-                            ExpenseCategory.values[t['category']!];
+                        final cat = ExpenseCategory.values[t['category']!];
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ActionChip(
-                            avatar: Text(cat.emoji,
-                                style: const TextStyle(fontSize: 14)),
+                            avatar: Image.asset(
+                              cat.assetPath,
+                              width: 18,
+                              height: 18,
+                            ),
                             label: Text(
                               _formatAmount(t['amount']!),
                               style: TextStyle(
@@ -141,13 +147,15 @@ class FavoriteTemplatesSection extends ConsumerWidget {
 }
 
 /// 수동 즐겨찾기 프로바이더
-final favoritesProvider =
-    FutureProvider<List<FavoriteExpenseEntity>>((ref) async {
+final favoritesProvider = FutureProvider<List<FavoriteExpenseEntity>>((
+  ref,
+) async {
   return getIt<GetFavoritesUseCase>().execute();
 });
 
 /// 자동학습 추천 프로바이더
-final frequentTemplatesProvider =
-    FutureProvider<List<Map<String, int>>>((ref) async {
+final frequentTemplatesProvider = FutureProvider<List<Map<String, int>>>((
+  ref,
+) async {
   return getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
 });
