@@ -20,9 +20,9 @@ class StatsScreen extends ConsumerWidget {
     final textMain = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSub = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
-    return ColoredBox(
-      color: bgColor,
-      child: state.isLoading
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.errorMessage != null
               ? Center(
