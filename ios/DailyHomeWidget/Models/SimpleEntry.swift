@@ -14,6 +14,7 @@ struct SimpleEntry: TimelineEntry {
     let streak: Int
     let expenses: [ExpenseItem]
     let catMood: String  // "comfortable", "normal", "danger", "over"
+    let favorites: [FavoriteItem]  // 추가 (최대 4개)
 
     // 중복 제거: Small/Medium/Large progressRatio 통합 (순수 산술 — Utils 의존 없음)
     var progressRatio: Double {

@@ -178,7 +178,8 @@ struct DailyHomeLargeView: View {
             ExpenseItem(category: "점심", time: "12:30", amount: 3500),
             ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
         ],
-        catMood: "comfortable"
+        catMood: "comfortable",
+        favorites: []
     )
     SimpleEntry(
         date: Date(), total: 10000, used: 11500, remaining: -1500, streak: 0,
@@ -186,6 +187,7 @@ struct DailyHomeLargeView: View {
             ExpenseItem(category: "점심", time: "12:30", amount: 8500),
             ExpenseItem(category: "카페", time: "15:15", amount: 2800),
         ],
-        catMood: "over"
+        catMood: "over",
+        favorites: []
     )
 }

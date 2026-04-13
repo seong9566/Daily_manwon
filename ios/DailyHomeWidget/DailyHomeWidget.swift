@@ -15,10 +15,13 @@ import SwiftUI
 struct Provider: TimelineProvider {
     typealias Entry = SimpleEntry
 
+    private let appGroupSuite = "group.seong.dailyManwon.homeWidget"
+
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(
             date: Date(), total: 10000, used: 0,
-            remaining: 10000, streak: 0, expenses: [], catMood: "comfortable"
+            remaining: 10000, streak: 0, expenses: [], catMood: "comfortable",
+            favorites: []
         )
     }
 
@@ -30,13 +33,17 @@ struct Provider: TimelineProvider {
                 ExpenseItem(category: "점심", time: "12:30", amount: 3500),
                 ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
             ],
-            catMood: "comfortable"
+            catMood: "comfortable",
+            favorites: [
+                FavoriteItem(id: 1, amount: 3500, category: 2, memo: ""),
+                FavoriteItem(id: 2, amount: 1500, category: 1, memo: ""),
+            ]
         )
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let userDefault = UserDefaults(suiteName: "group.seong.dailyManwon.homeWidget")
+        let userDefault = UserDefaults(suiteName: appGroupSuite)
 
         let total     = userDefault?.integer(forKey: "totalKey")     ?? 0
         let used      = userDefault?.integer(forKey: "usedKey")      ?? 0
@@ -51,6 +58,13 @@ struct Provider: TimelineProvider {
             expenses = (try? JSONDecoder().decode([ExpenseItem].self, from: data)) ?? []
         }
 
+        var favorites: [FavoriteItem] = []
+        if let favJson = userDefault?.string(forKey: "favoritesKey"),
+           let data = favJson.data(using: .utf8) {
+            let decoded = (try? JSONDecoder().decode([FavoriteItem].self, from: data)) ?? []
+            favorites = Array(decoded.prefix(4))
+        }
+
         let entry = SimpleEntry(
             date: Date(),
             total: total,
@@ -58,7 +72,8 @@ struct Provider: TimelineProvider {
             remaining: remaining,
             streak: streak,
             expenses: expenses,
-            catMood: catMood
+            catMood: catMood,
+            favorites: favorites
         )
 
         let timeline = Timeline(entries: [entry], policy: .atEnd)
