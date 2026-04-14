@@ -107,4 +107,23 @@ abstract final class AppDateUtils {
     }
     return '${weekStart.month}월 ${weekStart.day}일 ~ ${weekEnd.month}월 ${weekEnd.day}일';
   }
+
+  /// 통계 화면 주간 네비게이터 레이블을 반환한다.
+  ///
+  /// [weekStart]: 해당 주의 일요일 00:00:00
+  /// 같은 해: "4/6(일) ~ 4/12(토)"
+  /// 다른 해: "2025/12/29(일) ~ 2026/1/4(토)"
+  static String statsWeekNavLabel(DateTime weekStart) {
+    const labels = ['일', '월', '화', '수', '목', '금', '토'];
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    final startLabel = labels[weekStart.weekday % 7];
+    final endLabel = labels[weekEnd.weekday % 7];
+
+    if (weekStart.year == weekEnd.year) {
+      return '${weekStart.month}/${weekStart.day}($startLabel)'
+          ' ~ ${weekEnd.month}/${weekEnd.day}($endLabel)';
+    }
+    return '${weekStart.year}/${weekStart.month}/${weekStart.day}($startLabel)'
+        ' ~ ${weekEnd.year}/${weekEnd.month}/${weekEnd.day}($endLabel)';
+  }
 }

@@ -13,7 +13,6 @@ import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
-import '../../domain/usecases/check_and_award_title_use_case.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
 import '../../domain/usecases/get_acorn_stats_use_case.dart';
@@ -32,11 +31,8 @@ class HomeState {
   /// 이월 배지 표시용 금액 (0이면 이월 없음)
   final int carryOver;
 
-  /// 월요일 첫 접근 인터스티셜 트리거 여부
+  /// d일요일 첫 접근 인터스티셜 트리거 여부
   final bool isNewWeek;
-
-  /// 방금 획득한 칭호 이름 — null이면 신규 칭호 없음 (S-26g)
-  final String? newlyAchievedTitle;
 
   const HomeState({
     this.remainingBudget = 10000,
@@ -47,7 +43,6 @@ class HomeState {
     this.isLoading = true,
     this.carryOver = 0,
     this.isNewWeek = false,
-    this.newlyAchievedTitle,
   });
 
   HomeState copyWith({
@@ -59,7 +54,6 @@ class HomeState {
     bool? isLoading,
     int? carryOver,
     bool? isNewWeek,
-    String? newlyAchievedTitle,
     // null로 명시적 초기화가 필요할 때 사용하는 플래그 (S-26g)
     bool clearTitle = false,
   }) {
@@ -72,7 +66,6 @@ class HomeState {
       isLoading: isLoading ?? this.isLoading,
       carryOver: carryOver ?? this.carryOver,
       isNewWeek: isNewWeek ?? this.isNewWeek,
-      newlyAchievedTitle: clearTitle ? null : (newlyAchievedTitle ?? this.newlyAchievedTitle),
     );
   }
 }
@@ -142,12 +135,10 @@ class HomeViewModel extends Notifier<HomeState> {
       // 새 주 감지 (월요일 + 이월 활성화 + 이번 주 미확인)
       final carryoverEnabled = await settingsRepository.getCarryoverEnabled();
       final weekKey = _currentWeekKey();
-      final isNewWeek = DateTime.now().weekday == DateTime.sunday
-          && carryoverEnabled
-          && !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
-
-      // 스트릭 마일스톤 달성 시 칭호 수여 (S-26g)
-      final newTitle = await getIt<CheckAndAwardTitleUseCase>().execute(streak);
+      final isNewWeek =
+          DateTime.now().weekday == DateTime.sunday &&
+          carryoverEnabled &&
+          !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
       state = state.copyWith(
         remainingBudget: remaining,
@@ -158,7 +149,6 @@ class HomeViewModel extends Notifier<HomeState> {
         isLoading: false,
         carryOver: carryOver,
         isNewWeek: isNewWeek,
-        newlyAchievedTitle: newTitle,
       );
 
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
@@ -166,28 +156,34 @@ class HomeViewModel extends Notifier<HomeState> {
           ? 'new_week'
           : CharacterMood.fromRemaining(remaining, totalBudget).name;
       final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-      unawaited(getIt<WidgetService>().updateWidget(
-        total: totalBudget,
-        used: totalBudget - remaining,
-        remaining: remaining,
-        streak: streak,
-        expenses: expenses
-            .map((e) => {
+      unawaited(
+        getIt<WidgetService>().updateWidget(
+          total: totalBudget,
+          used: totalBudget - remaining,
+          remaining: remaining,
+          streak: streak,
+          expenses: expenses
+              .map(
+                (e) => {
                   'category': ExpenseCategory.values[e.category].label,
                   'time': DateFormat('HH:mm').format(e.createdAt),
                   'amount': e.amount,
-                })
-            .toList(),
-        catMood: catMood,
-        favorites: favoritesList
-            .map((f) => {
+                },
+              )
+              .toList(),
+          catMood: catMood,
+          favorites: favoritesList
+              .map(
+                (f) => {
                   'id': f.id,
                   'amount': f.amount,
                   'category': f.category,
                   'memo': f.memo,
-                })
-            .toList(),
-      ));
+                },
+              )
+              .toList(),
+        ),
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false);
     } finally {
@@ -208,44 +204,56 @@ class HomeViewModel extends Notifier<HomeState> {
     final budgetUseCase = getIt<GetTodayBudgetUseCase>();
     final expenseUseCase = getIt<GetTodayExpensesUseCase>();
 
-    _expenseSubscription =
-        expenseUseCase.watchExpensesByDate(DateTime.now()).listen((expenses) async {
-      final remaining = await budgetUseCase.getRemainingBudget(DateTime.now());
-      state = state.copyWith(
-        expenses: expenses,
-        remainingBudget: remaining,
-      );
+    _expenseSubscription = expenseUseCase
+        .watchExpensesByDate(DateTime.now())
+        .listen((expenses) async {
+          final remaining = await budgetUseCase.getRemainingBudget(
+            DateTime.now(),
+          );
+          state = state.copyWith(
+            expenses: expenses,
+            remainingBudget: remaining,
+          );
 
-      // 지출 변동 시 홈 위젯 실시간 갱신
-      // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
-      if (!state.isLoading) {
-        final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-        unawaited(getIt<WidgetService>().updateWidget(
-          total: state.totalBudget,
-          used: state.totalBudget - remaining,
-          remaining: remaining,
-          streak: state.streakDays,
-          expenses: expenses
-              .map((e) => {
-                    'category': ExpenseCategory.values[e.category].label,
-                    'time': DateFormat('HH:mm').format(e.createdAt),
-                    'amount': e.amount,
-                  })
-              .toList(),
-          catMood: state.isNewWeek
-              ? 'new_week'
-              : CharacterMood.fromRemaining(remaining, state.totalBudget).name,
-          favorites: favoritesList
-              .map((f) => {
-                    'id': f.id,
-                    'amount': f.amount,
-                    'category': f.category,
-                    'memo': f.memo,
-                  })
-              .toList(),
-        ));
-      }
-    });
+          // 지출 변동 시 홈 위젯 실시간 갱신
+          // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
+          if (!state.isLoading) {
+            final favoritesList = await getIt<GetFavoritesUseCase>().execute();
+            unawaited(
+              getIt<WidgetService>().updateWidget(
+                total: state.totalBudget,
+                used: state.totalBudget - remaining,
+                remaining: remaining,
+                streak: state.streakDays,
+                expenses: expenses
+                    .map(
+                      (e) => {
+                        'category': ExpenseCategory.values[e.category].label,
+                        'time': DateFormat('HH:mm').format(e.createdAt),
+                        'amount': e.amount,
+                      },
+                    )
+                    .toList(),
+                catMood: state.isNewWeek
+                    ? 'new_week'
+                    : CharacterMood.fromRemaining(
+                        remaining,
+                        state.totalBudget,
+                      ).name,
+                favorites: favoritesList
+                    .map(
+                      (f) => {
+                        'id': f.id,
+                        'amount': f.amount,
+                        'category': f.category,
+                        'memo': f.memo,
+                      },
+                    )
+                    .toList(),
+              ),
+            );
+          }
+        });
   }
 
   /// 새 주 인터스티셜 확인 후 상태를 초기화한다
@@ -314,5 +322,6 @@ class HomeViewModel extends Notifier<HomeState> {
 }
 
 /// 홈 뷰모델 프로바이더
-final homeViewModelProvider =
-    NotifierProvider<HomeViewModel, HomeState>(HomeViewModel.new);
+final homeViewModelProvider = NotifierProvider<HomeViewModel, HomeState>(
+  HomeViewModel.new,
+);

@@ -42,28 +42,6 @@ enum ExpenseCategory {
     };
   }
 
-  /// 카테고리 대표 아이콘 (Material Icons)
-  IconData get icon {
-    return switch (this) {
-      ExpenseCategory.food => Icons.restaurant_rounded,
-      ExpenseCategory.transport => Icons.directions_bus_rounded,
-      ExpenseCategory.cafe => Icons.local_cafe_rounded,
-      ExpenseCategory.shopping => Icons.shopping_bag_rounded,
-      ExpenseCategory.etc => Icons.more_horiz_rounded,
-    };
-  }
-
-  /// 카테고리 대표 이모지
-  String get emoji {
-    return switch (this) {
-      ExpenseCategory.food => '🍚',
-      ExpenseCategory.transport => '🚌',
-      ExpenseCategory.cafe => '☕',
-      ExpenseCategory.shopping => '🛍️',
-      ExpenseCategory.etc => '📦',
-    };
-  }
-
   /// 카테고리 손그림 아이콘 이미지 경로
   /// 투명 배경 + 순수 검정 라인아트 PNG (_clean 포맷)
   String get assetPath {
