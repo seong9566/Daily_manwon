@@ -1,6 +1,6 @@
 ---
 name: flutter-architecture
-description: s_pass 프로젝트의 Feature-First 클린 아키텍처를 설계하거나 검토합니다. Riverpod, Injectable, Freezed, Dio, SharedPreferences를 사용합니다.
+description: daily_manwon 프로젝트의 Feature-First 클린 아키텍처를 설계하거나 검토합니다. Riverpod, Injectable, Freezed, Dio, SharedPreferences를 사용합니다.
 ---
 
 # Flutter 아키텍처
@@ -114,13 +114,116 @@ lib/
 - DataSource에 매핑이나 비즈니스 로직 배치 금지
 - DataSource 외부에서 백엔드 SDK/API 직접 호출 금지
 
+## ViewModel 책임 범위 (클린 아키텍처 기준)
+
+클린 아키텍처에서 ViewModel(Presenter)은 **자신의 Use Case를 호출하고, 결과를 자신의 UI State로 변환**하는 것만 담당한다.
+
+> **핵심 원칙: ViewModel은 UseCase를 호출하고, Repository 기반 데이터를 읽을 수 있다.
+> 다른 ViewModel의 상태는 읽기도, 변경도 하지 않는다.**
+
+### Provider 접근 기준 — "어떻게"가 아닌 "무엇을"
+
+| 대상                                | watch / listen | read (상태 변경)    |
+| ----------------------------------- | -------------- | ------------------- |
+| **UseCase Provider**                | —              | ✅ 허용 (핵심 책임) |
+| **Repository 기반 데이터 Provider** | ✅ 허용        | ❌ 금지             |
+| **다른 ViewModel의 state**          | ❌ 금지        | ❌ 금지             |
+
+```dart
+// ✅ UseCase 호출 — ViewModel의 핵심 책임
+final result = await ref.read(downloadCardUseCaseProvider).call(...);
+
+// ✅ Repository 기반 Provider 읽기
+ref.watch(cachedCardListProvider)  // UseCase → Repository 기반이므로 허용
+
+// ✅ 자신의 state 갱신
+state = state.copyWith(isLoading: false, error: null);
+
+// ❌ 다른 ViewModel state watch — 읽기라도 Presenter 간 결합 발생
+ref.watch(homeViewModelProvider)
+
+// ❌ 다른 ViewModel state 변이
+ref.read(homeViewModelProvider.notifier).refresh();
+ref.read(lastActivatedCardProvider.notifier).set(card);
+ref.invalidate(cachedCardListProvider);
+```
+
+`ref.watch(homeViewModelProvider)`가 금지인 이유: 비즈니스 판단에 다른 Presenter의 상태를 사용하게 되어 Presenter 간 결합이 생긴다. 각 ViewModel은 **Use Case에만 의존**해야 한다.
+
+### Screen에서 금지
+
+```dart
+// ❌ Screen이 Domain Entity를 직접 보유
+case ActivationStartSuccess(:final AccessCard card): // Entity가 Screen에 노출됨
+
+// ❌ Screen이 비즈니스 판단
+final isFirstCard = ref.read(homeViewModelProvider).value?.cardList.isEmpty ?? true;
+```
+
+Screen은 렌더링과 사용자 이벤트 전달만 담당한다. Domain Entity와 비즈니스 로직은 ViewModel 아래 계층의 책임이다.
+
+### 화면 간 데이터 전달 — 올바른 방법
+
+**방법 A: 네비게이션 인수 (표시용 값만 전달)**
+
+```dart
+// ViewModel — 라우팅 신호에 Entity 없이 라우팅 결정값만 포함
+sealed class ActivationResult {}
+class ActivationSuccess extends ActivationResult {
+  final bool isFirstCard;  // 라우팅 결정용만 포함, Entity 없음
+}
+
+// Screen — 라우팅만 처리
+case ActivationSuccess(:final isFirstCard):
+  if (isFirstCard) context.go(AppRoutes.activateSuccess);
+  else context.pop(true);
+```
+
+**방법 B: Repository를 진실 공급원으로 사용**
+
+```dart
+// 성공 화면 ViewModel — Repository 기반 Provider로 최신 데이터 조회
+@riverpod
+ActivationSuccessInfo? activationSuccessInfo(Ref ref) {
+  final lastCard = ref.watch(cachedCardListProvider).valueOrNull?.lastOrNull;
+  if (lastCard == null) return null;
+  return ActivationSuccessInfo(
+    name: lastCard.name ?? '',
+    siteLabel: SiteKeyConstants.labelFor(lastCard.siteKey),
+  );
+}
+```
+
+### Presentation 레이어 공유 가변 상태 (`keepAlive` Provider)
+
+- Presentation 레이어 공유 가변 상태는 클린 아키텍처 관점에서 안티패턴이다.
+- Repository가 진실 공급원이어야 하며, Presentation 레이어에 별도 가변 상태를 두면 동기화 문제가 발생한다
+- 불가피하게 도입할 경우 해당 Provider의 존재 이유와 소유 주체를 주석으로 명시한다
+- 장기적으로는 제거하고 Repository 기반 조회로 대체하는 것을 목표로 한다
+
 ## 데이터 흐름
 
 ```text
-UI Event -> Riverpod Provider/Notifier (로딩 상태 설정) -> Repository -> DataSource (SDK/API)
-    ↓
-Response -> Repository (Domain Entity로 매핑) -> Provider/Notifier (UI State로 매핑) -> UI
+[단방향 흐름]
+
+UI Event
+  └─► ViewModel (로딩 상태 설정)
+        └─► UseCase
+              └─► Repository
+                    └─► DataSource
+
+DataSource 응답
+  └─► Repository (API Model → Domain Entity 매핑)
+        └─► UseCase (비즈니스 규칙 적용)
+              └─► ViewModel (Domain Entity → UI State 변환, 자신의 state만 갱신)
+                    └─► Screen (UI State 렌더링 + 라우팅)
 ```
+
+**핵심 원칙:**
+
+- 의존성 방향은 항상 안쪽(Domain)을 향한다
+- ViewModel ↔ ViewModel 직접 통신 금지 — 공유 데이터는 Repository를 진실 공급원으로 사용
+- Screen은 ViewModel의 UI State와 라우팅 신호만 소비한다
 
 ## Dart 3 언어 기능
 
