@@ -9,5 +9,8 @@ class GetWeekdayStatsUseCase {
 
   GetWeekdayStatsUseCase(this._repository);
 
-  Future<List<WeekdayStat>> execute() => _repository.getWeekdayStats();
+  Future<List<WeekdayStat>> execute({
+    required int year,
+    required int month,
+  }) => _repository.getWeekdayStats(year: year, month: month);
 }

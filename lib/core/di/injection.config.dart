@@ -99,6 +99,10 @@ import '../../features/stats/domain/repositories/stats_repository.dart'
     as _i804;
 import '../../features/stats/domain/usecases/get_category_stats_use_case.dart'
     as _i292;
+import '../../features/stats/domain/usecases/get_daily_budget_use_case.dart'
+    as _i843;
+import '../../features/stats/domain/usecases/get_daily_stats_use_case.dart'
+    as _i710;
 import '../../features/stats/domain/usecases/get_expense_summary_use_case.dart'
     as _i348;
 import '../../features/stats/domain/usecases/get_weekday_stats_use_case.dart'
@@ -166,6 +170,9 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i804.StatsRepository>(
     () => _i845.StatsRepositoryImpl(gh<_i1071.StatsLocalDatasource>()),
   );
+  gh.lazySingleton<_i843.GetDailyBudgetUseCase>(
+    () => _i843.GetDailyBudgetUseCase(gh<_i674.SettingsRepository>()),
+  );
   gh.lazySingleton<_i91.NotificationSettingsRepository>(
     () => _i414.NotificationSettingsRepositoryImpl(
       gh<_i972.NotificationSettingsDatasource>(),
@@ -200,6 +207,9 @@ _i174.GetIt $initGetIt(
   );
   gh.lazySingleton<_i292.GetCategoryStatsUseCase>(
     () => _i292.GetCategoryStatsUseCase(gh<_i804.StatsRepository>()),
+  );
+  gh.lazySingleton<_i710.GetDailyStatsUseCase>(
+    () => _i710.GetDailyStatsUseCase(gh<_i804.StatsRepository>()),
   );
   gh.lazySingleton<_i348.GetExpenseSummaryUseCase>(
     () => _i348.GetExpenseSummaryUseCase(gh<_i804.StatsRepository>()),
