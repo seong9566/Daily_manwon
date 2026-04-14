@@ -22,84 +22,76 @@ class StatsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : state.errorMessage != null
-              ? Center(
-                  child: Text(
-                    state.errorMessage!,
-                    style: AppTypography.bodySmall.copyWith(color: textSub),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(statsViewModelProvider.notifier).loadStats(),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 월 선택기
-                        _MonthNavRow(
-                          selectedMonth: state.selectedMonth,
-                          onPrev: () => ref
-                              .read(statsViewModelProvider.notifier)
-                              .changeMonth(-1),
-                          onNext: () => ref
-                              .read(statsViewModelProvider.notifier)
-                              .changeMonth(1),
-                          isDark: isDark,
-                          textMain: textMain,
-                        ),
-                        const SizedBox(height: 16),
+      body: state.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Text(
+            '통계를 불러오지 못했습니다.',
+            style: AppTypography.bodySmall.copyWith(color: textSub),
+          ),
+        ),
+        data: (s) => RefreshIndicator(
+          onRefresh: () => ref.read(statsViewModelProvider.notifier).refresh(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 월 선택기
+                _MonthNavRow(
+                  selectedMonth: s.selectedMonth,
+                  onPrev: () =>
+                      ref.read(statsViewModelProvider.notifier).changeMonth(-1),
+                  onNext: () =>
+                      ref.read(statsViewModelProvider.notifier).changeMonth(1),
+                  isDark: isDark,
+                  textMain: textMain,
+                ),
+                const SizedBox(height: 16),
 
-                        // 카테고리 도넛 차트
-                        CategoryDonutChart(
-                          stats: state.categoryStats,
-                          selectedMonth: state.selectedMonth,
-                          isDark: isDark,
-                        ),
-                        const SizedBox(height: 12),
+                // 카테고리 도넛 차트
+                CategoryDonutChart(
+                  stats: s.categoryStats,
+                  selectedMonth: s.selectedMonth,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 12),
 
-                        // 요일별 바 차트
-                        WeekdayBarChart(
-                          stats: state.weekdayStats,
-                          isDark: isDark,
-                        ),
-                        const SizedBox(height: 20),
+                // 요일별 바 차트
+                WeekdayBarChart(stats: s.weekdayStats, isDark: isDark),
+                const SizedBox(height: 20),
 
-                        // 요약 보기 버튼
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () =>
-                                showExpenseSummarySheet(context),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: textMain,
-                              side: BorderSide(
-                                color: isDark
-                                    ? AppColors.darkDivider
-                                    : AppColors.divider,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            child: Text(
-                              '주간 / 월간 요약 보기',
-                              style: AppTypography.labelMedium.copyWith(
-                                color: textMain,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                // 요약 보기 버튼
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => showExpenseSummarySheet(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: textMain,
+                      side: BorderSide(
+                        color: isDark
+                            ? AppColors.darkDivider
+                            : AppColors.divider,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(
+                      '주간 / 월간 요약 보기',
+                      style: AppTypography.labelMedium.copyWith(
+                        color: textMain,
+                      ),
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -59,7 +59,8 @@ class _ExpenseSummarySheetBody extends ConsumerWidget {
           }
           final weekly = snapshot.data![0];
           final monthly = snapshot.data![1];
-          final selectedMonth = ref.read(statsViewModelProvider).selectedMonth;
+          final selectedMonth =
+              ref.read(statsViewModelProvider).requireValue.selectedMonth;
 
           return Column(
             mainAxisSize: MainAxisSize.min,

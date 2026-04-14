@@ -9,106 +9,88 @@ import '../../domain/usecases/get_category_stats_use_case.dart';
 import '../../domain/usecases/get_expense_summary_use_case.dart';
 import '../../domain/usecases/get_weekday_stats_use_case.dart';
 
+/// 통계 화면 상태 — isLoading/errorMessage는 AsyncValue가 처리
 class StatsState {
   final DateTime selectedMonth;
   final List<CategoryStat> categoryStats;
   final List<WeekdayStat> weekdayStats;
-  final bool isLoading;
-  final String? errorMessage;
 
   const StatsState({
     required this.selectedMonth,
     this.categoryStats = const [],
     this.weekdayStats = const [],
-    this.isLoading = false,
-    this.errorMessage,
   });
 
   StatsState copyWith({
     DateTime? selectedMonth,
     List<CategoryStat>? categoryStats,
     List<WeekdayStat>? weekdayStats,
-    bool? isLoading,
-    String? errorMessage,
-    bool clearError = false,
   }) {
     return StatsState(
       selectedMonth: selectedMonth ?? this.selectedMonth,
       categoryStats: categoryStats ?? this.categoryStats,
       weekdayStats: weekdayStats ?? this.weekdayStats,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 }
 
 /// 통계 화면 ViewModel
-class StatsViewModel extends Notifier<StatsState> {
-  GetCategoryStatsUseCase get _categoryStats =>
+class StatsViewModel extends AsyncNotifier<StatsState> {
+  GetCategoryStatsUseCase get _categoryStatsUseCase =>
       getIt<GetCategoryStatsUseCase>();
-  GetWeekdayStatsUseCase get _weekdayStats => getIt<GetWeekdayStatsUseCase>();
-  GetExpenseSummaryUseCase get _summary => getIt<GetExpenseSummaryUseCase>();
+  GetWeekdayStatsUseCase get _weekdayStatsUseCase =>
+      getIt<GetWeekdayStatsUseCase>();
+  GetExpenseSummaryUseCase get _summaryUseCase =>
+      getIt<GetExpenseSummaryUseCase>();
 
   @override
-  StatsState build() {
-    final now = DateTime.now();
-    final initialState = StatsState(
-      selectedMonth: DateTime(now.year, now.month, 1),
-      isLoading: true,
+  Future<StatsState> build() => _fetchStats(
+        DateTime(DateTime.now().year, DateTime.now().month, 1),
+      );
+
+  Future<StatsState> _fetchStats(DateTime month) async {
+    final (categoryStats, weekdayStats) = await (
+      _categoryStatsUseCase.execute(year: month.year, month: month.month),
+      _weekdayStatsUseCase.execute(),
+    ).wait;
+    return StatsState(
+      selectedMonth: month,
+      categoryStats: categoryStats,
+      weekdayStats: weekdayStats,
     );
-    Future.microtask(loadStats);
-    return initialState;
   }
 
-  /// 선택된 월을 delta만큼 이동하고 통계를 다시 로드한다
+  /// 선택된 월을 delta만큼 이동하고 통계를 다시 로드한다.
+  /// 이전 데이터를 유지하며 로딩 상태를 표시한다.
   Future<void> changeMonth(int delta) async {
-    final current = state.selectedMonth;
+    final current = state.requireValue.selectedMonth;
     final newMonth = DateTime(current.year, current.month + delta, 1);
-    state = state.copyWith(
-      selectedMonth: newMonth,
-      isLoading: true,
-      clearError: true,
-    );
-    await loadStats();
+    // 이전 데이터를 유지하면서 로딩 상태로 전환
+    state = AsyncLoading<StatsState>();
+    state = await AsyncValue.guard(() => _fetchStats(newMonth));
   }
 
-  /// 현재 선택된 월의 카테고리 통계와 요일별 통계를 로드한다
-  Future<void> loadStats() async {
-    state = state.copyWith(isLoading: true, clearError: true);
-    try {
-      final (categoryStats, weekdayStats) = await (
-        _categoryStats.execute(
-          year: state.selectedMonth.year,
-          month: state.selectedMonth.month,
-        ),
-        _weekdayStats.execute(),
-      ).wait;
-      state = state.copyWith(
-        categoryStats: categoryStats,
-        weekdayStats: weekdayStats,
-        isLoading: false,
-      );
-    } catch (_) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: '통계를 불러오지 못했습니다.',
-      );
-    }
+  /// 화면 당김 새로고침 — build()를 재실행한다
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
   }
 
   /// 선택된 월의 월간 요약을 반환한다
-  Future<ExpenseSummary> getMonthlySummary() => _summary.executeMonthly(
-        year: state.selectedMonth.year,
-        month: state.selectedMonth.month,
-      );
+  Future<ExpenseSummary> getMonthlySummary() {
+    final month = state.requireValue.selectedMonth;
+    return _summaryUseCase.executeMonthly(
+      year: month.year,
+      month: month.month,
+    );
+  }
 
   /// 현재 주(일요일 기준)의 주간 요약을 반환한다
   Future<ExpenseSummary> getWeeklySummary() {
     final weekStart = AppDateUtils.weekStartOf(DateTime.now());
-    return _summary.executeWeekly(weekStart: weekStart);
+    return _summaryUseCase.executeWeekly(weekStart: weekStart);
   }
 }
 
-final statsViewModelProvider = NotifierProvider<StatsViewModel, StatsState>(
-  StatsViewModel.new,
-);
+final statsViewModelProvider =
+    AsyncNotifierProvider<StatsViewModel, StatsState>(StatsViewModel.new);
