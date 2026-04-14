@@ -63,10 +63,11 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
   /// 선택된 월을 delta만큼 이동하고 통계를 다시 로드한다.
   /// 이전 데이터를 유지하며 로딩 상태를 표시한다.
   Future<void> changeMonth(int delta) async {
-    final current = state.requireValue.selectedMonth;
+    final now = DateTime.now();
+    final current = state.asData?.value.selectedMonth ??
+        DateTime(now.year, now.month, 1);
     final newMonth = DateTime(current.year, current.month + delta, 1);
-    // 이전 데이터를 유지하면서 로딩 상태로 전환
-    state = const AsyncLoading<StatsState>().copyWithPrevious(state);
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetchStats(newMonth));
   }
 
@@ -78,7 +79,9 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
 
   /// 선택된 월의 월간 요약을 반환한다
   Future<ExpenseSummary> getMonthlySummary() {
-    final month = state.requireValue.selectedMonth;
+    final now = DateTime.now();
+    final month = state.asData?.value.selectedMonth ??
+        DateTime(now.year, now.month, 1);
     return _summaryUseCase.executeMonthly(
       year: month.year,
       month: month.month,

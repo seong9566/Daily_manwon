@@ -23,7 +23,6 @@ class StatsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: bgColor,
       body: state.when(
-        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
           child: Text(
