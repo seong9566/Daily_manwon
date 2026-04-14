@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/category_stat.dart';
+import '../../domain/entities/daily_stat.dart';
 import '../../domain/entities/expense_summary.dart';
 import '../../domain/entities/weekday_stat.dart';
 
@@ -15,14 +16,11 @@ class StatsLocalDatasource {
 
   StatsLocalDatasource(this._db);
 
-  /// 특정 월의 카테고리별 지출 합계를 내림차순으로 반환한다
-  Future<List<CategoryStat>> getCategoryStats({
-    required int year,
-    required int month,
-  }) async {
-    final start = DateTime(year, month, 1);
-    final end = DateTime(year, month + 1, 1);
-
+  /// [from] 이상 [to] 미만 기간의 카테고리별 지출 합계를 내림차순으로 반환한다
+  Future<List<CategoryStat>> getCategoryStatsForRange(
+    DateTime from,
+    DateTime to,
+  ) async {
     final rows = await _db.customSelect(
       'SELECT category, SUM(amount) AS total '
       'FROM expenses '
@@ -30,8 +28,8 @@ class StatsLocalDatasource {
       'GROUP BY category '
       'ORDER BY total DESC',
       variables: [
-        Variable.withDateTime(start),
-        Variable.withDateTime(end),
+        Variable.withDateTime(from),
+        Variable.withDateTime(to),
       ],
       readsFrom: {_db.expenses},
     ).get();
@@ -50,21 +48,68 @@ class StatsLocalDatasource {
     }).toList();
   }
 
-  /// 최근 28일(4주) 요일별 일평균 지출을 반환한다
+  /// 특정 월의 카테고리별 지출 합계를 내림차순으로 반환한다
+  Future<List<CategoryStat>> getCategoryStats({
+    required int year,
+    required int month,
+  }) => getCategoryStatsForRange(
+        DateTime(year, month, 1),
+        DateTime(year, month + 1, 1),
+      );
+
+  /// 해당 주(일~토) 7일의 일별 지출을 반환한다
+  /// [weekStart]: 해당 주 일요일 00:00:00 (로컬 시간)
+  /// [반환]: 지출 없는 날은 amount=0으로 채워 항상 7개 반환
+  Future<List<DailyStat>> getDailyAmountsForWeek(DateTime weekStart) async {
+    final weekEnd = weekStart.add(const Duration(days: 7));
+
+    final expenses = await (_db.select(_db.expenses)
+          ..where(
+            (e) =>
+                e.createdAt.isBiggerOrEqualValue(weekStart) &
+                e.createdAt.isSmallerThanValue(weekEnd),
+          ))
+        .get();
+
+    // Dart 로컬 날짜 기준 집계 — SQLite strftime UTC 오류 방지
+    final Map<String, int> dayMap = {};
+    for (final e in expenses) {
+      final key = _localDayKey(e.createdAt.toLocal());
+      dayMap[key] = (dayMap[key] ?? 0) + e.amount;
+    }
+
+    return List.generate(7, (i) {
+      // DST 안전: Duration 덧셈 대신 날짜 필드로 직접 생성
+      final date = DateTime(
+        weekStart.year,
+        weekStart.month,
+        weekStart.day + i,
+      );
+      return DailyStat(date: date, amount: dayMap[_localDayKey(date)] ?? 0);
+    });
+  }
+
+  /// 로컬 날짜를 'yyyy-MM-dd' 문자열 key로 변환한다
+  String _localDayKey(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-'
+      '${dt.day.toString().padLeft(2, '0')}';
+
+  /// 지정된 월의 요일별 일평균 지출을 반환한다
   ///
   /// SQLite strftime('%w') 기준: 0=일, 1=월 … 6=토
-  /// Drift는 DateTime을 밀리초 단위 정수로 저장하므로 /1000 후 unixepoch 변환
-  Future<List<WeekdayStat>> getWeekdayStats() async {
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final tomorrow = todayStart.add(const Duration(days: 1));
-    final from = todayStart.subtract(const Duration(days: 27));
+  /// Drift 2.x는 DateTimeColumn을 Unix 초 단위 정수로 저장한다 (/1000 불필요)
+  Future<List<WeekdayStat>> getWeekdayStats({
+    required int year,
+    required int month,
+  }) async {
+    final from = DateTime(year, month, 1);
+    final monthEnd = DateTime(year, month + 1, 1);
 
     final rows = await _db.customSelect(
       'SELECT weekday, AVG(day_total) AS avg_amount '
       'FROM ('
-      '  SELECT strftime(\'%w\', created_at/1000, \'unixepoch\') AS weekday, '
-      '         strftime(\'%Y-%m-%d\', created_at/1000, \'unixepoch\') AS day_str, '
+      '  SELECT strftime(\'%w\', created_at, \'unixepoch\') AS weekday, '
+      '         strftime(\'%Y-%m-%d\', created_at, \'unixepoch\') AS day_str, '
       '         SUM(amount) AS day_total '
       '  FROM expenses '
       '  WHERE created_at >= ? AND created_at < ? '
@@ -74,7 +119,7 @@ class StatsLocalDatasource {
       'ORDER BY CAST(weekday AS INTEGER)',
       variables: [
         Variable.withDateTime(from),
-        Variable.withDateTime(tomorrow),
+        Variable.withDateTime(monthEnd),
       ],
       readsFrom: {_db.expenses},
     ).get();
