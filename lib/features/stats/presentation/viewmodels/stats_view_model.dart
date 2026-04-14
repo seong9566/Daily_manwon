@@ -66,7 +66,7 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
     final current = state.requireValue.selectedMonth;
     final newMonth = DateTime(current.year, current.month + delta, 1);
     // 이전 데이터를 유지하면서 로딩 상태로 전환
-    state = AsyncLoading<StatsState>();
+    state = const AsyncLoading<StatsState>().copyWithPrevious(state);
     state = await AsyncValue.guard(() => _fetchStats(newMonth));
   }
 
