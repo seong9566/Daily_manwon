@@ -103,6 +103,25 @@ void main() {
       final result = await datasource.getWeekdayStats(year: 2026, month: 4);
       expect(result, isEmpty);
     });
+
+    test('자정 직후 지출은 로컬 날짜 기준 요일로 집계한다', () async {
+      // 2026-04-13 월요일(Dart weekday=1 → %7=1) 00:30 local
+      final mondayMorning = DateTime(2026, 4, 13, 0, 30);
+      await db.into(db.expenses).insert(
+        ExpensesCompanion.insert(
+          amount: 7000,
+          category: 0,
+          createdAt: mondayMorning,
+        ),
+      );
+
+      final result = await datasource.getWeekdayStats(year: 2026, month: 4);
+
+      // weekday=1 (월요일) avgAmount > 0 이어야 한다
+      expect(result.any((s) => s.weekday == 1 && s.avgAmount > 0), isTrue);
+      // weekday=0 (일요일) 은 없어야 한다
+      expect(result.any((s) => s.weekday == 0 && s.avgAmount > 0), isFalse);
+    });
   });
 
   group('getExpenseSummary', () {

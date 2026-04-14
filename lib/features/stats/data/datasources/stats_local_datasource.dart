@@ -96,8 +96,8 @@ class StatsLocalDatasource {
 
   /// 지정된 월의 요일별 일평균 지출을 반환한다
   ///
-  /// SQLite strftime('%w') 기준: 0=일, 1=월 … 6=토
-  /// Drift 2.x는 DateTimeColumn을 Unix 초 단위 정수로 저장한다 (/1000 불필요)
+  /// 요일 인덱스: 0=일, 1=월 … 6=토 (SQLite %w 동일)
+  /// Dart-layer에서 로컬 날짜 기준 집계 — SQLite unixepoch UTC 오류 방지
   Future<List<WeekdayStat>> getWeekdayStats({
     required int year,
     required int month,
@@ -105,31 +105,44 @@ class StatsLocalDatasource {
     final from = DateTime(year, month, 1);
     final monthEnd = DateTime(year, month + 1, 1);
 
-    final rows = await _db.customSelect(
-      'SELECT weekday, AVG(day_total) AS avg_amount '
-      'FROM ('
-      '  SELECT strftime(\'%w\', created_at, \'unixepoch\') AS weekday, '
-      '         strftime(\'%Y-%m-%d\', created_at, \'unixepoch\') AS day_str, '
-      '         SUM(amount) AS day_total '
-      '  FROM expenses '
-      '  WHERE created_at >= ? AND created_at < ? '
-      '  GROUP BY day_str'
-      ') '
-      'GROUP BY weekday '
-      'ORDER BY CAST(weekday AS INTEGER)',
-      variables: [
-        Variable.withDateTime(from),
-        Variable.withDateTime(monthEnd),
-      ],
-      readsFrom: {_db.expenses},
-    ).get();
+    final expenses = await (_db.select(_db.expenses)
+          ..where(
+            (e) =>
+                e.createdAt.isBiggerOrEqualValue(from) &
+                e.createdAt.isSmallerThanValue(monthEnd),
+          ))
+        .get();
 
-    return rows.map((r) {
-      return WeekdayStat(
-        weekday: int.parse(r.read<String>('weekday')),
-        avgAmount: (r.read<double>('avg_amount')).round(),
-      );
-    }).toList();
+    if (expenses.isEmpty) return [];
+
+    // 로컬 날짜별 일 합계 및 요일 매핑
+    final Map<String, int> dayTotals = {};
+    final Map<String, int> dayWeekday = {};
+    for (final e in expenses) {
+      final local = e.createdAt.toLocal();
+      final key = _localDayKey(local);
+      dayTotals[key] = (dayTotals[key] ?? 0) + e.amount;
+      // Dart weekday: 1=Mon…7=Sun → % 7 → 0=Sun, 1=Mon…6=Sat
+      dayWeekday[key] ??= local.weekday % 7;
+    }
+
+    // 요일별 금액 리스트 집계
+    final Map<int, List<int>> weekdayAmounts = {};
+    for (final entry in dayTotals.entries) {
+      final wd = dayWeekday[entry.key]!;
+      (weekdayAmounts[wd] ??= []).add(entry.value);
+    }
+
+    return weekdayAmounts.entries
+        .map(
+          (e) => WeekdayStat(
+            weekday: e.key,
+            avgAmount:
+                (e.value.fold(0, (s, v) => s + v) / e.value.length).round(),
+          ),
+        )
+        .toList()
+      ..sort((a, b) => a.weekday.compareTo(b.weekday));
   }
 
   /// [from] 이상 [to] 미만 기간의 지출 요약을 반환한다
