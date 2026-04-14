@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/category_stat.dart';
+import '../../domain/entities/daily_stat.dart';
 import '../../domain/entities/expense_summary.dart';
 import '../../domain/entities/weekday_stat.dart';
 import '../../domain/repositories/stats_repository.dart';
@@ -19,8 +20,14 @@ class StatsRepositoryImpl implements StatsRepository {
   }) => _datasource.getCategoryStats(year: year, month: month);
 
   @override
-  Future<List<WeekdayStat>> getWeekdayStats() =>
-      _datasource.getWeekdayStats();
+  Future<List<WeekdayStat>> getWeekdayStats({
+    required int year,
+    required int month,
+  }) => _datasource.getWeekdayStats(year: year, month: month);
+
+  @override
+  Future<List<DailyStat>> getDailyStatsForWeek(DateTime weekStart) =>
+      _datasource.getDailyAmountsForWeek(weekStart);
 
   @override
   Future<ExpenseSummary> getWeeklySummary({required DateTime weekStart}) {
