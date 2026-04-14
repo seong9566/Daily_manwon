@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/expense.dart';
@@ -16,7 +18,7 @@ import '../widgets/expense_delete_dialog.dart';
 import '../widgets/favorite_templates_section.dart';
 import '../widgets/number_keypad.dart';
 
-/// 지출 입력 바텀시트를 표시하는 헬퍼 함수
+/// 지출 입력 화면을 표시하는 헬퍼 함수
 /// [date]를 지정하면 해당 날짜로 지출을 기록한다. 미지정 시 오늘 날짜로 기록한다.
 /// 편집 모드([expense] 전달 시)에서는 [date]가 무시되며 기존 지출의 날짜가 표시된다.
 /// 저장 성공 시 true를 반환하며, 취소/닫기 시 false 또는 null 반환
@@ -25,36 +27,43 @@ Future<bool?> showExpenseAddBottomSheet(
   ExpenseEntity? expense,
   DateTime? date,
 }) {
-  return showModalBottomSheet<bool>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  return Navigator.of(context, rootNavigator: true).push<bool>(
+    PageRouteBuilder(
+      opaque: false,
+      barrierColor: Colors.black54,
+      barrierDismissible: true,
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          ExpenseAddScreen(expense: expense, date: date),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: Curves.easeOutCubic));
+        return SlideTransition(position: animation.drive(tween), child: child);
+      },
+      transitionDuration: const Duration(milliseconds: 320),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
     ),
-    isDismissible: true,
-    useRootNavigator: true,
-    builder: (context) => _ExpenseAddBottomSheet(expense: expense, date: date),
   );
 }
 
-/// 지출 입력 바텀시트 위젯
+/// 지출 입력 화면 (Scaffold 기반)
 /// 금액 입력 → 카테고리 선택 → 저장 흐름을 담당한다
-class _ExpenseAddBottomSheet extends ConsumerStatefulWidget {
+class ExpenseAddScreen extends ConsumerStatefulWidget {
   final ExpenseEntity? expense;
 
   /// 새 지출을 기록할 날짜. null이면 오늘. 편집 모드에서는 무시된다.
   final DateTime? date;
 
-  const _ExpenseAddBottomSheet({this.expense, this.date});
+  const ExpenseAddScreen({super.key, this.expense, this.date});
 
   @override
-  ConsumerState<_ExpenseAddBottomSheet> createState() =>
-      _ExpenseAddBottomSheetState();
+  ConsumerState<ExpenseAddScreen> createState() => _ExpenseAddScreenState();
 }
 
-class _ExpenseAddBottomSheetState
-    extends ConsumerState<_ExpenseAddBottomSheet> {
+class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
   /// 현재 입력 중인 금액 문자열 (표시용)
   late String _amountString;
 
@@ -149,7 +158,7 @@ class _ExpenseAddBottomSheetState
   }
 
   /// 지출 저장 처리
-  /// HomeViewModel.addExpense()를 통해 저장 후 바텀시트를 닫는다
+  /// HomeViewModel.addExpense()를 통해 저장 후 화면을 닫는다
   /// 신규 지출 모드에서 [_addToFavorite]가 true이면 AddFavoriteUseCase를 호출하고 favoritesProvider를 갱신한다
   Future<void> _onSave() async {
     if (!_canSave) return;
@@ -178,9 +187,6 @@ class _ExpenseAddBottomSheetState
               ),
             );
       }
-
-      // 홈 화면 데이터 동기화 (캘린더 invalidate는 HomeViewModel.addExpense에서 처리)
-      ref.read(homeViewModelProvider.notifier).refresh();
 
       if (_addToFavorite && widget.expense == null) {
         await getIt<AddFavoriteUseCase>().execute(
@@ -223,161 +229,123 @@ class _ExpenseAddBottomSheetState
     final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
-    // 화면 높이의 70%를 바텀시트 최대 높이로 설정
-    final maxHeight = MediaQuery.of(context).size.height * 0.85;
-
-    return Container(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: bgColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          '${_recordDate.month}월 ${_recordDate.day}일 지출 기록',
+          style: AppTypography.titleMedium.copyWith(color: textMainColor),
+        ),
+        actions: [
+          if (widget.expense != null)
+            IconButton(
+              onPressed: _onDelete,
+              icon: Icon(
+                CupertinoIcons.delete,
+                size: 22,
+                color: AppColors.budgetDanger,
+              ),
+              tooltip: '삭제',
+            ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close_rounded, size: 24, color: textSubColor),
+            tooltip: '닫기',
+          ),
+        ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── 드래그 핸들 ──────────────────────────────
-          const SizedBox(height: 12),
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkDivider : AppColors.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // ── 즐겨찾기 / 자동학습 칩 ──────────────────────
+            if (widget.expense == null)
+              FavoriteTemplatesSection(onTemplateTap: _applyTemplate),
 
-          // ── 헤더: 제목 + 닫기 버튼 ──────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  '${_recordDate.month}월 ${_recordDate.day}일 지출 기록',
-                  style: AppTypography.titleMedium.copyWith(
-                    color: textMainColor,
-                  ),
-                ),
-                const Spacer(),
-                if (widget.expense != null)
-                  IconButton(
-                    onPressed: _onDelete,
-                    icon: Icon(
-                      CupertinoIcons.delete,
-                      size: 24,
-                      color: AppColors.budgetDanger,
-                    ),
-                    tooltip: '삭제',
-                  ),
-                // IconButton(
-                //   onPressed: () => Navigator.pop(context),
-                //   icon: Icon(
-                //     Icons.close_rounded,
-                //     size: 24,
-                //     color: textSubColor,
-                //   ),
-                //   tooltip: '닫기',
-                // ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // ── 즐겨찾기 / 자동학습 칩 ──────────────────────
-          if (widget.expense == null)
-            FavoriteTemplatesSection(onTemplateTap: _applyTemplate),
-
-          // ── 중앙 영역 (금액, 카테고리, 키패드) - 스크롤 처리로 오버플로우 방지 ──
-          Flexible(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.zero,
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  const SizedBox(height: 12),
-                  // ── 금액 표시 영역 ───────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Semantics(
-                      label: _amountString.isEmpty
-                          ? '입력 금액 없음'
-                          : '입력 금액 ${CurrencyFormatter.formatWithWon(_amount)}',
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          // 금액이 있을 때만 단위 텍스트 표시
-                          if (_amountString.isNotEmpty)
-                            Text(
-                              '₩ ',
-                              style: AppTypography.titleMedium.copyWith(
-                                color: textSubColor,
-                                fontSize: 20,
-                              ),
-                            ),
-                          // 금액 숫자 — 입력 없을 때 플레이스홀더 표시
-                          Text(
-                            _amountString.isEmpty
-                                ? '0'
-                                : CurrencyFormatter.formatNumberOnly(_amount),
-                            style: AppTypography.displayLarge.copyWith(
-                              color: _amountString.isEmpty
-                                  ? (isDark
-                                        ? AppColors.darkTextSub
-                                        : AppColors.textSub)
-                                  : textMainColor,
-                              fontSize: 44,
-                            ),
-                          ),
-                          if (_amountString.isNotEmpty)
-                            Text(
-                              ' 원',
-                              style: AppTypography.titleMedium.copyWith(
-                                color: textSubColor,
-                                fontSize: 20,
-                              ),
-                            ),
-                        ],
+            // ── 금액 표시 영역 ───────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Semantics(
+                label: _amountString.isEmpty
+                    ? '입력 금액 없음'
+                    : '입력 금액 ${CurrencyFormatter.formatWithWon(_amount)}',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    if (_amountString.isNotEmpty)
+                      Text(
+                        '₩ ',
+                        style: AppTypography.amountUnit.copyWith(
+                          color: textSubColor,
+                        ),
+                      ),
+                    Text(
+                      _amountString.isEmpty
+                          ? '0'
+                          : CurrencyFormatter.formatNumberOnly(_amount),
+                      style: AppTypography.displayAmount.copyWith(
+                        color: _amountString.isEmpty
+                            ? (isDark
+                                  ? AppColors.darkTextSub
+                                  : AppColors.textSub)
+                            : textMainColor,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ── 카테고리 선택 ────────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: CategorySelector(
-                      selectedCategory: _selectedCategory,
-                      onCategoryChanged: (category) {
-                        setState(() => _selectedCategory = category);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── 구분선 ───────────────────────────────────
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: isDark ? AppColors.darkDivider : AppColors.divider,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // ── 커스텀 숫자 키패드 ───────────────────────
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: NumberKeypad(
-                      onNumberPressed: _onNumberPressed,
-                      onBackspacePressed: _onBackspacePressed,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                    if (_amountString.isNotEmpty)
+                      Text(
+                        ' 원',
+                        style: AppTypography.amountUnit.copyWith(
+                          color: textSubColor,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 24),
 
+            // ── 카테고리 선택 ────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: CategorySelector(
+                selectedCategory: _selectedCategory,
+                onCategoryChanged: (category) {
+                  setState(() => _selectedCategory = category);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── 구분선 ───────────────────────────────────
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: isDark ? AppColors.darkDivider : AppColors.divider,
+            ),
+            const SizedBox(height: 8),
+
+            // ── 커스텀 숫자 키패드 ───────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: NumberKeypad(
+                onNumberPressed: _onNumberPressed,
+                onBackspacePressed: _onBackspacePressed,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           // ── 즐겨찾기 추가 체크박스 ────────────────────────
           if (widget.expense == null)
             Row(
@@ -385,17 +353,13 @@ class _ExpenseAddBottomSheetState
               children: [
                 Checkbox(
                   value: _addToFavorite,
-                  onChanged: (v) =>
-                      setState(() => _addToFavorite = v ?? false),
+                  onChanged: (v) => setState(() => _addToFavorite = v ?? false),
                 ),
-                Text(
-                  '즐겨찾기에 추가',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                Text('즐겨찾기에 추가', style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
 
-          // ── 기록하기 버튼 (하단 고정) ────────────────────────
+          // ── 기록하기 버튼 ────────────────────────────────
           Padding(
             padding: EdgeInsets.fromLTRB(
               20,
@@ -412,7 +376,7 @@ class _ExpenseAddBottomSheetState
                 duration: const Duration(milliseconds: 200),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 52,
+                  height: AppSpacing.buttonHeight,
                   child: ElevatedButton(
                     onPressed: _canSave ? _onSave : null,
                     style: ElevatedButton.styleFrom(
@@ -426,7 +390,7 @@ class _ExpenseAddBottomSheetState
                           ? AppColors.darkTextMain
                           : AppColors.textMain,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppRadius.card),
                       ),
                       elevation: 0,
                     ),

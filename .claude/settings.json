@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "agent",
+            "model": "haiku",
+            "prompt": "A file was just written or edited. Tool input: $ARGUMENTS\n\nStep 1: Extract file_path from tool_input.\n- If the file is NOT a .dart file under lib/, stop immediately and output nothing.\n\nStep 2: If it IS a .dart file under lib/:\n1. Read the edited file\n2. Read docs/flutter_kit/flutter-ui-ux/SKILL.md\n3. Read docs/flutter_kit/flutter-architecture/SKILL.md\n4. Compare the code against flutter_kit rules\n\nStep 3: Report ONLY actual violations found. Format:\n[flutter_kit 위반]\n- <규칙 이름>: <위반 내용> (line N)\n\nIf no violations, output nothing. Do not summarize the file. Be concise.",
+            "statusMessage": "flutter_kit 규칙 검토 중...",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

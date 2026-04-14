@@ -20,6 +20,25 @@ abstract final class AppTypography {
     letterSpacing: -0.5,
   );
 
+  /// 지출 입력 화면 금액 입력 숫자 표시용
+  static const TextStyle displayAmount = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 44,
+    fontWeight: FontWeight.w700, // Bold
+    color: AppColors.textMain,
+    height: 1.2,
+    letterSpacing: -0.5,
+  );
+
+  /// 금액 단위 레이블 (₩, 원) 표시용
+  static const TextStyle amountUnit = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w600, // SemiBold
+    color: AppColors.textSub,
+    height: 1.4,
+  );
+
   // -------------------------
   // Title - 섹션 구분
   // -------------------------
