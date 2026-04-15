@@ -133,4 +133,22 @@ class WidgetService {
       debugPrint('WidgetService: 위젯 갱신 실패 — $e');
     }
   }
+
+  /// 즐겨찾기 목록만 위젯에 갱신한다.
+  ///
+  /// 지출·잔액 등 나머지 키는 기존 값을 유지하고 favoritesKey만 덮어쓴다.
+  /// 즐겨찾기 추가/삭제 시 호출한다.
+  Future<void> updateFavorites(List<Map<String, dynamic>> favorites) async {
+    if (!_appGroupAvailable) return;
+    try {
+      await HomeWidget.saveWidgetData<String>(
+        'favoritesKey',
+        jsonEncode(favorites),
+      );
+      await HomeWidget.updateWidget(iOSName: 'DailyHomeWidget');
+      debugPrint('WidgetService: 즐겨찾기 위젯 갱신 완료 (${favorites.length}건)');
+    } catch (e) {
+      debugPrint('WidgetService: 즐겨찾기 위젯 갱신 실패 — $e');
+    }
+  }
 }
