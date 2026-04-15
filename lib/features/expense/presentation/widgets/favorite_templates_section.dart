@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
 
 /// 수동 즐겨찾기 + 자동학습 추천 칩 목록
@@ -58,8 +59,7 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                       ),
                       label: Text(
                         _formatAmount(fav.amount),
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: AppTypography.bodyMedium.copyWith(
                           color: isDark
                               ? AppColors.darkTextMain
                               : AppColors.textMain,
@@ -108,8 +108,7 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                       ),
                       label: Text(
                         _formatAmount(t['amount']!),
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: AppTypography.bodySmall.copyWith(
                           color: isDark
                               ? AppColors.darkTextSub
                               : AppColors.textSub,
