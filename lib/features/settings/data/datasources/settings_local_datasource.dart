@@ -108,4 +108,21 @@ class SettingsLocalDatasource {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('new_week_seen_$weekKey', true);
   }
+
+  static const _dismissedAutoKey = 'dismissed_auto_suggestions';
+
+  /// 세션을 초월해 영구 저장된 자동학습 숨김 키 집합을 반환한다 ("amount_category")
+  Future<Set<String>> getDismissedAutoSuggestions() async {
+    final prefs = await SharedPreferences.getInstance();
+    return (prefs.getStringList(_dismissedAutoKey) ?? []).toSet();
+  }
+
+  /// 자동학습 칩 숨김 키를 영구 저장한다 — 중복 추가는 무시
+  Future<void> addDismissedAutoSuggestion(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getStringList(_dismissedAutoKey) ?? [];
+    if (!current.contains(key)) {
+      await prefs.setStringList(_dismissedAutoKey, [...current, key]);
+    }
+  }
 }

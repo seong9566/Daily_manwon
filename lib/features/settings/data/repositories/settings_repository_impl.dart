@@ -43,4 +43,12 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<void> markNewWeekSeen(String weekKey) =>
       _datasource.markNewWeekSeen(weekKey);
+
+  @override
+  Future<Set<String>> getDismissedAutoSuggestions() =>
+      _datasource.getDismissedAutoSuggestions();
+
+  @override
+  Future<void> addDismissedAutoSuggestion(String key) =>
+      _datasource.addDismissedAutoSuggestion(key);
 }

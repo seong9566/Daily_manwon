@@ -1,8 +1,15 @@
 import 'package:daily_manwon/features/expense/domain/entities/favorite_expense.dart';
 import 'package:daily_manwon/features/expense/presentation/widgets/favorite_templates_section.dart';
+import 'package:daily_manwon/features/home/presentation/viewmodels/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// GetIt 없이 빈 HomeState를 반환하는 테스트용 스텁
+class _StubHomeViewModel extends HomeViewModel {
+  @override
+  HomeState build() => const HomeState(isLoading: false, dismissedFreqKeys: {});
+}
 
 void main() {
   testWidgets('즐겨찾기가 없으면 칩 미표시', (tester) async {
@@ -11,6 +18,7 @@ void main() {
         overrides: [
           favoritesProvider.overrideWith((_) async => []),
           frequentTemplatesProvider.overrideWith((_) async => []),
+          homeViewModelProvider.overrideWith(_StubHomeViewModel.new),
         ],
         child: MaterialApp(
           home: Scaffold(
@@ -26,7 +34,10 @@ void main() {
   testWidgets('수동 즐겨찾기 칩 표시', (tester) async {
     final favorites = [
       FavoriteExpenseEntity(
-        id: 1, amount: 3500, category: 2, usageCount: 3,
+        id: 1,
+        amount: 3500,
+        category: 2,
+        usageCount: 3,
         createdAt: DateTime.utc(2026, 4, 1),
       ),
     ];
@@ -35,6 +46,7 @@ void main() {
         overrides: [
           favoritesProvider.overrideWith((_) async => favorites),
           frequentTemplatesProvider.overrideWith((_) async => []),
+          homeViewModelProvider.overrideWith(_StubHomeViewModel.new),
         ],
         child: MaterialApp(
           home: Scaffold(

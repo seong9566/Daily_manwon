@@ -23,4 +23,10 @@ abstract interface class SettingsRepository {
 
   /// 해당 주차에 새 주 알림을 확인했음을 저장한다
   Future<void> markNewWeekSeen(String weekKey);
+
+  /// 세션을 초월해 영구 저장된 자동학습 숨김 키 집합을 반환한다 ("amount_category")
+  Future<Set<String>> getDismissedAutoSuggestions();
+
+  /// 자동학습 칩 숨김 키를 영구 저장한다
+  Future<void> addDismissedAutoSuggestion(String key);
 }

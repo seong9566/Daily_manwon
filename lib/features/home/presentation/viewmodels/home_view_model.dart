@@ -14,6 +14,7 @@ import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
+import '../../../expense/domain/usecases/get_frequent_templates_use_case.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
@@ -36,6 +37,9 @@ class HomeState {
   /// d일요일 첫 접근 인터스티셜 트리거 여부
   final bool isNewWeek;
 
+  /// 앱을 재실행해도 유지되는 자동학습 칩 숨김 키 집합 ("amount_category")
+  final Set<String> dismissedFreqKeys;
+
   const HomeState({
     this.remainingBudget = 10000,
     this.totalBudget = 10000,
@@ -45,6 +49,7 @@ class HomeState {
     this.isLoading = true,
     this.carryOver = 0,
     this.isNewWeek = false,
+    this.dismissedFreqKeys = const {},
   });
 
   HomeState copyWith({
@@ -56,6 +61,7 @@ class HomeState {
     bool? isLoading,
     int? carryOver,
     bool? isNewWeek,
+    Set<String>? dismissedFreqKeys,
     // null로 명시적 초기화가 필요할 때 사용하는 플래그 (S-26g)
     bool clearTitle = false,
   }) {
@@ -68,6 +74,7 @@ class HomeState {
       isLoading: isLoading ?? this.isLoading,
       carryOver: carryOver ?? this.carryOver,
       isNewWeek: isNewWeek ?? this.isNewWeek,
+      dismissedFreqKeys: dismissedFreqKeys ?? this.dismissedFreqKeys,
     );
   }
 }
@@ -142,6 +149,10 @@ class HomeViewModel extends Notifier<HomeState> {
           carryoverEnabled &&
           !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
+      // 자동학습 숨김 키 로드
+      final dismissedKeys =
+          await settingsRepository.getDismissedAutoSuggestions();
+
       state = state.copyWith(
         remainingBudget: remaining,
         totalBudget: totalBudget,
@@ -151,6 +162,7 @@ class HomeViewModel extends Notifier<HomeState> {
         isLoading: false,
         carryOver: carryOver,
         isNewWeek: isNewWeek,
+        dismissedFreqKeys: dismissedKeys,
       );
 
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
@@ -158,6 +170,14 @@ class HomeViewModel extends Notifier<HomeState> {
           ? 'new_week'
           : CharacterMood.fromRemaining(remaining, totalBudget).name;
       final favoritesList = await getIt<GetFavoritesUseCase>().execute();
+      final frequentList =
+          await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
+      final favoriteKeys =
+          favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
+      final dedupedFrequent = frequentList
+          .where((t) =>
+              !favoriteKeys.contains('${t['amount']}_${t['category']}'))
+          .toList();
       unawaited(
         getIt<WidgetService>().updateWidget(
           total: totalBudget,
@@ -174,16 +194,24 @@ class HomeViewModel extends Notifier<HomeState> {
               )
               .toList(),
           catMood: catMood,
-          favorites: favoritesList
-              .map(
-                (f) => {
-                  'id': f.id,
-                  'amount': f.amount,
-                  'category': f.category,
-                  'memo': f.memo,
-                },
-              )
-              .toList(),
+          favorites: [
+            ...favoritesList.map(
+              (f) => {
+                'id': f.id,
+                'amount': f.amount,
+                'category': f.category,
+                'memo': f.memo,
+              },
+            ),
+            ...dedupedFrequent.map(
+              (t) => {
+                'id': 0,
+                'amount': t['amount']!,
+                'category': t['category']!,
+                'memo': '',
+              },
+            ),
+          ],
         ),
       );
     } catch (e) {
@@ -221,6 +249,14 @@ class HomeViewModel extends Notifier<HomeState> {
           // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
           if (!state.isLoading) {
             final favoritesList = await getIt<GetFavoritesUseCase>().execute();
+            final frequentList =
+                await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
+            final favoriteKeys =
+                favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
+            final dedupedFrequent = frequentList
+                .where((t) =>
+                    !favoriteKeys.contains('${t['amount']}_${t['category']}'))
+                .toList();
             unawaited(
               getIt<WidgetService>().updateWidget(
                 total: state.totalBudget,
@@ -242,16 +278,24 @@ class HomeViewModel extends Notifier<HomeState> {
                         remaining,
                         state.totalBudget,
                       ).name,
-                favorites: favoritesList
-                    .map(
-                      (f) => {
-                        'id': f.id,
-                        'amount': f.amount,
-                        'category': f.category,
-                        'memo': f.memo,
-                      },
-                    )
-                    .toList(),
+                favorites: [
+                  ...favoritesList.map(
+                    (f) => {
+                      'id': f.id,
+                      'amount': f.amount,
+                      'category': f.category,
+                      'memo': f.memo,
+                    },
+                  ),
+                  ...dedupedFrequent.map(
+                    (t) => {
+                      'id': 0,
+                      'amount': t['amount']!,
+                      'category': t['category']!,
+                      'memo': '',
+                    },
+                  ),
+                ],
               ),
             );
           }
@@ -332,6 +376,14 @@ class HomeViewModel extends Notifier<HomeState> {
   /// 즐겨찾기 사용 횟수 증가
   Future<void> incrementFavoriteUsage(int id) async {
     await getIt<IncrementFavoriteUsageUseCase>().execute(id);
+  }
+
+  /// 자동학습 칩을 영구 숨김 처리한다 — UI는 낙관적으로 즉시 갱신하고 SharedPreferences에 저장
+  Future<void> dismissAutoSuggestion(String key) async {
+    state = state.copyWith(
+      dismissedFreqKeys: {...state.dismissedFreqKeys, key},
+    );
+    await getIt<SettingsRepository>().addDismissedAutoSuggestion(key);
   }
 
   /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다

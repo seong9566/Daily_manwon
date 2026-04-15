@@ -11,33 +11,25 @@ import '../../../home/presentation/viewmodels/home_view_model.dart';
 
 /// 수동 즐겨찾기 + 자동학습 추천 칩 목록
 /// 모두 비어 있으면 아무것도 렌더하지 않는다
-class FavoriteTemplatesSection extends ConsumerStatefulWidget {
+class FavoriteTemplatesSection extends ConsumerWidget {
   /// 칩 탭 시 호출 — amount, category, memo 전달
   final void Function(({int amount, int category, String memo})) onTemplateTap;
 
   const FavoriteTemplatesSection({super.key, required this.onTemplateTap});
 
   @override
-  ConsumerState<FavoriteTemplatesSection> createState() =>
-      _FavoriteTemplatesSectionState();
-}
-
-class _FavoriteTemplatesSectionState
-    extends ConsumerState<FavoriteTemplatesSection> {
-  /// 이번 세션에서 X로 숨긴 자동학습 칩 키 집합 ("amount_category")
-  final Set<String> _dismissedFreqKeys = {};
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final favAsync = ref.watch(favoritesProvider);
     final freqAsync = ref.watch(frequentTemplatesProvider);
+    final dismissedFreqKeys =
+        ref.watch(homeViewModelProvider.select((s) => s.dismissedFreqKeys));
 
     return favAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (e, _) => const SizedBox.shrink(),
       data: (favorites) => freqAsync.when(
         loading: () => const SizedBox.shrink(),
-        error: (_, __) => const SizedBox.shrink(),
+        error: (e, _) => const SizedBox.shrink(),
         data: (frequent) {
           final favoriteKeys = favorites
               .map((f) => '${f.amount}_${f.category}')
@@ -46,7 +38,7 @@ class _FavoriteTemplatesSectionState
               .where(
                 (t) =>
                     !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
-                    !_dismissedFreqKeys.contains(
+                    !dismissedFreqKeys.contains(
                       '${t['amount']}_${t['category']}',
                     ),
               )
@@ -100,7 +92,7 @@ class _FavoriteTemplatesSectionState
                               } catch (_) {
                                 // usageCount 증가 실패는 UI에 영향 없음
                               }
-                              widget.onTemplateTap((
+                              onTemplateTap((
                                 amount: fav.amount,
                                 category: fav.category,
                                 memo: fav.memo,
@@ -121,7 +113,7 @@ class _FavoriteTemplatesSectionState
                           ),
                         );
                       }),
-                      // 자동학습 추천 (중복 제거 + 세션 내 숨김 적용)
+                      // 자동학습 추천 (중복 제거 + 영구 숨김 적용)
                       ...deduped.map((t) {
                         final cat = ExpenseCategory.values[t['category']!];
                         return Padding(
@@ -148,18 +140,18 @@ class _FavoriteTemplatesSectionState
                                 ? AppColors.darkTextSub
                                 : AppColors.textSub,
                             onPressed: () {
-                              widget.onTemplateTap((
+                              onTemplateTap((
                                 amount: t['amount']!,
                                 category: t['category']!,
                                 memo: '',
                               ));
                             },
                             onDeleted: () {
-                              setState(() {
-                                _dismissedFreqKeys.add(
-                                  '${t['amount']}_${t['category']}',
-                                );
-                              });
+                              ref
+                                  .read(homeViewModelProvider.notifier)
+                                  .dismissAutoSuggestion(
+                                    '${t['amount']}_${t['category']}',
+                                  );
                             },
                           ),
                         );
