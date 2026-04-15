@@ -4,14 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/expense.dart';
-import '../../domain/usecases/add_favorite_use_case.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/expense_delete_dialog.dart';
@@ -189,11 +187,10 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
       }
 
       if (_addToFavorite && widget.expense == null) {
-        await getIt<AddFavoriteUseCase>().execute(
+        await ref.read(homeViewModelProvider.notifier).addFavorite(
           amount: _amount,
           category: _selectedCategory.index,
         );
-        ref.invalidate(favoritesProvider);
       }
 
       if (mounted) {

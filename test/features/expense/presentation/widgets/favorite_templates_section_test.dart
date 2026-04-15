@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// GetIt 없이 빈 HomeState를 반환하는 테스트용 스텁
+/// GetIt 없이 지정된 HomeState를 반환하는 테스트용 스텁
 class _StubHomeViewModel extends HomeViewModel {
+  final HomeState _stubState;
+  _StubHomeViewModel(this._stubState);
+
   @override
-  HomeState build() => const HomeState(isLoading: false, dismissedFreqKeys: {});
+  HomeState build() => _stubState;
 }
 
 void main() {
@@ -16,9 +19,15 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          favoritesProvider.overrideWith((_) async => []),
-          frequentTemplatesProvider.overrideWith((_) async => []),
-          homeViewModelProvider.overrideWith(_StubHomeViewModel.new),
+          homeViewModelProvider.overrideWith(
+            () => _StubHomeViewModel(
+              const HomeState(
+                isLoading: false,
+                favorites: [],
+                frequentTemplates: [],
+              ),
+            ),
+          ),
         ],
         child: MaterialApp(
           home: Scaffold(
@@ -44,9 +53,15 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          favoritesProvider.overrideWith((_) async => favorites),
-          frequentTemplatesProvider.overrideWith((_) async => []),
-          homeViewModelProvider.overrideWith(_StubHomeViewModel.new),
+          homeViewModelProvider.overrideWith(
+            () => _StubHomeViewModel(
+              HomeState(
+                isLoading: false,
+                favorites: favorites,
+                frequentTemplates: const [],
+              ),
+            ),
+          ),
         ],
         child: MaterialApp(
           home: Scaffold(

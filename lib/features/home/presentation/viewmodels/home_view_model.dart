@@ -8,7 +8,9 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
+import '../../../expense/domain/entities/favorite_expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
+import '../../../expense/domain/usecases/add_favorite_use_case.dart';
 import '../../../expense/domain/usecases/delete_favorite_use_case.dart';
 import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
@@ -40,6 +42,12 @@ class HomeState {
   /// 앱을 재실행해도 유지되는 자동학습 칩 숨김 키 집합 ("amount_category")
   final Set<String> dismissedFreqKeys;
 
+  /// 수동 즐겨찾기 목록 (usageCount 내림차순)
+  final List<FavoriteExpenseEntity> favorites;
+
+  /// 자동학습 추천 템플릿 목록 (최근 30일 집계)
+  final List<Map<String, int>> frequentTemplates;
+
   const HomeState({
     this.remainingBudget = 10000,
     this.totalBudget = 10000,
@@ -50,6 +58,8 @@ class HomeState {
     this.carryOver = 0,
     this.isNewWeek = false,
     this.dismissedFreqKeys = const {},
+    this.favorites = const [],
+    this.frequentTemplates = const [],
   });
 
   HomeState copyWith({
@@ -62,6 +72,8 @@ class HomeState {
     int? carryOver,
     bool? isNewWeek,
     Set<String>? dismissedFreqKeys,
+    List<FavoriteExpenseEntity>? favorites,
+    List<Map<String, int>>? frequentTemplates,
     // null로 명시적 초기화가 필요할 때 사용하는 플래그 (S-26g)
     bool clearTitle = false,
   }) {
@@ -75,6 +87,8 @@ class HomeState {
       carryOver: carryOver ?? this.carryOver,
       isNewWeek: isNewWeek ?? this.isNewWeek,
       dismissedFreqKeys: dismissedFreqKeys ?? this.dismissedFreqKeys,
+      favorites: favorites ?? this.favorites,
+      frequentTemplates: frequentTemplates ?? this.frequentTemplates,
     );
   }
 }
@@ -153,6 +167,10 @@ class HomeViewModel extends Notifier<HomeState> {
       final dismissedKeys =
           await settingsRepository.getDismissedAutoSuggestions();
 
+      final favoritesList = await getIt<GetFavoritesUseCase>().execute();
+      final frequentList =
+          await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
+
       state = state.copyWith(
         remainingBudget: remaining,
         totalBudget: totalBudget,
@@ -163,15 +181,14 @@ class HomeViewModel extends Notifier<HomeState> {
         carryOver: carryOver,
         isNewWeek: isNewWeek,
         dismissedFreqKeys: dismissedKeys,
+        favorites: favoritesList,
+        frequentTemplates: frequentList,
       );
 
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
       final catMood = isNewWeek
           ? 'new_week'
           : CharacterMood.fromRemaining(remaining, totalBudget).name;
-      final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-      final frequentList =
-          await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
       final favoriteKeys =
           favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
       final dedupedFrequent = frequentList
@@ -251,6 +268,11 @@ class HomeViewModel extends Notifier<HomeState> {
             final favoritesList = await getIt<GetFavoritesUseCase>().execute();
             final frequentList =
                 await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
+            // 지출 변동으로 자동학습 결과가 바뀔 수 있으므로 state 갱신
+            state = state.copyWith(
+              favorites: favoritesList,
+              frequentTemplates: frequentList,
+            );
             final favoriteKeys =
                 favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
             final dedupedFrequent = frequentList
@@ -353,10 +375,26 @@ class HomeViewModel extends Notifier<HomeState> {
     await getIt<WidgetService>().processPendingWidgetExpense();
   }
 
-  /// 즐겨찾기 삭제 — DB 삭제 후 iOS 위젯 favoritesKey 동기화
+  /// 즐겨찾기 추가 — DB 저장 후 state 갱신
+  Future<void> addFavorite({
+    required int amount,
+    required int category,
+    String memo = '',
+  }) async {
+    await getIt<AddFavoriteUseCase>().execute(
+      amount: amount,
+      category: category,
+      memo: memo,
+    );
+    final updated = await getIt<GetFavoritesUseCase>().execute();
+    state = state.copyWith(favorites: updated);
+  }
+
+  /// 즐겨찾기 삭제 — DB 삭제 후 state 갱신 + iOS 위젯 favoritesKey 동기화
   Future<void> deleteFavorite(int id) async {
     await getIt<DeleteFavoriteUseCase>().execute(id);
     final updated = await getIt<GetFavoritesUseCase>().execute();
+    state = state.copyWith(favorites: updated);
     unawaited(
       getIt<WidgetService>().updateFavorites(
         updated
@@ -373,9 +411,11 @@ class HomeViewModel extends Notifier<HomeState> {
     );
   }
 
-  /// 즐겨찾기 사용 횟수 증가
+  /// 즐겨찾기 사용 횟수 증가 — usageCount 변동으로 정렬이 바뀔 수 있으므로 state 갱신
   Future<void> incrementFavoriteUsage(int id) async {
     await getIt<IncrementFavoriteUsageUseCase>().execute(id);
+    final updated = await getIt<GetFavoritesUseCase>().execute();
+    state = state.copyWith(favorites: updated);
   }
 
   /// 자동학습 칩을 영구 숨김 처리한다 — UI는 낙관적으로 즉시 갱신하고 SharedPreferences에 저장
