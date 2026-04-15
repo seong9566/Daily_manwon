@@ -130,9 +130,12 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
     // 선택 주의 일요일이 오늘보다 미래이면 성공일 0
     final isFutureWeek = weekStart.isAfter(todayStart);
     // no-spend day(amount=0)도 예산 이하이므로 성공으로 계산한다
+    // 현재 주의 경우 오늘 이후 날짜(미래)는 제외하여 실제 경과 일수만 카운팅
     final weeklySuccessDays = isFutureWeek
         ? 0
-        : dailyStats.where((s) => s.amount <= dailyBudget).length;
+        : dailyStats
+            .where((s) => !s.date.isAfter(todayStart) && s.amount <= dailyBudget)
+            .length;
 
     return StatsState(
       selectedMonth: month,

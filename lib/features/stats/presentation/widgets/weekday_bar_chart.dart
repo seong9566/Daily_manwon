@@ -80,6 +80,7 @@ class WeekdayBarChart extends StatelessWidget {
               labels: _weekdayLabels,
               height: 100,
               isDark: isDark,
+              minBarHeight: 0.5,
             ),
         ],
       ),

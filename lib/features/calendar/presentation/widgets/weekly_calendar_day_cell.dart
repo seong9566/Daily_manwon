@@ -74,7 +74,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
                 isDark: isDark,
               )
             else
-              const SizedBox(height: 3), // 바 높이(3px)와 맞춤
+              const SizedBox(height: 12), // 바 높이(3px)와 맞춤
           ],
         ),
       ),
