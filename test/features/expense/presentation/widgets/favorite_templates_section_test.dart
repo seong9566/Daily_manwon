@@ -20,7 +20,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(ActionChip), findsNothing);
+    expect(find.byType(InputChip), findsNothing);
   });
 
   testWidgets('수동 즐겨찾기 칩 표시', (tester) async {
@@ -44,6 +44,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(ActionChip), findsOneWidget);
+    expect(find.byType(InputChip), findsOneWidget);
   });
 }
