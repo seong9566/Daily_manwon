@@ -7,9 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/favorite_expense.dart';
 import '../../domain/usecases/get_favorites_use_case.dart';
 import '../../domain/usecases/get_frequent_templates_use_case.dart';
-import '../../../../core/services/widget_service.dart';
-import '../../domain/usecases/delete_favorite_use_case.dart';
-import '../../domain/usecases/increment_favorite_usage_use_case.dart';
+import '../../../home/presentation/viewmodels/home_view_model.dart';
 
 /// 수동 즐겨찾기 + 자동학습 추천 칩 목록
 /// 모두 비어 있으면 아무것도 렌더하지 않는다
@@ -96,8 +94,9 @@ class _FavoriteTemplatesSectionState
                                 : AppColors.textSub,
                             onPressed: () async {
                               try {
-                                await getIt<IncrementFavoriteUsageUseCase>()
-                                    .execute(fav.id);
+                                await ref
+                                    .read(homeViewModelProvider.notifier)
+                                    .incrementFavoriteUsage(fav.id);
                               } catch (_) {
                                 // usageCount 증가 실패는 UI에 영향 없음
                               }
@@ -110,36 +109,13 @@ class _FavoriteTemplatesSectionState
                             },
                             onDeleted: () async {
                               try {
-                                await getIt<DeleteFavoriteUseCase>()
-                                    .execute(fav.id);
+                                await ref
+                                    .read(homeViewModelProvider.notifier)
+                                    .deleteFavorite(fav.id);
                               } catch (_) {
                                 // 삭제 실패 시 UI는 provider 갱신 없이 그대로 유지
                                 return;
                               }
-
-                              // iOS HomeWidget favoritesKey 동기화 먼저 —
-                              // provider 갱신 전에 실행해 DB 이중 쿼리 방지
-                              try {
-                                final updated = await getIt<
-                                  GetFavoritesUseCase
-                                >().execute();
-                                await getIt<WidgetService>().updateFavorites(
-                                  updated
-                                      .map(
-                                        (f) => {
-                                          'id': f.id,
-                                          'amount': f.amount,
-                                          'category': f.category,
-                                          'memo': f.memo,
-                                        },
-                                      )
-                                      .toList(),
-                                );
-                              } catch (_) {
-                                // 위젯 동기화 실패는 앱 동작에 영향 없음
-                              }
-
-                              // 위젯 sync 완료 후 provider 갱신 — DB 재조회 1회만 발생
                               ref.invalidate(favoritesProvider);
                             },
                           ),

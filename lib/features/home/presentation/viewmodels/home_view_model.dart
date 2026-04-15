@@ -9,7 +9,9 @@ import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
+import '../../../expense/domain/usecases/delete_favorite_use_case.dart';
 import '../../../expense/domain/usecases/get_favorites_use_case.dart';
+import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
@@ -305,6 +307,31 @@ class HomeViewModel extends Notifier<HomeState> {
   /// 처리 후 [_watchExpenses] 스트림이 자동으로 변경을 감지해 UI를 갱신한다.
   Future<void> processPendingWidgetExpense() async {
     await getIt<WidgetService>().processPendingWidgetExpense();
+  }
+
+  /// 즐겨찾기 삭제 — DB 삭제 후 iOS 위젯 favoritesKey 동기화
+  Future<void> deleteFavorite(int id) async {
+    await getIt<DeleteFavoriteUseCase>().execute(id);
+    final updated = await getIt<GetFavoritesUseCase>().execute();
+    unawaited(
+      getIt<WidgetService>().updateFavorites(
+        updated
+            .map(
+              (f) => {
+                'id': f.id,
+                'amount': f.amount,
+                'category': f.category,
+                'memo': f.memo,
+              },
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  /// 즐겨찾기 사용 횟수 증가
+  Future<void> incrementFavoriteUsage(int id) async {
+    await getIt<IncrementFavoriteUsageUseCase>().execute(id);
   }
 
   /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다
