@@ -15,6 +15,8 @@ import '../../features/expense/domain/usecases/increment_favorite_usage_use_case
 @lazySingleton
 class WidgetService {
   static const _appGroupId = 'group.seong.dailyManwon.homeWidget';
+  static const _pendingActionKey = 'widget.pendingAction';
+  static const _pendingActionOpenExpense = 'open_add_expense';
 
   /// App Group 접근 가능 여부 — init() 호출 전까지 false
   bool _appGroupAvailable = false;
@@ -42,7 +44,7 @@ class WidgetService {
   ///  - [init]: 콜드 스타트 시
   ///  - HomeViewModel.processPendingWidgetExpense: 앱 포그라운드 복귀 시
   ///
-  /// Swift IntentIntent는 버튼 탭마다 URL을 JSON 배열에 append 한다.
+  /// Swift AppIntent는 버튼 탭마다 URL을 JSON 배열에 append 한다.
   /// 연속 탭 시에도 모든 지출이 누락 없이 처리되도록 배열 전체를 순회한다.
   Future<void> processPendingWidgetExpense() async {
     if (!_appGroupAvailable) return;
@@ -117,9 +119,9 @@ class WidgetService {
   Future<bool> checkAndClearPendingOpenExpense() async {
     if (!_appGroupAvailable) return false;
     try {
-      final action = await HomeWidget.getWidgetData<String>('widget.pendingAction');
-      if (action == 'open_add_expense') {
-        await HomeWidget.saveWidgetData<String>('widget.pendingAction', '');
+      final action = await HomeWidget.getWidgetData<String>(_pendingActionKey);
+      if (action == _pendingActionOpenExpense) {
+        await HomeWidget.saveWidgetData<String>(_pendingActionKey, '');
         debugPrint('WidgetService: pending open_add_expense 감지 → 플래그 초기화');
         return true;
       }
