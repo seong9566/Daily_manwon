@@ -163,4 +163,51 @@ void main() {
     expect(find.byType(InputChip), findsNothing);
     expect(find.text('최근 내역이 없습니다.'), findsOneWidget);
   });
+
+  testWidgets('"최근 내역" 탭 칩 탭 시 onTemplateTap 콜백 호출', (tester) async {
+    ({int amount, int category, String memo})? captured;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          homeViewModelProvider.overrideWith(
+            () => _StubHomeViewModel(
+              HomeState(
+                isLoading: false,
+                favorites: [],
+                recentExpenses: [
+                  ExpenseEntity(
+                    id: 10, amount: 4500, category: 1,
+                    memo: '점심',
+                    createdAt: DateTime.utc(2026, 4, 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: FavoriteTemplatesSection(
+              onTemplateTap: (t) => captured = t,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // "최근 내역" 탭으로 전환
+    await tester.tap(find.text('최근 내역'));
+    await tester.pumpAndSettle();
+
+    // 칩 탭
+    await tester.tap(find.byType(InputChip));
+    await tester.pumpAndSettle();
+
+    expect(captured, isNotNull);
+    expect(captured!.amount, 4500);
+    expect(captured!.category, 1);
+    expect(captured!.memo, '점심');
+  });
 }
