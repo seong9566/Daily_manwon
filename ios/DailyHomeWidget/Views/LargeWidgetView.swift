@@ -111,16 +111,25 @@ struct DailyHomeLargeView: View {
             // 프로그레스 바
             WidgetProgressBar(ratio: entry.progressRatio, colors: colors)
 
-            // ── 즐겨찾기 빠른 입력 ───────────────────────────────────
-            if !entry.favorites.isEmpty {
-                Spacer().frame(height: 12)
+            // ── 빠른 입력 헤더 + "+" 버튼 (항상 표시) ─────────────────
+            Spacer().frame(height: 12)
 
+            HStack {
                 Text("빠른 입력")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(colors.secondaryText)
+                Spacer()
+                Button(intent: OpenAddExpenseIntent()) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(colors.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
 
-                Spacer().frame(height: 8)
+            Spacer().frame(height: 8)
 
+            if !entry.favorites.isEmpty {
                 // 즐겨찾기 버튼 — 최대 4개, 2×2 그리드
                 let displayFavs = Array(entry.favorites.prefix(4))
                 LazyVGrid(
@@ -161,12 +170,12 @@ struct DailyHomeLargeView: View {
                 }
             } else {
                 // 즐겨찾기 없을 때 안내 메시지
-                Spacer()
                 HStack {
                     Spacer()
-                    Text("앱에서 즐겨찾기를 추가해보세요")
-                        .font(.system(size: 12))
+                    Text("즐겨찾기를 추가하면 빠르게 기록할 수 있어요")
+                        .font(.system(size: 11))
                         .foregroundColor(colors.secondaryText.opacity(0.6))
+                        .multilineTextAlignment(.center)
                     Spacer()
                 }
             }
