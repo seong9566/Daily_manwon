@@ -46,8 +46,6 @@ import '../../features/expense/domain/usecases/delete_favorite_use_case.dart'
     as _i175;
 import '../../features/expense/domain/usecases/get_favorites_use_case.dart'
     as _i314;
-import '../../features/expense/domain/usecases/get_frequent_templates_use_case.dart'
-    as _i988;
 import '../../features/expense/domain/usecases/increment_favorite_usage_use_case.dart'
     as _i157;
 import '../../features/expense/domain/usecases/update_expense_use_case.dart'
@@ -231,11 +229,6 @@ _i174.GetIt $initGetIt(
   );
   gh.lazySingleton<_i314.GetFavoritesUseCase>(
     () => _i314.GetFavoritesUseCase(gh<_i758.FavoriteExpenseRepository>()),
-  );
-  gh.lazySingleton<_i988.GetFrequentTemplatesUseCase>(
-    () => _i988.GetFrequentTemplatesUseCase(
-      gh<_i758.FavoriteExpenseRepository>(),
-    ),
   );
   gh.lazySingleton<_i157.IncrementFavoriteUsageUseCase>(
     () => _i157.IncrementFavoriteUsageUseCase(
