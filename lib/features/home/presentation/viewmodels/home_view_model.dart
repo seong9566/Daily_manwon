@@ -16,7 +16,7 @@ import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
-import '../../../expense/domain/repositories/favorite_expense_repository.dart';
+import '../../../expense/domain/usecases/get_recent_expenses_use_case.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
@@ -39,8 +39,11 @@ class HomeState {
   /// 일요일 첫 접근 인터스티셜 트리거 여부
   final bool isNewWeek;
 
-  /// 수동 + 자동학습 즐겨찾기 목록 (usageCount 내림차순)
+  /// 수동 즐겨찾기 목록 (usageCount 내림차순)
   final List<FavoriteExpenseEntity> favorites;
+
+  /// 최근 7일 내 지출 최대 10건 (최신순) — "최근 내역" 탭용
+  final List<ExpenseEntity> recentExpenses;
 
   const HomeState({
     this.remainingBudget = 10000,
@@ -52,6 +55,7 @@ class HomeState {
     this.carryOver = 0,
     this.isNewWeek = false,
     this.favorites = const [],
+    this.recentExpenses = const [],
   });
 
   HomeState copyWith({
@@ -64,6 +68,7 @@ class HomeState {
     int? carryOver,
     bool? isNewWeek,
     List<FavoriteExpenseEntity>? favorites,
+    List<ExpenseEntity>? recentExpenses,
     bool clearTitle = false,
   }) {
     return HomeState(
@@ -76,6 +81,7 @@ class HomeState {
       carryOver: carryOver ?? this.carryOver,
       isNewWeek: isNewWeek ?? this.isNewWeek,
       favorites: favorites ?? this.favorites,
+      recentExpenses: recentExpenses ?? this.recentExpenses,
     );
   }
 }
@@ -127,11 +133,6 @@ class HomeViewModel extends Notifier<HomeState> {
 
       final settingsRepository = getIt<SettingsRepository>();
 
-      // 구버전 dismiss 데이터 일회성 삭제 (기존 사용자 마이그레이션)
-      await settingsRepository.clearLegacyDismissedSuggestions();
-      // 앱 시작 시 자동 즐겨찾기 동기화
-      await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
-
       // 오늘 예산 확보
       final budget = await budgetUseCase.getOrCreateTodayBudget();
       final totalBudget = budget.effectiveBudget;
@@ -156,6 +157,7 @@ class HomeViewModel extends Notifier<HomeState> {
           !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
       final favoritesList = await getIt<GetFavoritesUseCase>().execute();
+      final recentList = await getIt<GetRecentExpensesUseCase>().execute();
 
       state = state.copyWith(
         remainingBudget: remaining,
@@ -167,6 +169,7 @@ class HomeViewModel extends Notifier<HomeState> {
         carryOver: carryOver,
         isNewWeek: isNewWeek,
         favorites: favoritesList,
+        recentExpenses: recentList,
       );
 
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
@@ -234,7 +237,11 @@ class HomeViewModel extends Notifier<HomeState> {
           // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
           if (!state.isLoading) {
             final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-            state = state.copyWith(favorites: favoritesList);
+            final recentList = await getIt<GetRecentExpensesUseCase>().execute();
+            state = state.copyWith(
+              favorites: favoritesList,
+              recentExpenses: recentList,
+            );
             unawaited(
               getIt<WidgetService>().updateWidget(
                 total: state.totalBudget,
@@ -294,30 +301,21 @@ class HomeViewModel extends Notifier<HomeState> {
     await _loadData();
   }
 
-  /// 지출 추가 — 저장 후 자동 즐겨찾기 동기화 (awaited)
-  ///
-  /// ExpenseAddScreen._onSave 호출 순서:
-  ///   1. addExpense (→ syncAutoFavorites: auto row 삽입 가능)
-  ///   2. addFavorite (체크박스 시 → manual row 삽입)
-  /// 동일 조합이 top3이면 auto+manual 두 row 공존 — 중복 허용 정책에 의한 의도된 동작
+  /// 지출 추가
   Future<void> addExpense(ExpenseEntity expense) async {
     await getIt<AddExpenseUseCase>().execute(expense);
-    // awaited: _watchExpenses 스트림 콜백이 getFavorites() 호출 전에 sync 완료되도록
-    await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
     ref.invalidate(calendarViewModelProvider);
   }
 
-  /// 지출 수정 — 자동 즐겨찾기 동기화 (top3 조합이 바뀔 수 있음)
+  /// 지출 수정
   Future<void> updateExpense(ExpenseEntity expense) async {
     await getIt<UpdateExpenseUseCase>().execute(expense);
-    await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
     ref.invalidate(calendarViewModelProvider);
   }
 
-  /// 지출 삭제 — 자동 즐겨찾기 동기화 (top3 조합이 바뀔 수 있음)
+  /// 지출 삭제
   Future<void> deleteExpense(int id) async {
     await getIt<DeleteExpenseUseCase>().execute(id);
-    await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
     ref.invalidate(calendarViewModelProvider);
   }
 

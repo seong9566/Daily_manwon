@@ -109,11 +109,4 @@ class SettingsLocalDatasource {
     await prefs.setBool('new_week_seen_$weekKey', true);
   }
 
-  static const _dismissedAutoKey = 'dismissed_auto_suggestions';
-
-  /// 구버전 자동학습 dismiss SharedPreferences 키를 일회성 삭제
-  Future<void> clearLegacyDismissedSuggestions() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_dismissedAutoKey);
-  }
 }

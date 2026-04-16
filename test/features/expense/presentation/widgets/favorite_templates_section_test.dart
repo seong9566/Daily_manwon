@@ -33,7 +33,7 @@ void main() {
     expect(find.byType(InputChip), findsNothing);
   });
 
-  testWidgets('수동 즐겨찾기(isAuto=false) 칩 1개 표시', (tester) async {
+  testWidgets('즐겨찾기 1개 — 칩 1개 표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -47,7 +47,6 @@ void main() {
                     amount: 3500,
                     category: 2,
                     usageCount: 3,
-                    isAuto: false,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
                 ],
@@ -64,8 +63,7 @@ void main() {
     expect(find.byType(InputChip), findsOneWidget);
   });
 
-  testWidgets('자동 즐겨찾기(isAuto=true) 칩 — 2줄 라벨(카테고리+금액) 표시',
-      (tester) async {
+  testWidgets('즐겨찾기 칩 — 카테고리+금액 라벨 표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -79,7 +77,6 @@ void main() {
                     amount: 1000,
                     category: 2,
                     usageCount: 0,
-                    isAuto: true,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
                 ],
@@ -99,7 +96,7 @@ void main() {
     expect(find.text('1,000원'), findsOneWidget);
   });
 
-  testWidgets('수동+자동 동일 조합 공존 시 칩 2개 표시', (tester) async {
+  testWidgets('즐겨찾기 2개 — 칩 2개 표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -113,15 +110,13 @@ void main() {
                     amount: 1000,
                     category: 2,
                     usageCount: 2,
-                    isAuto: false,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
                   FavoriteExpenseEntity(
                     id: 2,
-                    amount: 1000,
-                    category: 2,
-                    usageCount: 0,
-                    isAuto: true,
+                    amount: 2000,
+                    category: 3,
+                    usageCount: 1,
                     createdAt: DateTime.utc(2026, 4, 2),
                   ),
                 ],

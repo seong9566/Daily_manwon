@@ -24,7 +24,4 @@ abstract interface class SettingsRepository {
   /// 해당 주차에 새 주 알림을 확인했음을 저장한다
   Future<void> markNewWeekSeen(String weekKey);
 
-  /// 구버전 자동학습 dismiss 데이터를 SharedPreferences에서 일회성 삭제한다.
-  /// 앱 초기 로드 시 한 번만 호출하면 된다.
-  Future<void> clearLegacyDismissedSuggestions();
 }

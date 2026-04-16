@@ -44,7 +44,4 @@ class SettingsRepositoryImpl implements SettingsRepository {
   Future<void> markNewWeekSeen(String weekKey) =>
       _datasource.markNewWeekSeen(weekKey);
 
-  @override
-  Future<void> clearLegacyDismissedSuggestions() =>
-      _datasource.clearLegacyDismissedSuggestions();
 }
