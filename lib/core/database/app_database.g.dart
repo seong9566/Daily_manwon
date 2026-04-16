@@ -2029,19 +2029,6 @@ class $FavoriteExpensesTable extends FavoriteExpenses
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _isAutoMeta = const VerificationMeta('isAuto');
-  @override
-  late final GeneratedColumn<bool> isAuto = GeneratedColumn<bool>(
-    'is_auto',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_auto" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2060,7 +2047,6 @@ class $FavoriteExpensesTable extends FavoriteExpenses
     category,
     memo,
     usageCount,
-    isAuto,
     createdAt,
   ];
   @override
@@ -2106,12 +2092,6 @@ class $FavoriteExpensesTable extends FavoriteExpenses
         usageCount.isAcceptableOrUnknown(data['usage_count']!, _usageCountMeta),
       );
     }
-    if (data.containsKey('is_auto')) {
-      context.handle(
-        _isAutoMeta,
-        isAuto.isAcceptableOrUnknown(data['is_auto']!, _isAutoMeta),
-      );
-    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2149,10 +2129,6 @@ class $FavoriteExpensesTable extends FavoriteExpenses
         DriftSqlType.int,
         data['${effectivePrefix}usage_count'],
       )!,
-      isAuto: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_auto'],
-      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2172,7 +2148,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
   final int category;
   final String memo;
   final int usageCount;
-  final bool isAuto;
   final DateTime createdAt;
   const FavoriteExpense({
     required this.id,
@@ -2180,7 +2155,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
     required this.category,
     required this.memo,
     required this.usageCount,
-    required this.isAuto,
     required this.createdAt,
   });
   @override
@@ -2191,7 +2165,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
     map['category'] = Variable<int>(category);
     map['memo'] = Variable<String>(memo);
     map['usage_count'] = Variable<int>(usageCount);
-    map['is_auto'] = Variable<bool>(isAuto);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -2203,7 +2176,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
       category: Value(category),
       memo: Value(memo),
       usageCount: Value(usageCount),
-      isAuto: Value(isAuto),
       createdAt: Value(createdAt),
     );
   }
@@ -2219,7 +2191,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
       category: serializer.fromJson<int>(json['category']),
       memo: serializer.fromJson<String>(json['memo']),
       usageCount: serializer.fromJson<int>(json['usageCount']),
-      isAuto: serializer.fromJson<bool>(json['isAuto']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -2232,7 +2203,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
       'category': serializer.toJson<int>(category),
       'memo': serializer.toJson<String>(memo),
       'usageCount': serializer.toJson<int>(usageCount),
-      'isAuto': serializer.toJson<bool>(isAuto),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -2243,7 +2213,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
     int? category,
     String? memo,
     int? usageCount,
-    bool? isAuto,
     DateTime? createdAt,
   }) => FavoriteExpense(
     id: id ?? this.id,
@@ -2251,7 +2220,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
     category: category ?? this.category,
     memo: memo ?? this.memo,
     usageCount: usageCount ?? this.usageCount,
-    isAuto: isAuto ?? this.isAuto,
     createdAt: createdAt ?? this.createdAt,
   );
   FavoriteExpense copyWithCompanion(FavoriteExpensesCompanion data) {
@@ -2263,7 +2231,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
       usageCount: data.usageCount.present
           ? data.usageCount.value
           : this.usageCount,
-      isAuto: data.isAuto.present ? data.isAuto.value : this.isAuto,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -2276,7 +2243,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
           ..write('category: $category, ')
           ..write('memo: $memo, ')
           ..write('usageCount: $usageCount, ')
-          ..write('isAuto: $isAuto, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -2284,7 +2250,7 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
 
   @override
   int get hashCode =>
-      Object.hash(id, amount, category, memo, usageCount, isAuto, createdAt);
+      Object.hash(id, amount, category, memo, usageCount, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2294,7 +2260,6 @@ class FavoriteExpense extends DataClass implements Insertable<FavoriteExpense> {
           other.category == this.category &&
           other.memo == this.memo &&
           other.usageCount == this.usageCount &&
-          other.isAuto == this.isAuto &&
           other.createdAt == this.createdAt);
 }
 
@@ -2304,7 +2269,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
   final Value<int> category;
   final Value<String> memo;
   final Value<int> usageCount;
-  final Value<bool> isAuto;
   final Value<DateTime> createdAt;
   const FavoriteExpensesCompanion({
     this.id = const Value.absent(),
@@ -2312,7 +2276,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
     this.category = const Value.absent(),
     this.memo = const Value.absent(),
     this.usageCount = const Value.absent(),
-    this.isAuto = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   FavoriteExpensesCompanion.insert({
@@ -2321,7 +2284,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
     required int category,
     this.memo = const Value.absent(),
     this.usageCount = const Value.absent(),
-    this.isAuto = const Value.absent(),
     required DateTime createdAt,
   }) : amount = Value(amount),
        category = Value(category),
@@ -2332,7 +2294,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
     Expression<int>? category,
     Expression<String>? memo,
     Expression<int>? usageCount,
-    Expression<bool>? isAuto,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -2341,7 +2302,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
       if (category != null) 'category': category,
       if (memo != null) 'memo': memo,
       if (usageCount != null) 'usage_count': usageCount,
-      if (isAuto != null) 'is_auto': isAuto,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -2352,7 +2312,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
     Value<int>? category,
     Value<String>? memo,
     Value<int>? usageCount,
-    Value<bool>? isAuto,
     Value<DateTime>? createdAt,
   }) {
     return FavoriteExpensesCompanion(
@@ -2361,7 +2320,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
       category: category ?? this.category,
       memo: memo ?? this.memo,
       usageCount: usageCount ?? this.usageCount,
-      isAuto: isAuto ?? this.isAuto,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -2384,9 +2342,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
     if (usageCount.present) {
       map['usage_count'] = Variable<int>(usageCount.value);
     }
-    if (isAuto.present) {
-      map['is_auto'] = Variable<bool>(isAuto.value);
-    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2401,7 +2356,6 @@ class FavoriteExpensesCompanion extends UpdateCompanion<FavoriteExpense> {
           ..write('category: $category, ')
           ..write('memo: $memo, ')
           ..write('usageCount: $usageCount, ')
-          ..write('isAuto: $isAuto, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3580,7 +3534,6 @@ typedef $$FavoriteExpensesTableCreateCompanionBuilder =
       required int category,
       Value<String> memo,
       Value<int> usageCount,
-      Value<bool> isAuto,
       required DateTime createdAt,
     });
 typedef $$FavoriteExpensesTableUpdateCompanionBuilder =
@@ -3590,7 +3543,6 @@ typedef $$FavoriteExpensesTableUpdateCompanionBuilder =
       Value<int> category,
       Value<String> memo,
       Value<int> usageCount,
-      Value<bool> isAuto,
       Value<DateTime> createdAt,
     });
 
@@ -3625,11 +3577,6 @@ class $$FavoriteExpensesTableFilterComposer
 
   ColumnFilters<int> get usageCount => $composableBuilder(
     column: $table.usageCount,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isAuto => $composableBuilder(
-    column: $table.isAuto,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3673,11 +3620,6 @@ class $$FavoriteExpensesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isAuto => $composableBuilder(
-    column: $table.isAuto,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3709,9 +3651,6 @@ class $$FavoriteExpensesTableAnnotationComposer
     column: $table.usageCount,
     builder: (column) => column,
   );
-
-  GeneratedColumn<bool> get isAuto =>
-      $composableBuilder(column: $table.isAuto, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3759,7 +3698,6 @@ class $$FavoriteExpensesTableTableManager
                 Value<int> category = const Value.absent(),
                 Value<String> memo = const Value.absent(),
                 Value<int> usageCount = const Value.absent(),
-                Value<bool> isAuto = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => FavoriteExpensesCompanion(
                 id: id,
@@ -3767,7 +3705,6 @@ class $$FavoriteExpensesTableTableManager
                 category: category,
                 memo: memo,
                 usageCount: usageCount,
-                isAuto: isAuto,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -3777,7 +3714,6 @@ class $$FavoriteExpensesTableTableManager
                 required int category,
                 Value<String> memo = const Value.absent(),
                 Value<int> usageCount = const Value.absent(),
-                Value<bool> isAuto = const Value.absent(),
                 required DateTime createdAt,
               }) => FavoriteExpensesCompanion.insert(
                 id: id,
@@ -3785,7 +3721,6 @@ class $$FavoriteExpensesTableTableManager
                 category: category,
                 memo: memo,
                 usageCount: usageCount,
-                isAuto: isAuto,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

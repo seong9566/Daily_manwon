@@ -81,16 +81,14 @@ class NotificationSettings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// 수동 + 자동 즐겨찾기 지출 템플릿 테이블
+/// 수동 즐겨찾기 지출 템플릿 테이블
 /// - usageCount: 탭 횟수 (자동 정렬 기준)
-/// - isAuto: true면 자동학습으로 추가된 row — 수동 row와 동일 (amount,category) 공존 가능
 class FavoriteExpenses extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get amount => integer()();
   IntColumn get category => integer()(); // ExpenseCategory enum index
   TextColumn get memo => text().withDefault(const Constant(''))();
   IntColumn get usageCount => integer().withDefault(const Constant(0))();
-  BoolColumn get isAuto => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
 }
 
@@ -112,45 +110,34 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(DatabaseConnection connection) : super(connection);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) => m.createAll(),
         onUpgrade: (Migrator m, int from, int to) async {
-          // schema v2: UserPreferences 테이블 추가
-          if (from < 2) {
-            await m.createTable(userPreferences);
-          }
-          // schema v3: NotificationSettings 테이블 추가
-          if (from < 3) {
-            await m.createTable(notificationSettings);
-          }
-          // schema v4: isOnboardingCompleted 컬럼 추가
-          if (from < 4) {
-            await m.addColumn(
-                userPreferences, userPreferences.isOnboardingCompleted);
-          }
-          // schema v5: DailyBudgets.mood 컬럼 추가
-          if (from < 5) {
-            await m.addColumn(dailyBudgets, dailyBudgets.mood);
-          }
-          // schema v6: UserPreferences.dailyBudget 컬럼 추가
-          if (from < 6) {
-            await m.addColumn(userPreferences, userPreferences.dailyBudget);
-          }
-          // schema v7: UserPreferences.carryoverEnabled 컬럼 추가
-          if (from < 7) {
-            await m.addColumn(
-                userPreferences, userPreferences.carryoverEnabled);
-          }
-          // schema v8: FavoriteExpenses 테이블 추가
-          if (from < 8) {
-            await m.createTable(favoriteExpenses);
-          }
-          // schema v9: FavoriteExpenses.isAuto 컬럼 추가 (기존 row는 default false → 수동 즐겨찾기)
+          if (from < 2) await m.createTable(userPreferences);
+          if (from < 3) await m.createTable(notificationSettings);
+          if (from < 4) await m.addColumn(userPreferences, userPreferences.isOnboardingCompleted);
+          if (from < 5) await m.addColumn(dailyBudgets, dailyBudgets.mood);
+          if (from < 6) await m.addColumn(userPreferences, userPreferences.dailyBudget);
+          if (from < 7) await m.addColumn(userPreferences, userPreferences.carryoverEnabled);
+          if (from < 8) await m.createTable(favoriteExpenses);
+          // v9 캐치업: is_auto 컬럼을 raw SQL로 추가한다.
+          // 주의: isAuto Dart 필드는 이미 제거됐으므로 favoriteExpenses.isAuto 심볼을
+          // 사용하면 컴파일 오류가 발생한다. raw SQL만 사용할 것.
           if (from < 9) {
-            await m.addColumn(favoriteExpenses, favoriteExpenses.isAuto);
+            await m.database.customStatement(
+              'ALTER TABLE favorite_expenses ADD COLUMN is_auto INTEGER NOT NULL DEFAULT 0',
+            );
+          }
+          // schema v10: isAuto 자동학습 컬럼 제거 — auto row(isAuto=1) 먼저 삭제 후 컬럼 드롭
+          // from < 9 에서 컬럼이 방금 추가됐더라도 곧바로 이 분기에서 제거된다 (v8→v10 경로).
+          if (from < 10) {
+            await m.database.customStatement(
+              'DELETE FROM favorite_expenses WHERE is_auto = 1',
+            );
+            await m.alterTable(TableMigration(favoriteExpenses));
           }
         },
       );
