@@ -41,6 +41,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     // 위젯 "+" 버튼 탭 후 콜드 스타트 경로: 프레임 렌더 후 확인
     // WidgetService.init()은 main.dart에서 runApp 이전에 완료되므로
     // 이 시점에 _appGroupAvailable = true가 보장된다.
+    // 불변조건: 알림 탭(_handlePendingNotification)과 위젯 탭은
+    // 동시에 발생하지 않으므로 두 경로는 상호 배타적이다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndOpenAddExpense();
     });
@@ -60,10 +62,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ref.read(homeViewModelProvider.notifier).checkDateChange();
       // 위젯 버튼 탭 후 pending 지출이 있으면 처리 (백그라운드 복귀 경로)
       ref.read(homeViewModelProvider.notifier).processPendingWidgetExpense();
+      // 위젯 "+" 버튼 탭 후 앱 열기 경로 — 알림 탭과 상호 배타적
+      _checkAndOpenAddExpense();
       // Background에서 알림 탭으로 재개된 경우 pending payload 소비
       _handlePendingNotification();
-      // 위젯 "+" 버튼 탭 후 백그라운드 → 포어그라운드 경로
-      _checkAndOpenAddExpense();
     }
   }
 
