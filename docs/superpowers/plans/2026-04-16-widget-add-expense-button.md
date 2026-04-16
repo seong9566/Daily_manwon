@@ -11,6 +11,9 @@
 
 **Tech Stack:** SwiftUI WidgetKit, AppIntents (iOS 17+), home_widget Flutter plugin, Riverpod Notifier
 
+**알려진 제한사항 (Known Limitation):**  
+앱이 이미 포어그라운드(active 상태)일 때 위젯 "+" 버튼을 탭하면 `AppLifecycleState.resumed`가 발생하지 않아 bottom sheet가 자동으로 열리지 않는다. iOS에서 `openAppWhenRun: true`는 앱을 포어그라운드로 전환하지만, 이미 active 상태라면 라이프사이클 전이가 없다. 현재 사용 패턴상 발생 빈도가 낮고 홈 화면 FAB로 대체 가능하므로 이번 구현에서는 처리하지 않는다.
+
 ---
 
 ## File Map
@@ -31,6 +34,8 @@
 **Files:**
 - Modify: `ios/DailyHomeWidget/WidgetConstants.swift`
 - Create: `ios/DailyHomeWidget/Intents/OpenAddExpenseIntent.swift`
+
+> **iOS 17 배포 타겟 확인:** `OpenAddExpenseIntent`는 `@available(iOS 17.0, *)` 어노테이션을 사용한다. 기존 `AddFavoriteExpenseIntent`와 동일한 패턴으로, 위젯 익스텐션의 Minimum Deployment Target이 iOS 17.0인지 Xcode → DailyHomeWidget target → General → Minimum Deployments에서 확인 후 진행한다.
 
 - [ ] **Step 1: `pendingActionKey` 상수 추가**
 
@@ -92,7 +97,7 @@ Expected: `** BUILD SUCCEEDED **`
 ```bash
 git add ios/DailyHomeWidget/WidgetConstants.swift \
         ios/DailyHomeWidget/Intents/OpenAddExpenseIntent.swift
-git commit -m "feat(widget): add OpenAddExpenseIntent for direct expense entry"
+git commit -m "feat(widget): OpenAddExpenseIntent 추가 — 위젯 직접 입력 진입점"
 ```
 
 ---
@@ -194,7 +199,7 @@ Expected: `** BUILD SUCCEEDED **`
 
 ```bash
 git add ios/DailyHomeWidget/Views/LargeWidgetView.swift
-git commit -m "feat(widget): add '+' button to large widget quick-entry header"
+git commit -m "feat(widget): large 위젯 빠른 입력 헤더에 '+' 버튼 추가"
 ```
 
 ---
@@ -203,6 +208,12 @@ git commit -m "feat(widget): add '+' button to large widget quick-entry header"
 
 **Files:**
 - Modify: `lib/core/services/widget_service.dart`
+
+> **로깅 참고:** 프로젝트에 `logger` 패키지가 없고 기존 `WidgetService` 전체가 `debugPrint`를 사용한다. 신규 메서드도 일관성을 위해 `debugPrint`를 사용한다. Logger 도입은 별도 project-wide 작업으로 처리한다.
+
+> **플래그 초기화 방식:** 확인 후 `''`(빈 문자열)로 덮어써 sentinel을 클리어한다. `HomeWidget.getWidgetData<String>` 은 키가 없으면 `null`을, 값이 `''`이면 `''`을 반환한다. 조건 `action == 'open_add_expense'`가 `''`를 차단하므로 기능적으로 안전하다.
+
+> **Race Condition 없음:** `WidgetService.init()`은 `main.dart` line 39에서 `runApp` 이전에 `await`로 완료된다. `HomeScreen.initState()`가 실행될 때 이미 `_appGroupAvailable = true`가 보장된다.
 
 - [ ] **Step 1: 테스트 파일 존재 여부 확인**
 
@@ -220,6 +231,8 @@ ls test/core/services/widget_service_test.dart 2>/dev/null || echo "없음"
   /// 위젯 "직접 입력(+)" 버튼 탭 여부를 확인하고 플래그를 초기화한다.
   ///
   /// `true` 반환 시 caller(HomeScreen)에서 showExpenseAddBottomSheet를 호출해야 한다.
+  /// 플래그는 ''(빈 문자열)로 덮어써 초기화한다 — null과 ''를 모두 차단하는
+  /// `action == 'open_add_expense'` 조건으로 중복 트리거를 방지한다.
   Future<bool> checkAndClearPendingOpenExpense() async {
     if (!_appGroupAvailable) return false;
     try {
@@ -249,7 +262,7 @@ Expected: `No issues found!`
 
 ```bash
 git add lib/core/services/widget_service.dart
-git commit -m "feat(widget-service): add checkAndClearPendingOpenExpense for '+' button"
+git commit -m "feat(widget-service): '+' 버튼 탭 감지용 checkAndClearPendingOpenExpense 추가"
 ```
 
 ---
@@ -268,6 +281,9 @@ git commit -m "feat(widget-service): add checkAndClearPendingOpenExpense for '+'
   ///
   /// HomeScreen의 initState 및 AppLifecycleState.resumed 콜백에서 호출한다.
   /// true 반환 시 HomeScreen에서 showExpenseAddBottomSheet를 호출해야 한다.
+  ///
+  /// 이 메서드는 도메인 로직이 없는 아키텍처 경계 위임자다.
+  /// Screen → Service 직접 호출을 차단하기 위해 존재한다.
   Future<bool> checkPendingOpenExpense() async {
     return getIt<WidgetService>().checkAndClearPendingOpenExpense();
   }
@@ -285,7 +301,7 @@ Expected: `No issues found!`
 
 ```bash
 git add lib/features/home/presentation/viewmodels/home_view_model.dart
-git commit -m "feat(home-vm): add checkPendingOpenExpense delegate"
+git commit -m "feat(home-vm): checkPendingOpenExpense 위임 메서드 추가"
 ```
 
 ---
@@ -303,6 +319,7 @@ git commit -m "feat(home-vm): add checkPendingOpenExpense delegate"
   /// 위젯 "+" 버튼 탭으로 앱이 열린 경우 지출 입력 화면을 표시한다.
   ///
   /// initState(addPostFrameCallback) 및 AppLifecycleState.resumed 에서 호출한다.
+  /// 앱이 이미 포어그라운드(active)일 때 탭 → resumed가 발생하지 않는 Known Limitation이 있다.
   Future<void> _checkAndOpenAddExpense() async {
     final shouldOpen = await ref
         .read(homeViewModelProvider.notifier)
@@ -319,6 +336,8 @@ git commit -m "feat(home-vm): add checkPendingOpenExpense delegate"
 
 ```dart
     // 위젯 "+" 버튼 탭 후 콜드 스타트 경로: 프레임 렌더 후 확인
+    // WidgetService.init()은 main.dart에서 runApp 이전에 완료되므로
+    // 이 시점에 _appGroupAvailable = true가 보장된다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndOpenAddExpense();
     });
@@ -362,7 +381,7 @@ Expected: `No issues found!`
 
 ```bash
 git add lib/features/home/presentation/screens/home_screen.dart
-git commit -m "feat(home-screen): open expense add sheet on widget '+' button tap"
+git commit -m "feat(home-screen): 위젯 '+' 버튼 탭 시 지출 입력 시트 자동 표시"
 ```
 
 ---
@@ -404,9 +423,6 @@ flutter run
 
 즐겨찾기가 0개인 상태에서 "빠른 입력" 헤더 + "+" 버튼 + 안내 문구가 함께 표시되는지 확인.
 
-- [ ] **Step 7: 최종 커밋 (필요 시)**
+- [ ] **Step 7: Known Limitation 확인**
 
-```bash
-git add -p
-git commit -m "chore: final e2e verified widget add expense button"
-```
+앱이 이미 포어그라운드 상태에서 위젯 "+" 탭 시 bottom sheet가 열리지 않음을 확인하고 이슈로 기록한다 (이번 구현 범위 외).
