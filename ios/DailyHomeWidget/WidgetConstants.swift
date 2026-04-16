@@ -4,4 +4,5 @@ import Foundation
 enum WidgetConstants {
     static let appGroup = "group.seong.dailyManwon.homeWidget"
     static let pendingExpenseKey = "widget.pendingExpenseUrl"
+    static let pendingActionKey  = "widget.pendingAction"
 }
