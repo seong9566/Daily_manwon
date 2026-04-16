@@ -1,3 +1,4 @@
+import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/domain/entities/favorite_expense.dart';
 import 'package:daily_manwon/features/expense/presentation/widgets/favorite_templates_section.dart';
 import 'package:daily_manwon/features/home/presentation/viewmodels/home_view_model.dart';
@@ -14,13 +15,17 @@ class _StubHomeViewModel extends HomeViewModel {
 }
 
 void main() {
-  testWidgets('즐겨찾기 없으면 칩 미표시', (tester) async {
+  testWidgets('즐겨찾기 없고 최근 내역 없으면 첫 탭에 칩 미표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           homeViewModelProvider.overrideWith(
             () => _StubHomeViewModel(
-              const HomeState(isLoading: false, favorites: []),
+              const HomeState(
+                isLoading: false,
+                favorites: [],
+                recentExpenses: [],
+              ),
             ),
           ),
         ],
@@ -33,7 +38,7 @@ void main() {
     expect(find.byType(InputChip), findsNothing);
   });
 
-  testWidgets('즐겨찾기 1개 — 칩 1개 표시', (tester) async {
+  testWidgets('즐겨찾기 1개 표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -43,9 +48,7 @@ void main() {
                 isLoading: false,
                 favorites: [
                   FavoriteExpenseEntity(
-                    id: 1,
-                    amount: 3500,
-                    category: 2,
+                    id: 1, amount: 3500, category: 2,
                     usageCount: 3,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
@@ -63,7 +66,7 @@ void main() {
     expect(find.byType(InputChip), findsOneWidget);
   });
 
-  testWidgets('즐겨찾기 칩 — 카테고리+금액 라벨 표시', (tester) async {
+  testWidgets('즐겨찾기 2개 표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -73,49 +76,12 @@ void main() {
                 isLoading: false,
                 favorites: [
                   FavoriteExpenseEntity(
-                    id: 2,
-                    amount: 1000,
-                    category: 2,
-                    usageCount: 0,
-                    createdAt: DateTime.utc(2026, 4, 1),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-        child: MaterialApp(
-          home: Scaffold(body: FavoriteTemplatesSection(onTemplateTap: (_) {})),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byType(InputChip), findsOneWidget);
-    // 카테고리 라벨('카페')과 금액('1,000원') 모두 렌더됨
-    expect(find.text('카페'), findsOneWidget);
-    expect(find.text('1,000원'), findsOneWidget);
-  });
-
-  testWidgets('즐겨찾기 2개 — 칩 2개 표시', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          homeViewModelProvider.overrideWith(
-            () => _StubHomeViewModel(
-              HomeState(
-                isLoading: false,
-                favorites: [
-                  FavoriteExpenseEntity(
-                    id: 1,
-                    amount: 1000,
-                    category: 2,
+                    id: 1, amount: 1000, category: 2,
                     usageCount: 2,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
                   FavoriteExpenseEntity(
-                    id: 2,
-                    amount: 2000,
-                    category: 3,
+                    id: 2, amount: 3000, category: 0,
                     usageCount: 1,
                     createdAt: DateTime.utc(2026, 4, 2),
                   ),
@@ -131,5 +97,70 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(InputChip), findsNWidgets(2));
+  });
+
+  testWidgets('"최근 내역" 탭 전환 후 recentExpenses 칩 표시', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          homeViewModelProvider.overrideWith(
+            () => _StubHomeViewModel(
+              HomeState(
+                isLoading: false,
+                favorites: [],
+                recentExpenses: [
+                  ExpenseEntity(
+                    id: 10, amount: 4500, category: 1,
+                    memo: '점심',
+                    createdAt: DateTime.utc(2026, 4, 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: Scaffold(body: FavoriteTemplatesSection(onTemplateTap: (_) {})),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 기본 탭("자주 쓰는")에는 칩 없음
+    expect(find.byType(InputChip), findsNothing);
+
+    // "최근 내역" 탭 탭
+    await tester.tap(find.text('최근 내역'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InputChip), findsOneWidget);
+  });
+
+  testWidgets('"최근 내역" 탭 빈 상태 — 안내 문구 표시', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          homeViewModelProvider.overrideWith(
+            () => _StubHomeViewModel(
+              const HomeState(
+                isLoading: false,
+                favorites: [],
+                recentExpenses: [],
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          home: Scaffold(body: FavoriteTemplatesSection(onTemplateTap: (_) {})),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('최근 내역'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InputChip), findsNothing);
+    expect(find.text('최근 내역이 없습니다.'), findsOneWidget);
   });
 }
