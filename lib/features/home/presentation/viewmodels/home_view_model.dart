@@ -16,7 +16,7 @@ import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
-import '../../../expense/domain/usecases/get_frequent_templates_use_case.dart';
+import '../../../expense/domain/repositories/favorite_expense_repository.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
@@ -36,17 +36,11 @@ class HomeState {
   /// 이월 배지 표시용 금액 (0이면 이월 없음)
   final int carryOver;
 
-  /// d일요일 첫 접근 인터스티셜 트리거 여부
+  /// 일요일 첫 접근 인터스티셜 트리거 여부
   final bool isNewWeek;
 
-  /// 앱을 재실행해도 유지되는 자동학습 칩 숨김 키 집합 ("amount_category")
-  final Set<String> dismissedFreqKeys;
-
-  /// 수동 즐겨찾기 목록 (usageCount 내림차순)
+  /// 수동 + 자동학습 즐겨찾기 목록 (usageCount 내림차순)
   final List<FavoriteExpenseEntity> favorites;
-
-  /// 자동학습 추천 템플릿 목록 (최근 30일 집계)
-  final List<Map<String, int>> frequentTemplates;
 
   const HomeState({
     this.remainingBudget = 10000,
@@ -57,9 +51,7 @@ class HomeState {
     this.isLoading = true,
     this.carryOver = 0,
     this.isNewWeek = false,
-    this.dismissedFreqKeys = const {},
     this.favorites = const [],
-    this.frequentTemplates = const [],
   });
 
   HomeState copyWith({
@@ -71,10 +63,7 @@ class HomeState {
     bool? isLoading,
     int? carryOver,
     bool? isNewWeek,
-    Set<String>? dismissedFreqKeys,
     List<FavoriteExpenseEntity>? favorites,
-    List<Map<String, int>>? frequentTemplates,
-    // null로 명시적 초기화가 필요할 때 사용하는 플래그 (S-26g)
     bool clearTitle = false,
   }) {
     return HomeState(
@@ -86,9 +75,7 @@ class HomeState {
       isLoading: isLoading ?? this.isLoading,
       carryOver: carryOver ?? this.carryOver,
       isNewWeek: isNewWeek ?? this.isNewWeek,
-      dismissedFreqKeys: dismissedFreqKeys ?? this.dismissedFreqKeys,
       favorites: favorites ?? this.favorites,
-      frequentTemplates: frequentTemplates ?? this.frequentTemplates,
     );
   }
 }
@@ -140,6 +127,11 @@ class HomeViewModel extends Notifier<HomeState> {
 
       final settingsRepository = getIt<SettingsRepository>();
 
+      // 구버전 dismiss 데이터 일회성 삭제 (기존 사용자 마이그레이션)
+      await settingsRepository.clearLegacyDismissedSuggestions();
+      // 앱 시작 시 자동 즐겨찾기 동기화
+      await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
+
       // 오늘 예산 확보
       final budget = await budgetUseCase.getOrCreateTodayBudget();
       final totalBudget = budget.effectiveBudget;
@@ -155,7 +147,7 @@ class HomeViewModel extends Notifier<HomeState> {
       final acorns = await acornUseCase.getTotalAcorns();
       final streak = await acornUseCase.getStreakDays();
 
-      // 새 주 감지 (월요일 + 이월 활성화 + 이번 주 미확인)
+      // 새 주 감지 (일요일 + 이월 활성화 + 이번 주 미확인)
       final carryoverEnabled = await settingsRepository.getCarryoverEnabled();
       final weekKey = _currentWeekKey();
       final isNewWeek =
@@ -163,14 +155,7 @@ class HomeViewModel extends Notifier<HomeState> {
           carryoverEnabled &&
           !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
-      // 자동학습 숨김 키 로드
-      final dismissedKeys = await settingsRepository
-          .getDismissedAutoSuggestions();
-
       final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-      final frequentList = await getIt<GetFrequentTemplatesUseCase>().execute(
-        limit: 3,
-      );
 
       state = state.copyWith(
         remainingBudget: remaining,
@@ -181,25 +166,13 @@ class HomeViewModel extends Notifier<HomeState> {
         isLoading: false,
         carryOver: carryOver,
         isNewWeek: isNewWeek,
-        dismissedFreqKeys: dismissedKeys,
         favorites: favoritesList,
-        frequentTemplates: frequentList,
       );
 
       // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
       final catMood = isNewWeek
           ? 'new_week'
           : CharacterMood.fromRemaining(remaining, totalBudget).name;
-      final favoriteKeys = favoritesList
-          .map((f) => '${f.amount}_${f.category}')
-          .toSet();
-      final dedupedFrequent = frequentList
-          .where(
-            (t) =>
-                !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
-                !dismissedKeys.contains('${t['amount']}_${t['category']}'),
-          )
-          .toList();
       unawaited(
         getIt<WidgetService>().updateWidget(
           total: totalBudget,
@@ -216,24 +189,14 @@ class HomeViewModel extends Notifier<HomeState> {
               )
               .toList(),
           catMood: catMood,
-          favorites: [
-            ...favoritesList.map(
-              (f) => {
-                'id': f.id,
-                'amount': f.amount,
-                'category': f.category,
-                'memo': f.memo,
-              },
-            ),
-            ...dedupedFrequent.map(
-              (t) => {
-                'id': 0,
-                'amount': t['amount']!,
-                'category': t['category']!,
-                'memo': '',
-              },
-            ),
-          ],
+          favorites: favoritesList
+              .map((f) => {
+                    'id': f.id,
+                    'amount': f.amount,
+                    'category': f.category,
+                    'memo': f.memo,
+                  })
+              .toList(),
         ),
       );
     } catch (e) {
@@ -271,27 +234,7 @@ class HomeViewModel extends Notifier<HomeState> {
           // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
           if (!state.isLoading) {
             final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-            final frequentList = await getIt<GetFrequentTemplatesUseCase>()
-                .execute(limit: 3);
-            // 지출 변동으로 자동학습 결과가 바뀔 수 있으므로 state 갱신
-            state = state.copyWith(
-              favorites: favoritesList,
-              frequentTemplates: frequentList,
-            );
-            final favoriteKeys = favoritesList
-                .map((f) => '${f.amount}_${f.category}')
-                .toSet();
-            final dedupedFrequent = frequentList
-                .where(
-                  (t) =>
-                      !favoriteKeys.contains(
-                        '${t['amount']}_${t['category']}',
-                      ) &&
-                      !state.dismissedFreqKeys.contains(
-                        '${t['amount']}_${t['category']}',
-                      ),
-                )
-                .toList();
+            state = state.copyWith(favorites: favoritesList);
             unawaited(
               getIt<WidgetService>().updateWidget(
                 total: state.totalBudget,
@@ -313,24 +256,14 @@ class HomeViewModel extends Notifier<HomeState> {
                         remaining,
                         state.totalBudget,
                       ).name,
-                favorites: [
-                  ...favoritesList.map(
-                    (f) => {
-                      'id': f.id,
-                      'amount': f.amount,
-                      'category': f.category,
-                      'memo': f.memo,
-                    },
-                  ),
-                  ...dedupedFrequent.map(
-                    (t) => {
-                      'id': 0,
-                      'amount': t['amount']!,
-                      'category': t['category']!,
-                      'memo': '',
-                    },
-                  ),
-                ],
+                favorites: favoritesList
+                    .map((f) => {
+                          'id': f.id,
+                          'amount': f.amount,
+                          'category': f.category,
+                          'memo': f.memo,
+                        })
+                    .toList(),
               ),
             );
           }
@@ -361,22 +294,30 @@ class HomeViewModel extends Notifier<HomeState> {
     await _loadData();
   }
 
-  /// 지출 추가 — AddExpenseUseCase 경유, 캘린더 동기화 포함
+  /// 지출 추가 — 저장 후 자동 즐겨찾기 동기화 (awaited)
+  ///
+  /// ExpenseAddScreen._onSave 호출 순서:
+  ///   1. addExpense (→ syncAutoFavorites: auto row 삽입 가능)
+  ///   2. addFavorite (체크박스 시 → manual row 삽입)
+  /// 동일 조합이 top3이면 auto+manual 두 row 공존 — 중복 허용 정책에 의한 의도된 동작
   Future<void> addExpense(ExpenseEntity expense) async {
     await getIt<AddExpenseUseCase>().execute(expense);
+    // awaited: _watchExpenses 스트림 콜백이 getFavorites() 호출 전에 sync 완료되도록
+    await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
     ref.invalidate(calendarViewModelProvider);
   }
 
-  /// 지출 수정
+  /// 지출 수정 — 자동 즐겨찾기 동기화 (top3 조합이 바뀔 수 있음)
   Future<void> updateExpense(ExpenseEntity expense) async {
     await getIt<UpdateExpenseUseCase>().execute(expense);
+    await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
     ref.invalidate(calendarViewModelProvider);
   }
 
-  /// 지출 삭제 — 홈 스트림은 watchExpenses가 자동 갱신, 캘린더는 invalidate로 동기화
+  /// 지출 삭제 — 자동 즐겨찾기 동기화 (top3 조합이 바뀔 수 있음)
   Future<void> deleteExpense(int id) async {
     await getIt<DeleteExpenseUseCase>().execute(id);
-    // 캘린더 화면 데이터 동기화 (활성 상태면 즉시 재로드, 미방문이면 다음 진입 시 갱신)
+    await getIt<FavoriteExpenseRepository>().syncAutoFavorites();
     ref.invalidate(calendarViewModelProvider);
   }
 
@@ -441,44 +382,6 @@ class HomeViewModel extends Notifier<HomeState> {
     await getIt<IncrementFavoriteUsageUseCase>().execute(id);
     final updated = await getIt<GetFavoritesUseCase>().execute();
     state = state.copyWith(favorites: updated);
-  }
-
-  /// 자동학습 칩을 영구 숨김 처리한다 — UI 낙관적 즉시 갱신 + iOS 위젯 동기화
-  Future<void> dismissAutoSuggestion(String key) async {
-    final newDismissed = {...state.dismissedFreqKeys, key};
-    state = state.copyWith(dismissedFreqKeys: newDismissed);
-    await getIt<SettingsRepository>().addDismissedAutoSuggestion(key);
-    // 위젯의 빠른입력에서도 즉시 제거
-    final favoriteKeys = state.favorites
-        .map((f) => '${f.amount}_${f.category}')
-        .toSet();
-    final filteredFrequent = state.frequentTemplates
-        .where(
-          (t) =>
-              !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
-              !newDismissed.contains('${t['amount']}_${t['category']}'),
-        )
-        .toList();
-    unawaited(
-      getIt<WidgetService>().updateFavorites([
-        ...state.favorites.map(
-          (f) => {
-            'id': f.id,
-            'amount': f.amount,
-            'category': f.category,
-            'memo': f.memo,
-          },
-        ),
-        ...filteredFrequent.map(
-          (t) => {
-            'id': 0,
-            'amount': t['amount']!,
-            'category': t['category']!,
-            'memo': '',
-          },
-        ),
-      ]),
-    );
   }
 
   /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다
