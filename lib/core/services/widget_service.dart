@@ -103,6 +103,33 @@ class WidgetService {
     }
   }
 
+  /// 위젯 "직접 입력(+)" 버튼 탭 여부를 확인하고 플래그를 초기화한다.
+  ///
+  /// `true` 반환 시 caller(HomeScreen)에서 showExpenseAddBottomSheet를 호출해야 한다.
+  ///
+  /// 플래그 계약 (Swift ↔ Dart):
+  ///   Swift(OpenAddExpenseIntent): UserDefaults[pendingActionKey] = "open_add_expense"
+  ///   Dart: HomeWidget.getWidgetData<String>('widget.pendingAction') == 'open_add_expense'
+  ///
+  /// 플래그 초기화: ''(빈 문자열)로 덮어쓴다.
+  /// getWidgetData는 키 미존재 시 null, 클리어 후엔 ''를 반환하므로
+  /// `action == 'open_add_expense'` 조건이 중복 트리거를 방지한다.
+  Future<bool> checkAndClearPendingOpenExpense() async {
+    if (!_appGroupAvailable) return false;
+    try {
+      final action = await HomeWidget.getWidgetData<String>('widget.pendingAction');
+      if (action == 'open_add_expense') {
+        await HomeWidget.saveWidgetData<String>('widget.pendingAction', '');
+        debugPrint('WidgetService: pending open_add_expense 감지 → 플래그 초기화');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('WidgetService: pending action 확인 실패 — $e');
+      return false;
+    }
+  }
+
   Future<void> updateWidget({
     required int total,
     required int used,
