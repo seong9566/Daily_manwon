@@ -137,6 +137,7 @@ class AppDatabase extends _$AppDatabase {
             await m.database.customStatement(
               'DELETE FROM favorite_expenses WHERE is_auto = 1',
             );
+            // ignore: experimental_member_use
             await m.alterTable(TableMigration(favoriteExpenses));
           }
         },
