@@ -193,7 +193,8 @@ class HomeViewModel extends Notifier<HomeState> {
           favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
       final dedupedFrequent = frequentList
           .where((t) =>
-              !favoriteKeys.contains('${t['amount']}_${t['category']}'))
+              !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
+              !dismissedKeys.contains('${t['amount']}_${t['category']}'))
           .toList();
       unawaited(
         getIt<WidgetService>().updateWidget(
@@ -277,7 +278,9 @@ class HomeViewModel extends Notifier<HomeState> {
                 favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
             final dedupedFrequent = frequentList
                 .where((t) =>
-                    !favoriteKeys.contains('${t['amount']}_${t['category']}'))
+                    !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
+                    !state.dismissedFreqKeys
+                        .contains('${t['amount']}_${t['category']}'))
                 .toList();
             unawaited(
               getIt<WidgetService>().updateWidget(
@@ -429,12 +432,39 @@ class HomeViewModel extends Notifier<HomeState> {
     state = state.copyWith(favorites: updated);
   }
 
-  /// 자동학습 칩을 영구 숨김 처리한다 — UI는 낙관적으로 즉시 갱신하고 SharedPreferences에 저장
+  /// 자동학습 칩을 영구 숨김 처리한다 — UI 낙관적 즉시 갱신 + iOS 위젯 동기화
   Future<void> dismissAutoSuggestion(String key) async {
-    state = state.copyWith(
-      dismissedFreqKeys: {...state.dismissedFreqKeys, key},
-    );
+    final newDismissed = {...state.dismissedFreqKeys, key};
+    state = state.copyWith(dismissedFreqKeys: newDismissed);
     await getIt<SettingsRepository>().addDismissedAutoSuggestion(key);
+    // 위젯의 빠른입력에서도 즉시 제거
+    final favoriteKeys =
+        state.favorites.map((f) => '${f.amount}_${f.category}').toSet();
+    final filteredFrequent = state.frequentTemplates
+        .where((t) =>
+            !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
+            !newDismissed.contains('${t['amount']}_${t['category']}'))
+        .toList();
+    unawaited(
+      getIt<WidgetService>().updateFavorites([
+        ...state.favorites.map(
+          (f) => {
+            'id': f.id,
+            'amount': f.amount,
+            'category': f.category,
+            'memo': f.memo,
+          },
+        ),
+        ...filteredFrequent.map(
+          (t) => {
+            'id': 0,
+            'amount': t['amount']!,
+            'category': t['category']!,
+            'memo': '',
+          },
+        ),
+      ]),
+    );
   }
 
   /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다
