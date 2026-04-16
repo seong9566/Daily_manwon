@@ -76,7 +76,7 @@ struct DailyHomeLargeView: View {
                     Text(remainingText)
                         .font(.system(size: WidgetColorPalette.largeRemainingFontSize(for: status), weight: .bold))
                         .foregroundColor(colors.primaryText)
-                        .minimumScaleFactor(0.6)
+                        .minimumScaleFactor(0.6)  // Medium(0.5)보다 큰 최솟값 — Large 캔버스 기준
                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -95,7 +95,7 @@ struct DailyHomeLargeView: View {
                     Text(usedText)
                         .font(.system(size: WidgetColorPalette.largeUsedFontSize(for: status), weight: .bold))
                         .foregroundColor(colors.primaryText)
-                        .minimumScaleFactor(0.6)
+                        .minimumScaleFactor(0.6)  // Medium(0.5)보다 큰 최솟값 — Large 캔버스 기준
                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -151,11 +151,11 @@ struct DailyHomeLargeView: View {
                                     .resizable()
                                     .renderingMode(.template)
                                     .scaledToFit()
-                                    .foregroundColor(.black)
+                                    .foregroundColor(colors.primaryText)
                                     .frame(width: 22, height: 22)
                                 Text(fav.formattedAmount)
                                     .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(colors.primaryText)
                                     .lineLimit(1)
                             }
                             .frame(maxWidth: .infinity)
