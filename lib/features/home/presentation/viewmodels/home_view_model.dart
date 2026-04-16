@@ -375,6 +375,17 @@ class HomeViewModel extends Notifier<HomeState> {
     await getIt<WidgetService>().processPendingWidgetExpense();
   }
 
+  /// 위젯 "직접 입력(+)" 버튼 탭 여부를 확인하고 플래그를 초기화한다.
+  ///
+  /// HomeScreen의 initState 및 AppLifecycleState.resumed 콜백에서 호출한다.
+  /// true 반환 시 HomeScreen에서 showExpenseAddBottomSheet를 호출해야 한다.
+  ///
+  /// 이 메서드는 도메인 로직이 없는 아키텍처 경계 위임자다.
+  /// Screen → Service 직접 호출을 차단하기 위해 존재한다.
+  Future<bool> checkPendingOpenExpense() async {
+    return getIt<WidgetService>().checkAndClearPendingOpenExpense();
+  }
+
   /// 즐겨찾기 추가 — DB 저장 후 state 갱신
   Future<void> addFavorite({
     required int amount,
