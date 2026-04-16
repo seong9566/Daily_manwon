@@ -109,7 +109,7 @@ class WidgetService {
   ///
   /// 플래그 계약 (Swift ↔ Dart):
   ///   Swift(OpenAddExpenseIntent): UserDefaults[pendingActionKey] = "open_add_expense"
-  ///   Dart: HomeWidget.getWidgetData<String>('widget.pendingAction') == 'open_add_expense'
+  ///   Dart: `HomeWidget.getWidgetData<String>('widget.pendingAction') == 'open_add_expense'`
   ///
   /// 플래그 초기화: ''(빈 문자열)로 덮어쓴다.
   /// getWidgetData는 키 미존재 시 null, 클리어 후엔 ''를 반환하므로
