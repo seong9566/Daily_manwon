@@ -37,6 +37,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     // Foreground 상태에서 알림 탭 이벤트를 구독하여 화면 이동 처리
     _subscribeNotificationNavigation();
+
+    // 위젯 "+" 버튼 탭 후 콜드 스타트 경로: 프레임 렌더 후 확인
+    // WidgetService.init()은 main.dart에서 runApp 이전에 완료되므로
+    // 이 시점에 _appGroupAvailable = true가 보장된다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndOpenAddExpense();
+    });
   }
 
   @override
@@ -55,6 +62,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ref.read(homeViewModelProvider.notifier).processPendingWidgetExpense();
       // Background에서 알림 탭으로 재개된 경우 pending payload 소비
       _handlePendingNotification();
+      // 위젯 "+" 버튼 탭 후 백그라운드 → 포어그라운드 경로
+      _checkAndOpenAddExpense();
     }
   }
 
@@ -80,6 +89,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _notifSubscription = NotificationService.navigationStream.listen((payload) {
       if (mounted) context.go(AppRoutes.home);
     });
+  }
+
+  /// 위젯 "+" 버튼 탭으로 앱이 열린 경우 지출 입력 화면을 표시한다.
+  ///
+  /// initState(addPostFrameCallback) 및 AppLifecycleState.resumed 에서 호출한다.
+  /// 앱이 이미 포어그라운드(active)일 때 탭 → resumed가 발생하지 않는 Known Limitation이 있다.
+  Future<void> _checkAndOpenAddExpense() async {
+    final shouldOpen = await ref
+        .read(homeViewModelProvider.notifier)
+        .checkPendingOpenExpense();
+    if (shouldOpen && mounted) {
+      showExpenseAddBottomSheet(context);
+    }
   }
 
   @override
