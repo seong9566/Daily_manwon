@@ -10,6 +10,7 @@ extension FavoriteExpenseRowMapper on FavoriteExpense {
         category: category,
         memo: memo,
         usageCount: usageCount,
+        isAuto: isAuto,
         createdAt: createdAt,
       );
 }
@@ -19,6 +20,7 @@ extension FavoriteExpenseEntityMapper on FavoriteExpenseEntity {
         amount: amount,
         category: category,
         memo: Value(memo),
+        isAuto: Value(isAuto),
         createdAt: createdAt,
       );
 }
