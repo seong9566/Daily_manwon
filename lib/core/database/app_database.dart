@@ -81,14 +81,16 @@ class NotificationSettings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// 수동 즐겨찾기 지출 템플릿 테이블
+/// 수동 + 자동 즐겨찾기 지출 템플릿 테이블
 /// - usageCount: 탭 횟수 (자동 정렬 기준)
+/// - isAuto: true면 자동학습으로 추가된 row — 수동 row와 동일 (amount,category) 공존 가능
 class FavoriteExpenses extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get amount => integer()();
   IntColumn get category => integer()(); // ExpenseCategory enum index
   TextColumn get memo => text().withDefault(const Constant(''))();
   IntColumn get usageCount => integer().withDefault(const Constant(0))();
+  BoolColumn get isAuto => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
 }
 
@@ -110,7 +112,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(DatabaseConnection connection) : super(connection);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -145,6 +147,10 @@ class AppDatabase extends _$AppDatabase {
           // schema v8: FavoriteExpenses 테이블 추가
           if (from < 8) {
             await m.createTable(favoriteExpenses);
+          }
+          // schema v9: FavoriteExpenses.isAuto 컬럼 추가 (기존 row는 default false → 수동 즐겨찾기)
+          if (from < 9) {
+            await m.addColumn(favoriteExpenses, favoriteExpenses.isAuto);
           }
         },
       );
