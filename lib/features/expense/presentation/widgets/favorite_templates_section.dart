@@ -24,8 +24,9 @@ class FavoriteTemplatesSection extends ConsumerWidget {
     final frequent = homeState.frequentTemplates;
     final dismissedFreqKeys = homeState.dismissedFreqKeys;
 
-    final favoriteKeys =
-        favorites.map((f) => '${f.amount}_${f.category}').toSet();
+    final favoriteKeys = favorites
+        .map((f) => '${f.amount}_${f.category}')
+        .toSet();
     final deduped = frequent
         .where(
           (t) =>
@@ -52,11 +53,7 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: InputChip(
-                      avatar: Image.asset(
-                        cat.assetPath,
-                        width: 18,
-                        height: 18,
-                      ),
+                      avatar: Image.asset(cat.assetPath, width: 18, height: 18),
                       label: Text(
                         _formatAmount(fav.amount),
                         style: AppTypography.bodyMedium.copyWith(
@@ -65,10 +62,12 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                               : AppColors.textMain,
                         ),
                       ),
-                      backgroundColor:
-                          isDark ? AppColors.darkCard : cat.chipColor,
-                      deleteIconColor:
-                          isDark ? AppColors.darkTextSub : AppColors.textSub,
+                      backgroundColor: isDark
+                          ? AppColors.darkCard
+                          : cat.chipColor,
+                      deleteIconColor: isDark
+                          ? AppColors.darkTextSub
+                          : AppColors.textSub,
                       onPressed: () async {
                         try {
                           await ref
@@ -98,27 +97,38 @@ class FavoriteTemplatesSection extends ConsumerWidget {
                 // 자동학습 추천 (중복 제거 + 영구 숨김 적용)
                 ...deduped.map((t) {
                   final cat = ExpenseCategory.values[t['category']!];
+
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: InputChip(
                       avatar: Image.asset(
                         cat.assetPath,
-                        width: 18,
-                        height: 18,
+                        width: 32,
+                        height: 32,
+                        color: isDark
+                            ? AppColors.darkTextMain
+                            : AppColors.textMain,
                       ),
-                      label: Text(
-                        _formatAmount(t['amount']!),
-                        style: AppTypography.bodySmall.copyWith(
-                          color: isDark
-                              ? AppColors.darkTextSub
-                              : AppColors.textSub,
-                        ),
+                      label: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(cat.label),
+                          Text(
+                            _formatAmount(t['amount']!),
+                            style: AppTypography.bodySmall.copyWith(
+                              color: isDark
+                                  ? AppColors.darkTextMain
+                                  : AppColors.textMain,
+                            ),
+                          ),
+                        ],
                       ),
                       backgroundColor: isDark
                           ? AppColors.darkSurface
                           : AppColors.primaryLight,
-                      deleteIconColor:
-                          isDark ? AppColors.darkTextSub : AppColors.textSub,
+                      deleteIconColor: isDark
+                          ? AppColors.darkTextSub
+                          : AppColors.textSub,
                       onPressed: () {
                         onTemplateTap((
                           amount: t['amount']!,
