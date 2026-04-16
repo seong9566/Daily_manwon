@@ -1,15 +1,14 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "agent",
-            "if": "Bash(git commit *)",
-            "model": "sonnet",
-            "prompt": "A git commit is about to run. Tool input: $ARGUMENTS\n\nExtract the full command from tool_input.command.\n\n**Step 1: 커밋 메시지 규칙 검사**\nRead docs/flutter_kit/git-commit/SKILL.md.\n커밋 명령에서 -m 뒤의 메시지를 추출해 아래를 검사:\n- 형식: <type>(<scope>): <message> 준수 여부\n- type, scope → 영어만 허용\n- message(subject) → 한글만 허용\n- type이 허용 목록(feat/fix/docs/style/refactor/perf/test/build/ci/chore/revert) 중 하나인지\n- 한글 스타일: 간결한 명사형/구문형 (❌ ~했다, ~이다, ~하기 위해서 같은 서술형 금지)\n- body가 있을 경우 한글 작성 여부\n\n**Step 2: staged 코드 규칙 검사**\nRun: git diff --staged --name-only\nlib/ 하위 .dart 파일이 있을 경우:\n  - Run: git diff --staged\n  - Read docs/flutter_kit/flutter-architecture/SKILL.md\n  - Read docs/flutter_kit/flutter-ui-ux/SKILL.md\n  staged 변경사항이 flutter_kit 아키텍처/UI 규칙을 위반하는지 검사\n\n**Step 3: 결과 출력**\n위반사항이 있으면 JSON만 출력:\n{\"continue\": false, \"stopReason\": \"[flutter_kit 규칙 위반 — 커밋 차단]\\n<위반 항목 목록>\"}\n\n위반사항이 없으면 아무것도 출력하지 않는다.",
-            "statusMessage": "flutter_kit 커밋 규칙 검증 중...",
+            "model": "Haiku",
+            "prompt": "방금 수정된 파일의 변경 내용들을 검토하세요.\n\n수정된 파일이 lib/ 하위 .dart 파일이 아니면 아무것도 출력하지 않고 종료합니다.\n\nlib/ 하위 .dart 파일이면 아래 SKILL.md 파일들을 읽고 3가지 항목을 순서대로 검사하세요.\n\n**[algorithms-logic]** docs/flutter_kit/flutter-algorithms-logic/SKILL.md 기준\n- 자료 구조가 접근 패턴에 맞게 선택되었는지\n- 자주 실행되는 경로에 O(n²) 이상 중첩 루프가 없는지\n- 이벤트 빈도가 높을 때 debounce/throttle이 적용되었는지\n- 비즈니스 로직이 UI와 분리되어 재사용 가능한지\n- validation 로직이 여러 곳에 중복 없이 중앙화되었는지\n\n**[architecture]** docs/flutter_kit/flutter-architecture/SKILL.md 기준\n- 계층 의존성이 Presentation → Domain ← Data 방향인지\n- Domain 레이어에 Flutter import가 없는지\n- DataSource가 외부 접근과 원본 데이터 처리만 담당하는지\n- Repository가 Domain Entity를 반환하고 매핑 책임을 소유하는지\n- UI가 Domain Entity나 API 모델을 직접 사용하지 않는지\n- ViewModel이 다른 ViewModel의 상태를 watch/read하지 않는지\n\n**[codegen]** docs/flutter_kit/flutter-codegen/SKILL.md 기준\n- @freezed, @riverpod, @JsonSerializable 주석이 있는 파일에 part 선언이 있는지\n- 위 주석이 있는 파일이 수정되었다면 build_runner 재실행이 필요한지\n\n**출력 형식 (이 형식만 사용, 다른 설명 없이):**\n\n모두 통과 시:\nflutter_kit: {algorithms-logic: PASS, architecture: PASS, codegen: PASS}\n\n실패 항목은 이유를 함께 표기:\nflutter_kit: {algorithms-logic: FAIL — <위반 내용 한 줄>, architecture: PASS, codegen: False — dart run build_runner build --delete-conflicting-outputs 실행 필요}",
+             "statusMessage": "flutter_kit 코드 규칙 검증 중...",
             "timeout": 120
           }
         ]
@@ -21,5 +20,13 @@
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
     "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1"
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
   }
 }
