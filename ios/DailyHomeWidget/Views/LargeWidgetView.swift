@@ -120,7 +120,7 @@ struct DailyHomeLargeView: View {
                     .foregroundColor(colors.secondaryText)
                 Spacer()
                 Button(intent: OpenAddExpenseIntent()) {
-                    Image(systemName: "plus.circle.fill")
+                    Image(systemName: "plus.circle.fill") 
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(colors.secondaryText)
                 }

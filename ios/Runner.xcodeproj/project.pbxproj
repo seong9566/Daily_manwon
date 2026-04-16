@@ -20,6 +20,8 @@
 		1C7343A32F88E23200FF4E67 /* FavoriteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343892F88E23200FF4E67 /* FavoriteItem.swift */; };
 		1C7343A42F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343A52F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift */; };
 		1C7343A62F88E23200FF4E68 /* AddFavoriteExpenseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343A52F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift */; };
+		1C7343B22F88E23200FF4E70 /* OpenAddExpenseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343B12F88E23200FF4E70 /* OpenAddExpenseIntent.swift */; };
+		1C7343B32F88E23200FF4E71 /* OpenAddExpenseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343B12F88E23200FF4E70 /* OpenAddExpenseIntent.swift */; };
 		1C7343A72F88E23200FF4E67 /* WidgetConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343A82F88E23200FF4E67 /* WidgetConstants.swift */; };
 		1C7343A92F88E23200FF4E69 /* WidgetConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343A82F88E23200FF4E67 /* WidgetConstants.swift */; };
 		1C78EEC62F7CABA200329366 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C78EEAA2F7C9E9900329366 /* WidgetKit.framework */; };
@@ -95,6 +97,7 @@
 		1C7343972F88E23200FF4E67 /* MediumWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediumWidgetView.swift; sourceTree = "<group>"; };
 		1C7343982F88E23200FF4E67 /* SmallWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallWidgetView.swift; sourceTree = "<group>"; };
 		1C7343A52F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFavoriteExpenseIntent.swift; sourceTree = "<group>"; };
+		1C7343B12F88E23200FF4E70 /* OpenAddExpenseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAddExpenseIntent.swift; sourceTree = "<group>"; };
 		1C7343A82F88E23200FF4E67 /* WidgetConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetConstants.swift; sourceTree = "<group>"; };
 		1C78EEAA2F7C9E9900329366 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		1C78EEAC2F7C9E9900329366 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -198,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				1C7343A52F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift */,
+				1C7343B12F88E23200FF4E70 /* OpenAddExpenseIntent.swift */,
 			);
 			path = Intents;
 			sourceTree = "<group>";
@@ -548,6 +552,7 @@
 				1C73439F2F88E23200FF4E67 /* ExpenseItem.swift in Sources */,
 				1C7343A32F88E23200FF4E67 /* FavoriteItem.swift in Sources */,
 				1C7343A42F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift in Sources */,
+				1C7343B22F88E23200FF4E70 /* OpenAddExpenseIntent.swift in Sources */,
 				1C7343A72F88E23200FF4E67 /* WidgetConstants.swift in Sources */,
 				1C7343A02F88E23200FF4E67 /* SmallWidgetView.swift in Sources */,
 				1C7343A12F88E23200FF4E67 /* WidgetHelpers.swift in Sources */,
@@ -571,6 +576,7 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				1C7343A62F88E23200FF4E68 /* AddFavoriteExpenseIntent.swift in Sources */,
+				1C7343B32F88E23200FF4E71 /* OpenAddExpenseIntent.swift in Sources */,
 				1C7343A92F88E23200FF4E69 /* WidgetConstants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
