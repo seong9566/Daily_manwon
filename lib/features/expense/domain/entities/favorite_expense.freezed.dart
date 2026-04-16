@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FavoriteExpenseEntity {
 
- int get id; int get amount; int get category; String get memo; int get usageCount; bool get isAuto; DateTime get createdAt;
+ int get id; int get amount; int get category; String get memo; int get usageCount; DateTime get createdAt;
 /// Create a copy of FavoriteExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $FavoriteExpenseEntityCopyWith<FavoriteExpenseEntity> get copyWith => _$Favorite
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FavoriteExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.memo, memo) || other.memo == memo)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.isAuto, isAuto) || other.isAuto == isAuto)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FavoriteExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.memo, memo) || other.memo == memo)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,amount,category,memo,usageCount,isAuto,createdAt);
+int get hashCode => Object.hash(runtimeType,id,amount,category,memo,usageCount,createdAt);
 
 @override
 String toString() {
-  return 'FavoriteExpenseEntity(id: $id, amount: $amount, category: $category, memo: $memo, usageCount: $usageCount, isAuto: $isAuto, createdAt: $createdAt)';
+  return 'FavoriteExpenseEntity(id: $id, amount: $amount, category: $category, memo: $memo, usageCount: $usageCount, createdAt: $createdAt)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $FavoriteExpenseEntityCopyWith<$Res>  {
   factory $FavoriteExpenseEntityCopyWith(FavoriteExpenseEntity value, $Res Function(FavoriteExpenseEntity) _then) = _$FavoriteExpenseEntityCopyWithImpl;
 @useResult
 $Res call({
- int id, int amount, int category, String memo, int usageCount, bool isAuto, DateTime createdAt
+ int id, int amount, int category, String memo, int usageCount, DateTime createdAt
 });
 
 
@@ -62,15 +62,14 @@ class _$FavoriteExpenseEntityCopyWithImpl<$Res>
 
 /// Create a copy of FavoriteExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? amount = null,Object? category = null,Object? memo = null,Object? usageCount = null,Object? isAuto = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? amount = null,Object? category = null,Object? memo = null,Object? usageCount = null,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as int,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
 as String,usageCount: null == usageCount ? _self.usageCount : usageCount // ignore: cast_nullable_to_non_nullable
-as int,isAuto: null == isAuto ? _self.isAuto : isAuto // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -153,10 +152,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  int usageCount,  bool isAuto,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  int usageCount,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FavoriteExpenseEntity() when $default != null:
-return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.isAuto,_that.createdAt);case _:
+return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.createdAt);case _:
   return orElse();
 
 }
@@ -174,10 +173,10 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  int usageCount,  bool isAuto,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  int usageCount,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _FavoriteExpenseEntity():
-return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.isAuto,_that.createdAt);}
+return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.createdAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -191,10 +190,10 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int amount,  int category,  String memo,  int usageCount,  bool isAuto,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int amount,  int category,  String memo,  int usageCount,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _FavoriteExpenseEntity() when $default != null:
-return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.isAuto,_that.createdAt);case _:
+return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.createdAt);case _:
   return null;
 
 }
@@ -206,7 +205,7 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount
 
 
 class _FavoriteExpenseEntity implements FavoriteExpenseEntity {
-  const _FavoriteExpenseEntity({required this.id, required this.amount, required this.category, this.memo = '', this.usageCount = 0, this.isAuto = false, required this.createdAt});
+  const _FavoriteExpenseEntity({required this.id, required this.amount, required this.category, this.memo = '', this.usageCount = 0, required this.createdAt});
   
 
 @override final  int id;
@@ -214,7 +213,6 @@ class _FavoriteExpenseEntity implements FavoriteExpenseEntity {
 @override final  int category;
 @override@JsonKey() final  String memo;
 @override@JsonKey() final  int usageCount;
-@override@JsonKey() final  bool isAuto;
 @override final  DateTime createdAt;
 
 /// Create a copy of FavoriteExpenseEntity
@@ -227,16 +225,16 @@ _$FavoriteExpenseEntityCopyWith<_FavoriteExpenseEntity> get copyWith => __$Favor
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FavoriteExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.memo, memo) || other.memo == memo)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.isAuto, isAuto) || other.isAuto == isAuto)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FavoriteExpenseEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.category, category) || other.category == category)&&(identical(other.memo, memo) || other.memo == memo)&&(identical(other.usageCount, usageCount) || other.usageCount == usageCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,amount,category,memo,usageCount,isAuto,createdAt);
+int get hashCode => Object.hash(runtimeType,id,amount,category,memo,usageCount,createdAt);
 
 @override
 String toString() {
-  return 'FavoriteExpenseEntity(id: $id, amount: $amount, category: $category, memo: $memo, usageCount: $usageCount, isAuto: $isAuto, createdAt: $createdAt)';
+  return 'FavoriteExpenseEntity(id: $id, amount: $amount, category: $category, memo: $memo, usageCount: $usageCount, createdAt: $createdAt)';
 }
 
 
@@ -247,7 +245,7 @@ abstract mixin class _$FavoriteExpenseEntityCopyWith<$Res> implements $FavoriteE
   factory _$FavoriteExpenseEntityCopyWith(_FavoriteExpenseEntity value, $Res Function(_FavoriteExpenseEntity) _then) = __$FavoriteExpenseEntityCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int amount, int category, String memo, int usageCount, bool isAuto, DateTime createdAt
+ int id, int amount, int category, String memo, int usageCount, DateTime createdAt
 });
 
 
@@ -264,15 +262,14 @@ class __$FavoriteExpenseEntityCopyWithImpl<$Res>
 
 /// Create a copy of FavoriteExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? amount = null,Object? category = null,Object? memo = null,Object? usageCount = null,Object? isAuto = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? amount = null,Object? category = null,Object? memo = null,Object? usageCount = null,Object? createdAt = null,}) {
   return _then(_FavoriteExpenseEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as int,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
 as String,usageCount: null == usageCount ? _self.usageCount : usageCount // ignore: cast_nullable_to_non_nullable
-as int,isAuto: null == isAuto ? _self.isAuto : isAuto // ignore: cast_nullable_to_non_nullable
-as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
