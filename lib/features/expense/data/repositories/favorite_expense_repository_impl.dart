@@ -25,7 +25,4 @@ class FavoriteExpenseRepositoryImpl implements FavoriteExpenseRepository {
   @override
   Future<void> incrementUsageCount(int id) =>
       _datasource.incrementUsageCount(id);
-
-  @override
-  Future<void> syncAutoFavorites() => _datasource.syncAutoFavorites();
 }
