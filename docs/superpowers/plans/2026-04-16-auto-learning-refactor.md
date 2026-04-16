@@ -8,6 +8,8 @@
 - `syncAutoFavorites()` — 지출 추가·삭제·수정 후 및 앱 초기 로드 시 호출. 최근 사용 순 상위 3개 고유 (amount, category)를 쿼리하여 DB의 자동 즐겨찾기(`isAuto=true`) row를 diff 동기화한다.
 - `FavoriteExpenses` 테이블에 `isAuto` 컬럼(bool, default false) 추가. 수동·자동 row는 독립적으로 공존 가능하며 삭제는 항상 ID 기준.
 - `frequentTemplates` 상태, `dismissedFreqKeys`, SharedPreferences dismiss 저장소를 완전 제거. 기존 사용자 데이터는 마이그레이션 시 일회성 삭제.
+- **`_addToFavorite` 체크박스 + 자동 sync 중복 동작**: `ExpenseAddScreen._onSave`에서 `addExpense`(→ `syncAutoFavorites` 포함) 완료 후 `addFavorite`(수동) 호출 순서로 실행된다. 동일 조합이 top3에 해당하면 auto row(isAuto=true)와 manual row(isAuto=false)가 각각 생성되어 칩이 2개 표시된다. "중복 가능" 정책에 의한 의도된 동작이며, 각 칩은 자체 ID로 독립 삭제된다.
+- `syncAutoFavorites`는 수동 즐겨찾기(`isAuto=false`)의 존재 여부를 체크하지 않는다 — 중복 허용 정책에 의한 의도된 설계.
 
 **Tech Stack:** Flutter, Drift (SQLite ORM, schema v9), Riverpod (Notifier), Injectable (GetIt), shared_preferences
 
@@ -34,6 +36,7 @@
 | **삭제** | `lib/features/expense/domain/usecases/get_frequent_templates_use_case.dart` |
 | **자동생성** | `lib/features/expense/domain/entities/favorite_expense.freezed.dart` (build_runner) |
 | **자동생성** | `lib/core/database/app_database.g.dart` (build_runner) |
+| **참고 (수정 없음)** | `lib/features/expense/presentation/screens/expense_add_screen.dart` |
 
 ---
 
@@ -367,6 +370,8 @@ Future<void> syncAutoFavorites() async {
   }
 
   // 4. 아직 자동 즐겨찾기에 없는 신규 조합 추가
+  // 수동 즐겨찾기(isAuto=false) 존재 여부는 체크하지 않는다 —
+  // "중복 가능" 정책: auto row와 manual row는 독립 공존, 각각 ID로 삭제
   for (final combo in recentCombos) {
     final alreadyAuto = existingAuto
         .any((f) => f.amount == combo.amount && f.category == combo.category);
@@ -805,6 +810,11 @@ import '../../../expense/domain/repositories/favorite_expense_repository.dart';
 
 ```dart
   /// 지출 추가 — 저장 후 자동 즐겨찾기 동기화 (awaited)
+  ///
+  /// ExpenseAddScreen._onSave 호출 순서:
+  ///   1. addExpense (→ syncAutoFavorites: auto row 삽입 가능)
+  ///   2. addFavorite (체크박스 시 → manual row 삽입)
+  /// 동일 조합이 top3이면 auto+manual 두 row 공존 — 중복 허용 정책에 의한 의도된 동작
   Future<void> addExpense(ExpenseEntity expense) async {
     await getIt<AddExpenseUseCase>().execute(expense);
     // awaited: _watchExpenses 스트림 콜백이 getFavorites() 호출 전에 sync 완료되도록
