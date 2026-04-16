@@ -56,6 +56,20 @@ class ExpenseLocalDatasource {
     await (_db.delete(_db.expenses)..where((e) => e.id.equals(id))).go();
   }
 
+  /// 최근 [days]일 이내 지출을 최신순으로 최대 [limit]건 조회
+  Future<List<ExpenseEntity>> getRecentExpenses({
+    int limit = 10,
+    int days = 7,
+  }) async {
+    final since = DateTime.now().subtract(Duration(days: days));
+    final rows = await (_db.select(_db.expenses)
+          ..where((e) => e.createdAt.isBiggerOrEqualValue(since))
+          ..orderBy([(e) => OrderingTerm.desc(e.createdAt)])
+          ..limit(limit))
+        .get();
+    return rows.map((r) => r.toEntity()).toList();
+  }
+
   /// 특정 날짜의 지출 목록을 실시간 스트림으로 구독
   Stream<List<ExpenseEntity>> watchExpensesByDate(DateTime date) {
     final start = DateTime(date.year, date.month, date.day);

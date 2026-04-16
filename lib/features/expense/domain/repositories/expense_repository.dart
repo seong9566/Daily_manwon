@@ -17,4 +17,7 @@ abstract interface class ExpenseRepository {
 
   /// 특정 날짜의 지출 목록을 실시간으로 구독한다 (DB 변경 시 자동 방출)
   Stream<List<ExpenseEntity>> watchExpensesByDate(DateTime date);
+
+  /// 최근 [days]일 이내 지출을 최신순으로 최대 [limit]건 조회한다
+  Future<List<ExpenseEntity>> getRecentExpenses({int limit = 10, int days = 7});
 }

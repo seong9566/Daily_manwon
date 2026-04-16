@@ -34,4 +34,12 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   Stream<List<ExpenseEntity>> watchExpensesByDate(DateTime date) {
     return _datasource.watchExpensesByDate(date);
   }
+
+  @override
+  Future<List<ExpenseEntity>> getRecentExpenses({
+    int limit = 10,
+    int days = 7,
+  }) {
+    return _datasource.getRecentExpenses(limit: limit, days: days);
+  }
 }
