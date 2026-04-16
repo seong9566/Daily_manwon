@@ -72,6 +72,20 @@ class ExpenseListItem extends StatelessWidget {
                 context,
               ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
+            // 반복 버튼 (onRepeat 제공 시만 표시)
+            if (onRepeat != null) ...[
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onRepeat,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Text(
+                    '↩',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

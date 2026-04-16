@@ -148,6 +148,7 @@ void main() {
       );
       when(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).thenAnswer((_) async => budget);
       when(() => mockBudgetRepo.getLastBudgetDate()).thenAnswer((_) async => null);
+      when(() => mockBudgetRepo.getBudgetByDate(any())).thenAnswer((_) async => null);
       when(() => mockSettingsRepo.getCarryoverEnabled()).thenAnswer((_) async => true);
 
       final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
@@ -170,6 +171,7 @@ void main() {
       );
       when(() => mockBudgetRepo.getOrCreateTodayBudget(carryOver: any(named: 'carryOver'))).thenAnswer((_) async => budget);
       when(() => mockBudgetRepo.getLastBudgetDate()).thenAnswer((_) async => null);
+      when(() => mockBudgetRepo.getBudgetByDate(any())).thenAnswer((_) async => null);
       when(() => mockSettingsRepo.getCarryoverEnabled()).thenAnswer((_) async => true);
 
       final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);

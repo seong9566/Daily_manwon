@@ -28,7 +28,9 @@ void main() {
   group('showExpenseAddBottomSheet — date 파라미터 헤더 표시', () {
     testWidgets('date 없이 열면 오늘 날짜가 헤더에 표시된다', (tester) async {
       final today = DateTime.now();
-      final expectedTitle = '${today.month}월 ${today.day}일 지출 기록';
+      const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+      final expectedTitle =
+          '${today.month}월 ${today.day}일 ${weekdays[today.weekday - 1]}';
 
       await tester.pumpWidget(
         _wrap(
@@ -47,8 +49,9 @@ void main() {
     });
 
     testWidgets('과거 date를 지정하면 해당 날짜가 헤더에 표시된다', (tester) async {
+      // 2026-04-09 is a Thursday (목요일)
       final pastDate = DateTime(2026, 4, 9);
-      const expectedTitle = '4월 9일 지출 기록';
+      const expectedTitle = '4월 9일 목요일';
 
       await tester.pumpWidget(
         _wrap(
@@ -68,13 +71,14 @@ void main() {
     });
 
     testWidgets('편집 모드에서는 기존 지출의 날짜가 헤더에 표시된다', (tester) async {
+      // 2026-03-15 is a Sunday (일요일)
       final existingExpense = ExpenseEntity(
         id: 1,
         amount: 3000,
         category: 0,
         createdAt: DateTime(2026, 3, 15),
       );
-      const expectedTitle = '3월 15일 지출 기록';
+      const expectedTitle = '3월 15일 일요일';
 
       await tester.pumpWidget(
         _wrap(
