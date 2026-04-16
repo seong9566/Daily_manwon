@@ -40,29 +40,59 @@ class FavoriteExpenseDatasource {
     );
   }
 
-  /// 최근 30일 지출을 (금액, 카테고리) 기준 집계 — 자동학습용
-  Future<List<Map<String, int>>> getFrequentTemplates({int limit = 3}) async {
-    final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    final query = _db.customSelect(
-      'SELECT amount, category, COUNT(*) AS frequency '
-      'FROM expenses '
-      'WHERE created_at >= ? '
+  /// 최근 사용 상위 3개 (amount, category) 조합으로 자동 즐겨찾기를 동기화한다.
+  ///
+  /// - 지출 추가·삭제·수정 직후 및 앱 초기 로드 시 호출
+  /// - top3에서 밀린 자동 즐겨찾기는 삭제, 신규 진입 조합은 isAuto=true로 삽입
+  /// - 수동 즐겨찾기(isAuto=false)는 변경 없음
+  Future<void> syncAutoFavorites() async {
+    // 1. 최근 사용 순 상위 3개 고유 조합 조회
+    final recentRows = await _db.customSelect(
+      'SELECT amount, category FROM expenses '
       'GROUP BY amount, category '
-      'ORDER BY frequency DESC '
-      'LIMIT ?',
-      variables: [
-        Variable.withDateTime(thirtyDaysAgo),
-        Variable.withInt(limit),
-      ],
+      'ORDER BY MAX(created_at) DESC '
+      'LIMIT 3',
       readsFrom: {_db.expenses},
-    );
-    final rows = await query.get();
-    return rows
-        .map((row) => {
-              'amount': row.read<int>('amount'),
-              'category': row.read<int>('category'),
-              'frequency': row.read<int>('frequency'),
-            })
+    ).get();
+    final recentCombos = recentRows
+        .map((r) => (
+              amount: r.read<int>('amount'),
+              category: r.read<int>('category'),
+            ))
         .toList();
+
+    // 2. 현재 자동 즐겨찾기 전체 조회
+    final existingAuto = await (_db.select(_db.favoriteExpenses)
+          ..where((f) => f.isAuto.equals(true)))
+        .get();
+
+    // 3. top3에서 밀린 자동 즐겨찾기 삭제
+    for (final row in existingAuto) {
+      final stillInRecent = recentCombos
+          .any((c) => c.amount == row.amount && c.category == row.category);
+      if (!stillInRecent) {
+        await (_db.delete(_db.favoriteExpenses)
+              ..where((f) => f.id.equals(row.id)))
+            .go();
+      }
+    }
+
+    // 4. 아직 자동 즐겨찾기에 없는 신규 조합 추가
+    // 수동 즐겨찾기(isAuto=false) 존재 여부는 체크하지 않는다 —
+    // "중복 가능" 정책: auto row와 manual row는 독립 공존, 각각 ID로 삭제
+    for (final combo in recentCombos) {
+      final alreadyAuto = existingAuto
+          .any((f) => f.amount == combo.amount && f.category == combo.category);
+      if (!alreadyAuto) {
+        await _db.into(_db.favoriteExpenses).insert(
+          FavoriteExpensesCompanion.insert(
+            amount: combo.amount,
+            category: combo.category,
+            isAuto: const Value(true),
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
+    }
   }
 }
