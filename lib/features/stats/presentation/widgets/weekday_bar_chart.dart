@@ -27,15 +27,19 @@ class WeekdayBarChart extends StatelessWidget {
     final textSub = isDark ? AppColors.darkTextSub : AppColors.textSub;
     final cardBg = isDark ? AppColors.darkCard : AppColors.card;
     final barDefault = isDark ? AppColors.darkDivider : AppColors.divider;
-    final todayWeekday = DateTime.now().weekday % 7; // Dart Mon=1 → Sun=0
+    // final todayWeekday = DateTime.now().weekday % 7; // Dart Mon=1 → Sun=0
 
     final statMap = {for (final s in stats) s.weekday: s.avgAmount};
     final bars = List.generate(7, (i) {
-      final isToday = i == todayWeekday;
+      // final isToday = i == todayWeekday;
       return StatsBarChartBar(
         value: (statMap[i] ?? 0).toDouble(),
-        color: isToday ? AppColors.budgetWarning : barDefault,
-        isHighlighted: isToday,
+        // 데이터가 있으면 색상 표시
+        // color: isToday ? AppColors.budgetWarning : barDefault,
+        color: statMap[i] != null && statMap[i]! > 0
+            ? AppColors.budgetWarning
+            : barDefault,
+        // isHighlighted: isToday,
       );
     });
 
