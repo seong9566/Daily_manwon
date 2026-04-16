@@ -27,6 +27,5 @@ class FavoriteExpenseRepositoryImpl implements FavoriteExpenseRepository {
       _datasource.incrementUsageCount(id);
 
   @override
-  Future<List<Map<String, int>>> getFrequentTemplates({int limit = 3}) =>
-      _datasource.getFrequentTemplates(limit: limit);
+  Future<void> syncAutoFavorites() => _datasource.syncAutoFavorites();
 }
