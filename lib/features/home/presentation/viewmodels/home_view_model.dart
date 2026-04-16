@@ -164,12 +164,13 @@ class HomeViewModel extends Notifier<HomeState> {
           !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
       // 자동학습 숨김 키 로드
-      final dismissedKeys =
-          await settingsRepository.getDismissedAutoSuggestions();
+      final dismissedKeys = await settingsRepository
+          .getDismissedAutoSuggestions();
 
       final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-      final frequentList =
-          await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
+      final frequentList = await getIt<GetFrequentTemplatesUseCase>().execute(
+        limit: 3,
+      );
 
       state = state.copyWith(
         remainingBudget: remaining,
@@ -189,12 +190,15 @@ class HomeViewModel extends Notifier<HomeState> {
       final catMood = isNewWeek
           ? 'new_week'
           : CharacterMood.fromRemaining(remaining, totalBudget).name;
-      final favoriteKeys =
-          favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
+      final favoriteKeys = favoritesList
+          .map((f) => '${f.amount}_${f.category}')
+          .toSet();
       final dedupedFrequent = frequentList
-          .where((t) =>
-              !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
-              !dismissedKeys.contains('${t['amount']}_${t['category']}'))
+          .where(
+            (t) =>
+                !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
+                !dismissedKeys.contains('${t['amount']}_${t['category']}'),
+          )
           .toList();
       unawaited(
         getIt<WidgetService>().updateWidget(
@@ -267,20 +271,26 @@ class HomeViewModel extends Notifier<HomeState> {
           // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
           if (!state.isLoading) {
             final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-            final frequentList =
-                await getIt<GetFrequentTemplatesUseCase>().execute(limit: 3);
+            final frequentList = await getIt<GetFrequentTemplatesUseCase>()
+                .execute(limit: 3);
             // 지출 변동으로 자동학습 결과가 바뀔 수 있으므로 state 갱신
             state = state.copyWith(
               favorites: favoritesList,
               frequentTemplates: frequentList,
             );
-            final favoriteKeys =
-                favoritesList.map((f) => '${f.amount}_${f.category}').toSet();
+            final favoriteKeys = favoritesList
+                .map((f) => '${f.amount}_${f.category}')
+                .toSet();
             final dedupedFrequent = frequentList
-                .where((t) =>
-                    !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
-                    !state.dismissedFreqKeys
-                        .contains('${t['amount']}_${t['category']}'))
+                .where(
+                  (t) =>
+                      !favoriteKeys.contains(
+                        '${t['amount']}_${t['category']}',
+                      ) &&
+                      !state.dismissedFreqKeys.contains(
+                        '${t['amount']}_${t['category']}',
+                      ),
+                )
                 .toList();
             unawaited(
               getIt<WidgetService>().updateWidget(
@@ -400,6 +410,7 @@ class HomeViewModel extends Notifier<HomeState> {
       category: category,
       memo: memo,
     );
+
     final updated = await getIt<GetFavoritesUseCase>().execute();
     state = state.copyWith(favorites: updated);
   }
@@ -438,12 +449,15 @@ class HomeViewModel extends Notifier<HomeState> {
     state = state.copyWith(dismissedFreqKeys: newDismissed);
     await getIt<SettingsRepository>().addDismissedAutoSuggestion(key);
     // 위젯의 빠른입력에서도 즉시 제거
-    final favoriteKeys =
-        state.favorites.map((f) => '${f.amount}_${f.category}').toSet();
+    final favoriteKeys = state.favorites
+        .map((f) => '${f.amount}_${f.category}')
+        .toSet();
     final filteredFrequent = state.frequentTemplates
-        .where((t) =>
-            !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
-            !newDismissed.contains('${t['amount']}_${t['category']}'))
+        .where(
+          (t) =>
+              !favoriteKeys.contains('${t['amount']}_${t['category']}') &&
+              !newDismissed.contains('${t['amount']}_${t['category']}'),
+        )
         .toList();
     unawaited(
       getIt<WidgetService>().updateFavorites([

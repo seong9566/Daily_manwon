@@ -74,6 +74,26 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
   /// 저장 시 즐겨찾기에도 추가할지 여부
   bool _addToFavorite = false;
 
+  /// 요일 문자열
+  String _getWeekdayString(int weekday) {
+    const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+    return weekdays[weekday - 1];
+  }
+
+  /// 빠른 금액 추가
+  void _addAmount(int addition) {
+    setState(() {
+      final current = _amount;
+      final next = current + addition;
+      if (next > 9999999) {
+        _amountString = '9999999';
+      } else {
+        _amountString = next.toString();
+      }
+    });
+    HapticFeedback.lightImpact();
+  }
+
   /// 즐겨찾기/자동학습 칩 탭 시 금액·카테고리 자동 채움
   void _applyTemplate(({int amount, int category, String memo}) template) {
     setState(() {
@@ -187,10 +207,9 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
       }
 
       if (_addToFavorite && widget.expense == null) {
-        await ref.read(homeViewModelProvider.notifier).addFavorite(
-          amount: _amount,
-          category: _selectedCategory.index,
-        );
+        await ref
+            .read(homeViewModelProvider.notifier)
+            .addFavorite(amount: _amount, category: _selectedCategory.index);
       }
 
       if (mounted) {
@@ -234,7 +253,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          '${_recordDate.month}월 ${_recordDate.day}일 지출 기록',
+          '${_recordDate.month}월 ${_recordDate.day}일 ${_getWeekdayString(_recordDate.weekday)}',
           style: AppTypography.titleMedium.copyWith(color: textMainColor),
         ),
         actions: [
@@ -258,13 +277,48 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // ── 즐겨찾기 / 자동학습 칩 ──────────────────────
-            if (widget.expense == null)
-              FavoriteTemplatesSection(onTemplateTap: _applyTemplate),
+            const SizedBox(height: 16),
 
-            const SizedBox(height: 12),
+            // 카테고리 뱃지
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : AppColors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkDivider : AppColors.divider,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _selectedCategory.chipColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _selectedCategory.label,
+                      style: AppTypography.bodyLarge.copyWith(
+                        color: textMainColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
 
-            // ── 금액 표시 영역 ───────────────────────────
+            // 금액 표시 영역
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Semantics(
@@ -276,18 +330,12 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    if (_amountString.isNotEmpty)
-                      Text(
-                        '₩ ',
-                        style: AppTypography.amountUnit.copyWith(
-                          color: textSubColor,
-                        ),
-                      ),
                     Text(
                       _amountString.isEmpty
                           ? '0'
                           : CurrencyFormatter.formatNumberOnly(_amount),
                       style: AppTypography.displayAmount.copyWith(
+                        fontSize: 48,
                         color: _amountString.isEmpty
                             ? (isDark
                                   ? AppColors.darkTextSub
@@ -297,8 +345,8 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
                     ),
                     if (_amountString.isNotEmpty)
                       Text(
-                        ' 원',
-                        style: AppTypography.amountUnit.copyWith(
+                        '원',
+                        style: AppTypography.titleMedium.copyWith(
                           color: textSubColor,
                         ),
                       ),
@@ -306,9 +354,22 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // ── 카테고리 선택 ────────────────────────────
+            // 빠른 금액 추가 버튼 영역
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildQuickAddBtn('+ 1천', 1000, isDark),
+                const SizedBox(width: 12),
+                _buildQuickAddBtn('+ 5천', 5000, isDark),
+                const SizedBox(width: 12),
+                _buildQuickAddBtn('+ 1만', 10000, isDark),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // 카테고리 선택 영역
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: CategorySelector(
@@ -318,17 +379,15 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            // ── 구분선 ───────────────────────────────────
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: isDark ? AppColors.darkDivider : AppColors.divider,
-            ),
-            const SizedBox(height: 8),
+            // 자주 쓰는 / 최근 내역 탭 영역
+            if (widget.expense == null)
+              FavoriteTemplatesSection(onTemplateTap: _applyTemplate),
 
-            // ── 커스텀 숫자 키패드 ───────────────────────
+            const SizedBox(height: 24),
+
+            // 커스텀 숫자 키패드
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: NumberKeypad(
@@ -343,18 +402,33 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── 즐겨찾기 추가 체크박스 ────────────────────────
+          // ── 즐겨찾기 추가 체크박스 (컴팩트 구조) ────────────────────────
           if (widget.expense == null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Checkbox(
-                  value: _addToFavorite,
-                  onChanged: (v) => setState(() => _addToFavorite = v ?? false),
-                ),
-                Text('즐겨찾기에 추가', style: Theme.of(context).textTheme.bodySmall),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: _addToFavorite,
+                      onChanged: (v) =>
+                          setState(() => _addToFavorite = v ?? false),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '즐겨찾기에 추가',
+                    style: AppTypography.labelMedium.copyWith(
+                      color: textSubColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
+          const SizedBox(height: 8),
 
           // ── 기록하기 버튼 ────────────────────────────────
           Padding(
@@ -403,7 +477,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
                             ),
                           )
                         : Text(
-                            '기록하기',
+                            '이대로 기록하기',
                             style: AppTypography.bodyLarge.copyWith(
                               color: isDark
                                   ? AppColors.darkBackground
@@ -417,6 +491,37 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAddBtn(String label, int amount, bool isDark) {
+    return InkWell(
+      onTap: () => _addAmount(amount),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.darkDivider : AppColors.divider,
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: AppTypography.bodySmall.copyWith(
+            color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+          ),
+        ),
       ),
     );
   }
