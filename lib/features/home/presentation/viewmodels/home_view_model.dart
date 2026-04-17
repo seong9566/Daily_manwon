@@ -19,7 +19,6 @@ import '../../../expense/domain/usecases/get_favorites_use_case.dart';
 import '../../../expense/domain/usecases/get_recent_expenses_use_case.dart';
 import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
-import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../../expense/domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
@@ -249,11 +248,7 @@ class HomeViewModel extends _$HomeViewModel {
   Future<Result<void>> addExpense(ExpenseEntity expense) async {
     final result = await getIt<AddExpenseUseCase>().execute(expense);
     return result.when(
-      success: (_) {
-        // TODO(architecture): CalendarViewModel이 expense 스트림을 직접 구독하면 제거 가능
-        ref.invalidate(calendarViewModelProvider);
-        return Result.success(null);
-      },
+      success: (_) => Result.success(null),
       failure: Result.failure,
     );
   }
@@ -261,16 +256,12 @@ class HomeViewModel extends _$HomeViewModel {
   /// 지출 수정
   Future<Result<void>> updateExpense(ExpenseEntity expense) async {
     final result = await getIt<UpdateExpenseUseCase>().execute(expense);
-    // TODO(architecture): CalendarViewModel expense 스트림 구독으로 대체 예정
-    if (result.isSuccess) ref.invalidate(calendarViewModelProvider);
     return result;
   }
 
   /// 지출 삭제
   Future<void> deleteExpense(int id) async {
     await getIt<DeleteExpenseUseCase>().execute(id);
-    // TODO(architecture): CalendarViewModel expense 스트림 구독으로 대체 예정
-    ref.invalidate(calendarViewModelProvider);
   }
 
   /// 위젯 버튼 탭으로 기록된 pending 지출을 처리한다.

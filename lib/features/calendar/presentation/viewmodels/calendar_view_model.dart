@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -180,6 +182,10 @@ class CalendarViewModel extends Notifier<CalendarState> {
   /// 현재 fetch 중인 캐시 키 집합 — 중복 요청 방지
   final Set<String> _inFlightLoads = {};
 
+  /// 현재 선택 월의 지출 변동 스트림 구독
+  StreamSubscription<Map<DateTime, List<ExpenseEntity>>>?
+      _monthWatchSubscription;
+
   String _cacheKey(int year, int month) => '$year-$month';
 
   @override
@@ -200,10 +206,13 @@ class CalendarViewModel extends Notifier<CalendarState> {
       selectedWeekStart: AppDateUtils.weekStartOf(now),
       isLoading: true, // invalidate 후 빈 화면 flash 방지 — loadMonthData()에서 false로 전환
     );
+    ref.onDispose(() => _monthWatchSubscription?.cancel());
+
     ref.listen(budgetChangeProvider, (_, _) => loadMonthData(forceRefresh: true));
     Future.microtask(() async {
       await _restoreViewMode();
       await loadMonthData();
+      _watchCurrentMonth(); // 초기 로드 후 스트림 구독 시작
     });
     return initialState;
   }
@@ -235,6 +244,15 @@ class CalendarViewModel extends Notifier<CalendarState> {
     return _effectiveBudgetCache[_cacheKey(year, month)] ?? const {};
   }
 
+  /// 현재 선택 월의 지출 변동을 구독한다. 월 변경 시 재호출하여 재구독한다.
+  void _watchCurrentMonth() {
+    _monthWatchSubscription?.cancel();
+    final month = state.selectedMonth;
+    _monthWatchSubscription = _useCase
+        .watchExpensesByMonth(year: month.year, month: month.month)
+        .listen((_) => loadMonthData(forceRefresh: true));
+  }
+
   /// 월을 delta만큼 이동한다 (양수 = 다음 달, 음수 = 이전 달)
   Future<void> changeMonth(int delta) async {
     final current = state.selectedMonth;
@@ -258,6 +276,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
     );
 
     await loadMonthData();
+    _watchCurrentMonth(); // 월 변경 시 새 월로 재구독
   }
 
   /// 날짜를 선택한다
