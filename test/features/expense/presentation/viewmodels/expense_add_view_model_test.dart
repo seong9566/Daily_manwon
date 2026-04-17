@@ -326,7 +326,7 @@ void main() {
       expect(state.isSaving, false);
     });
 
-    test('canSave=false(금액 0)이면 Success 반환하고 아무것도 호출하지 않는다', () async {
+    test('canSave=false(금액 0)이면 ValidationFailure 반환하고 아무것도 호출하지 않는다', () async {
       final fake = _FakeHomeViewModel();
       final args = (expense: null as ExpenseEntity?, date: null as DateTime?);
       final container = _container(homeVm: fake);
@@ -336,7 +336,7 @@ void main() {
         expenseAddViewModelProvider(args).notifier,
       );
       final result = await notifier.save();
-      expect(result.isSuccess, true);
+      expect(result.isSuccess, false);
       expect(fake.addExpenseCallCount, 0);
       expect(fake.updateExpenseCallCount, 0);
     });

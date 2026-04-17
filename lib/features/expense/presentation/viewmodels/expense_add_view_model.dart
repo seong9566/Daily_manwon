@@ -107,7 +107,7 @@ class ExpenseAddViewModel extends Notifier<ExpenseAddState> {
 
   /// 저장. 성공 → Screen이 pop. 실패 → Screen이 SnackBar 표시.
   Future<Result<void>> save() async {
-    if (!state.canSave) return Result.success(null);
+    if (!state.canSave) return Result.failure(const ValidationFailure('금액을 입력해주세요'));
 
     state = state.copyWith(isSaving: true, saveError: false);
 
@@ -142,9 +142,7 @@ class ExpenseAddViewModel extends Notifier<ExpenseAddState> {
           );
     }
 
-    if (!result.isSuccess) {
-      state = state.copyWith(isSaving: false, saveError: true);
-    }
+    state = state.copyWith(isSaving: false, saveError: !result.isSuccess);
 
     return result;
   }
