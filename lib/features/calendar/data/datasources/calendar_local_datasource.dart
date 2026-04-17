@@ -57,7 +57,11 @@ class CalendarLocalDatasource {
     final end = DateTime(year, month + 1, 1);
 
     final driftStream = (_db.select(_db.expenses)
-          ..where((e) => e.createdAt.isBetweenValues(start, end))
+          ..where(
+            (e) =>
+                e.createdAt.isBiggerOrEqualValue(start) &
+                e.createdAt.isSmallerThanValue(end),
+          )
           ..orderBy([(e) => OrderingTerm.asc(e.createdAt)]))
         .watch()
         .map(_groupByDay);
