@@ -151,11 +151,11 @@ struct DailyHomeLargeView: View {
                                     .resizable()
                                     .renderingMode(.template)
                                     .scaledToFit()
-                                    .foregroundColor(colors.primaryText)
+                                    .foregroundColor(.black)
                                     .frame(width: 22, height: 22)
                                 Text(fav.formattedAmount)
                                     .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(colors.primaryText)
+                                    .foregroundColor(.black)
                                     .lineLimit(1)
                             }
                             .frame(maxWidth: .infinity)

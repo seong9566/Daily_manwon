@@ -35,6 +35,10 @@ flutter clean && flutter pub get && dart run build_runner build --delete-conflic
 
 `docs/flutter_kit/` 하단에 개발 시 반드시 참고해야 할 가이드 문서가 있다. 코드 작성, 리뷰, 리팩토링 시 해당 문서의 규칙을 따른다.
 
+## 코드 작성 완료 코드 검증
+
+.dart 파일 수정이 완료 되면 반드시 `docs/script/flutter-kit-review.mjs`를 실행하여 코드 규칙 검증을 수행한다.
+
 ### Architecture
 
 - `docs/flutter_kit/flutter-architecture/` 참고

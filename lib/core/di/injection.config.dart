@@ -12,12 +12,6 @@
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
-import '../../features/achievement/data/datasources/achievement_local_datasource.dart'
-    as _i484;
-import '../../features/achievement/data/repositories/achievement_repository_impl.dart'
-    as _i640;
-import '../../features/achievement/domain/repositories/achievement_repository.dart'
-    as _i200;
 import '../../features/calendar/data/datasources/calendar_local_datasource.dart'
     as _i494;
 import '../../features/calendar/data/repositories/calendar_repository_impl.dart'
@@ -65,8 +59,6 @@ import '../../features/home/data/repositories/daily_budget_repository_impl.dart'
 import '../../features/home/domain/repositories/acorn_repository.dart' as _i837;
 import '../../features/home/domain/repositories/daily_budget_repository.dart'
     as _i891;
-import '../../features/home/domain/usecases/check_and_award_title_use_case.dart'
-    as _i486;
 import '../../features/home/domain/usecases/evaluate_and_award_acorn_use_case.dart'
     as _i497;
 import '../../features/home/domain/usecases/get_acorn_stats_use_case.dart'
@@ -125,9 +117,6 @@ _i174.GetIt $initGetIt(
     () => _i941.NotificationService(),
   );
   gh.lazySingleton<_i511.WidgetService>(() => _i511.WidgetService());
-  gh.lazySingleton<_i484.AchievementLocalDatasource>(
-    () => _i484.AchievementLocalDatasource(gh<_i982.AppDatabase>()),
-  );
   gh.lazySingleton<_i494.CalendarLocalDatasource>(
     () => _i494.CalendarLocalDatasource(gh<_i982.AppDatabase>()),
   );
@@ -152,10 +141,6 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i1071.StatsLocalDatasource>(
     () => _i1071.StatsLocalDatasource(gh<_i982.AppDatabase>()),
   );
-  gh.lazySingleton<_i200.AchievementRepository>(
-    () =>
-        _i640.AchievementRepositoryImpl(gh<_i484.AchievementLocalDatasource>()),
-  );
   gh.lazySingleton<_i674.SettingsRepository>(
     () => _i955.SettingsRepositoryImpl(gh<_i723.SettingsLocalDatasource>()),
   );
@@ -163,9 +148,6 @@ _i174.GetIt $initGetIt(
     () => _i180.DailyBudgetRepositoryImpl(
       gh<_i1053.DailyBudgetLocalDatasource>(),
     ),
-  );
-  gh.lazySingleton<_i486.CheckAndAwardTitleUseCase>(
-    () => _i486.CheckAndAwardTitleUseCase(gh<_i200.AchievementRepository>()),
   );
   gh.lazySingleton<_i804.StatsRepository>(
     () => _i845.StatsRepositoryImpl(gh<_i1071.StatsLocalDatasource>()),

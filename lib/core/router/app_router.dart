@@ -6,7 +6,6 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
 import '../../features/stats/presentation/screens/stats_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/achievement/presentation/screens/achievement_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 
 // 라우트 경로 상수
@@ -15,7 +14,6 @@ abstract class AppRoutes {
   static const calendar = '/calendar';
   static const stats = '/stats';
   static const settings = '/settings';
-  static const achievement = '/achievement';
   static const onboarding = '/onboarding';
 }
 
@@ -26,8 +24,9 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 GoRouter createRouter({bool isOnboardingCompleted = true}) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation:
-        isOnboardingCompleted ? AppRoutes.home : AppRoutes.onboarding,
+    initialLocation: isOnboardingCompleted
+        ? AppRoutes.home
+        : AppRoutes.onboarding,
     routes: [
       // 바텀 네비게이션 탭 (ShellRoute)
       StatefulShellRoute.indexedStack(
@@ -73,12 +72,6 @@ GoRouter createRouter({bool isOnboardingCompleted = true}) {
             ],
           ),
         ],
-      ),
-      // 풀스크린 라우트
-      GoRoute(
-        path: AppRoutes.achievement,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AchievementScreen(),
       ),
       GoRoute(
         path: AppRoutes.onboarding,

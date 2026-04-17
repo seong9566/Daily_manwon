@@ -54,7 +54,7 @@ lib/
 │   │   │   ├── repositories/     # Repository 인터페이스 정의 (*_repository.dart)
 │   │   │   └── usecases/         # 개별 비즈니스 유스케이스
 │   │   └── presentation/         # Feature-specific Presentation 레이어
-│   │       ├── providers/        # Riverpod Notifier/Provider (*_notifier.dart)
+│   │       ├── viewmodels/        # Riverpod
 │   │       ├── models/           # UI State 모델 (*_ui_state.dart)
 │   │       ├── screens/          # 화면 단위 위젯
 │   │       └── widgets/          # 기능 전용 부분 위젯
@@ -82,12 +82,6 @@ class ExpenseAddViewModel extends _$ExpenseAddViewModel {
   ExpenseAddState build({ExpenseEntity? expense, DateTime? date}) {
     // 초기 상태 반환
   }
-}
-
-// ✅ @riverpod 코드젠 — 단순 읽기 전용 Provider
-@riverpod
-SomeInfo? someInfo(Ref ref) {
-  return ref.watch(someRepositoryProvider).data;
 }
 ```
 
