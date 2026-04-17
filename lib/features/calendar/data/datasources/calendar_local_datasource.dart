@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 
@@ -41,6 +43,99 @@ class CalendarLocalDatasource {
     }
 
     return grouped;
+  }
+
+  /// 특정 월의 지출 변동을 실시간 스트림으로 구독한다
+  ///
+  /// 구독 즉시 빈 Map을 동기적으로 방출한 뒤, Drift watch() 결과를
+  /// 이어서 방출한다. 중복 방출은 내용 비교로 제거한다.
+  Stream<Map<DateTime, List<ExpenseEntity>>> watchExpensesByMonth({
+    required int year,
+    required int month,
+  }) {
+    final start = DateTime(year, month, 1);
+    final end = DateTime(year, month + 1, 1);
+
+    final driftStream = (_db.select(_db.expenses)
+          ..where(
+            (e) =>
+                e.createdAt.isBiggerOrEqualValue(start) &
+                e.createdAt.isSmallerThanValue(end),
+          )
+          ..orderBy([(e) => OrderingTerm.asc(e.createdAt)]))
+        .watch()
+        .map(_groupByDay);
+
+    // 구독 직후 빈 Map을 즉시 방출하고 Drift 스트림을 이어 붙인다.
+    // 이렇게 하면 insert 전에 첫 번째 방출이 반드시 전달된다.
+    return _prependEmpty(driftStream).transform(_distinctGroupedExpenses());
+  }
+
+  /// 빈 Map을 동기 첫 이벤트로 prepend한 스트림을 반환한다
+  Stream<Map<DateTime, List<ExpenseEntity>>> _prependEmpty(
+    Stream<Map<DateTime, List<ExpenseEntity>>> source,
+  ) {
+    late StreamController<Map<DateTime, List<ExpenseEntity>>> controller;
+    StreamSubscription<Map<DateTime, List<ExpenseEntity>>>? sub;
+
+    controller = StreamController<Map<DateTime, List<ExpenseEntity>>>(
+      onListen: () {
+        // 구독 시점에 빈 Map을 즉시(동기) 방출
+        controller.add({});
+        // 이후 Drift 스트림 결과를 전달
+        sub = source.listen(
+          controller.add,
+          onError: controller.addError,
+          onDone: controller.close,
+        );
+      },
+      onCancel: () => sub?.cancel(),
+    );
+
+    return controller.stream;
+  }
+
+  /// rows를 일별 Map으로 그룹화한다
+  Map<DateTime, List<ExpenseEntity>> _groupByDay(List<Expense> rows) {
+    final Map<DateTime, List<ExpenseEntity>> grouped = {};
+    for (final row in rows) {
+      final entity = row.toEntity();
+      final dayKey = DateTime(
+        entity.createdAt.year,
+        entity.createdAt.month,
+        entity.createdAt.day,
+      );
+      grouped.putIfAbsent(dayKey, () => []).add(entity);
+    }
+    return grouped;
+  }
+
+  /// 연속된 동일한 Map 방출을 제거하는 StreamTransformer
+  StreamTransformer<Map<DateTime, List<ExpenseEntity>>,
+      Map<DateTime, List<ExpenseEntity>>> _distinctGroupedExpenses() {
+    return StreamTransformer.fromBind((source) {
+      String? previousKey;
+      return source.where((map) {
+        final key = _encodeGroupedExpenses(map);
+        if (key == previousKey) return false;
+        previousKey = key;
+        return true;
+      });
+    });
+  }
+
+  /// Map 내용을 문자열로 직렬화하여 동등성 비교 키로 사용
+  String _encodeGroupedExpenses(Map<DateTime, List<ExpenseEntity>> map) {
+    final sortedKeys = map.keys.toList()..sort();
+    final buffer = StringBuffer();
+    for (final key in sortedKeys) {
+      buffer.write('${key.millisecondsSinceEpoch}:');
+      for (final e in map[key]!) {
+        buffer.write('${e.id},${e.amount},${e.createdAt.millisecondsSinceEpoch};');
+      }
+      buffer.write('|');
+    }
+    return buffer.toString();
   }
 
   /// 특정 날짜(자정~다음 자정 미만)의 지출 목록을 조회한다
