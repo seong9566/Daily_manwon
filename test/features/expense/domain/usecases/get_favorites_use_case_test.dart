@@ -1,4 +1,5 @@
 import 'package:daily_manwon/core/constants/app_constants.dart';
+import 'package:daily_manwon/core/utils/result.dart';
 import 'package:daily_manwon/features/expense/domain/entities/favorite_expense.dart';
 import 'package:daily_manwon/features/expense/domain/repositories/favorite_expense_repository.dart';
 import 'package:daily_manwon/features/expense/domain/usecases/get_favorites_use_case.dart';
@@ -31,7 +32,8 @@ void main() {
 
     final result = await useCase.execute();
 
-    expect(result, favorites);
+    expect(result, isA<Success<List<FavoriteExpenseEntity>>>());
+    expect(result.dataOrNull, favorites);
     verify(() => repository.getFavorites()).called(1);
   });
 }

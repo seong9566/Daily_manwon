@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-
+import '../../../../core/utils/result.dart';
 import '../entities/expense.dart';
 import '../repositories/expense_repository.dart';
 
@@ -10,6 +10,15 @@ class GetRecentExpensesUseCase {
 
   final ExpenseRepository _repository;
 
-  Future<List<ExpenseEntity>> execute({int limit = 10, int days = 7}) =>
-      _repository.getRecentExpenses(limit: limit, days: days);
+  Future<Result<List<ExpenseEntity>>> execute({int limit = 10, int days = 7}) async {
+    try {
+      return Result.success(
+        await _repository.getRecentExpenses(limit: limit, days: days),
+      );
+    } on Exception catch (e) {
+      return Result.failure(DatabaseFailure(e.toString()));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
 }

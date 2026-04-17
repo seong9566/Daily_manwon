@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/result.dart';
 import '../entities/favorite_expense.dart';
 import '../repositories/favorite_expense_repository.dart';
 
@@ -10,12 +11,13 @@ class AddFavoriteUseCase {
 
   final FavoriteExpenseRepository _repository;
 
-  Future<void> execute({
+  Future<Result<void>> execute({
     required int amount,
     required ExpenseCategory category,
     String memo = '',
-  }) =>
-      _repository.addFavorite(
+  }) async {
+    try {
+      await _repository.addFavorite(
         FavoriteExpenseEntity(
           amount: amount,
           category: category,
@@ -23,4 +25,11 @@ class AddFavoriteUseCase {
           createdAt: DateTime.now(),
         ),
       );
+      return Result.success(null);
+    } on Exception catch (e) {
+      return Result.failure(DatabaseFailure(e.toString()));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
 }

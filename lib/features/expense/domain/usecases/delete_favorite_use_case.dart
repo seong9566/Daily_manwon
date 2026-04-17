@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-
+import '../../../../core/utils/result.dart';
 import '../repositories/favorite_expense_repository.dart';
 
 /// 즐겨찾기 삭제
@@ -9,5 +9,14 @@ class DeleteFavoriteUseCase {
 
   final FavoriteExpenseRepository _repository;
 
-  Future<void> execute(int id) => _repository.deleteFavorite(id);
+  Future<Result<void>> execute(int id) async {
+    try {
+      await _repository.deleteFavorite(id);
+      return Result.success(null);
+    } on Exception catch (e) {
+      return Result.failure(DatabaseFailure(e.toString()));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
 }

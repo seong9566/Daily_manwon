@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-
+import '../../../../core/utils/result.dart';
 import '../entities/favorite_expense.dart';
 import '../repositories/favorite_expense_repository.dart';
 
@@ -10,5 +10,13 @@ class GetFavoritesUseCase {
 
   final FavoriteExpenseRepository _repository;
 
-  Future<List<FavoriteExpenseEntity>> execute() => _repository.getFavorites();
+  Future<Result<List<FavoriteExpenseEntity>>> execute() async {
+    try {
+      return Result.success(await _repository.getFavorites());
+    } on Exception catch (e) {
+      return Result.failure(DatabaseFailure(e.toString()));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
 }

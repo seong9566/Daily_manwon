@@ -1,4 +1,5 @@
 import 'package:daily_manwon/core/constants/app_constants.dart';
+import 'package:daily_manwon/core/utils/result.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/presentation/screens/expense_add_screen.dart';
 import 'package:daily_manwon/features/home/presentation/viewmodels/home_view_model.dart';
@@ -12,7 +13,8 @@ class _StubHomeViewModel extends HomeViewModel {
   HomeState build() => const HomeState(isLoading: false);
 
   @override
-  Future<void> addExpense(ExpenseEntity expense) async {}
+  Future<Result<void>> addExpense(ExpenseEntity expense) async =>
+      Result.success(null);
 
   @override
   Future<void> refresh() async {}

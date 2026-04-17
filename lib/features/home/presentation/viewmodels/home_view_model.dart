@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
+import '../../../../core/utils/result.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../../expense/domain/entities/favorite_expense.dart';
 import '../../../expense/domain/usecases/add_expense_use_case.dart';
@@ -156,8 +157,10 @@ class HomeViewModel extends Notifier<HomeState> {
           carryoverEnabled &&
           !await settingsRepository.hasSeenNewWeekThisWeek(weekKey);
 
-      final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-      final recentList = await getIt<GetRecentExpensesUseCase>().execute();
+      final favoritesList =
+          (await getIt<GetFavoritesUseCase>().execute()).dataOrNull ?? [];
+      final recentList =
+          (await getIt<GetRecentExpensesUseCase>().execute()).dataOrNull ?? [];
 
       state = state.copyWith(
         remainingBudget: remaining,
@@ -236,8 +239,10 @@ class HomeViewModel extends Notifier<HomeState> {
           // 지출 변동 시 홈 위젯 실시간 갱신
           // _loadData 완료 전(isLoading=true)이면 streak 등 초기값이 0이므로 스킵
           if (!state.isLoading) {
-            final favoritesList = await getIt<GetFavoritesUseCase>().execute();
-            final recentList = await getIt<GetRecentExpensesUseCase>().execute();
+            final favoritesList =
+                (await getIt<GetFavoritesUseCase>().execute()).dataOrNull ?? [];
+            final recentList =
+                (await getIt<GetRecentExpensesUseCase>().execute()).dataOrNull ?? [];
             state = state.copyWith(
               favorites: favoritesList,
               recentExpenses: recentList,
@@ -302,15 +307,22 @@ class HomeViewModel extends Notifier<HomeState> {
   }
 
   /// 지출 추가
-  Future<void> addExpense(ExpenseEntity expense) async {
-    await getIt<AddExpenseUseCase>().execute(expense);
-    ref.invalidate(calendarViewModelProvider);
+  Future<Result<void>> addExpense(ExpenseEntity expense) async {
+    final result = await getIt<AddExpenseUseCase>().execute(expense);
+    return result.when(
+      success: (_) {
+        ref.invalidate(calendarViewModelProvider);
+        return Result.success(null);
+      },
+      failure: Result.failure,
+    );
   }
 
   /// 지출 수정
-  Future<void> updateExpense(ExpenseEntity expense) async {
-    await getIt<UpdateExpenseUseCase>().execute(expense);
-    ref.invalidate(calendarViewModelProvider);
+  Future<Result<void>> updateExpense(ExpenseEntity expense) async {
+    final result = await getIt<UpdateExpenseUseCase>().execute(expense);
+    if (result.isSuccess) ref.invalidate(calendarViewModelProvider);
+    return result;
   }
 
   /// 지출 삭제
@@ -339,47 +351,55 @@ class HomeViewModel extends Notifier<HomeState> {
   }
 
   /// 즐겨찾기 추가 — DB 저장 후 state 갱신
-  Future<void> addFavorite({
+  Future<Result<void>> addFavorite({
     required int amount,
     required ExpenseCategory category,
     String memo = '',
   }) async {
-    await getIt<AddFavoriteUseCase>().execute(
+    final result = await getIt<AddFavoriteUseCase>().execute(
       amount: amount,
       category: category,
       memo: memo,
     );
-
-    final updated = await getIt<GetFavoritesUseCase>().execute();
-    state = state.copyWith(favorites: updated);
+    if (result.isSuccess) {
+      final updated =
+          (await getIt<GetFavoritesUseCase>().execute()).dataOrNull ?? [];
+      state = state.copyWith(favorites: updated);
+    }
+    return result;
   }
 
   /// 즐겨찾기 삭제 — DB 삭제 후 state 갱신 + iOS 위젯 favoritesKey 동기화
-  Future<void> deleteFavorite(int id) async {
-    await getIt<DeleteFavoriteUseCase>().execute(id);
-    final updated = await getIt<GetFavoritesUseCase>().execute();
-    state = state.copyWith(favorites: updated);
-    unawaited(
-      getIt<WidgetService>().updateFavorites(
-        updated
-            .map(
-              (f) => {
-                'id': f.id,
-                'amount': f.amount,
-                'category': f.category.index,
-                'memo': f.memo,
-              },
-            )
-            .toList(),
-      ),
-    );
+  Future<Result<void>> deleteFavorite(int id) async {
+    final result = await getIt<DeleteFavoriteUseCase>().execute(id);
+    if (result.isSuccess) {
+      final updated =
+          (await getIt<GetFavoritesUseCase>().execute()).dataOrNull ?? [];
+      state = state.copyWith(favorites: updated);
+      unawaited(
+        getIt<WidgetService>().updateFavorites(
+          updated
+              .map((f) => {
+                    'id': f.id,
+                    'amount': f.amount,
+                    'category': f.category.index,
+                    'memo': f.memo,
+                  })
+              .toList(),
+        ),
+      );
+    }
+    return result;
   }
 
   /// 즐겨찾기 사용 횟수 증가 — usageCount 변동으로 정렬이 바뀔 수 있으므로 state 갱신
   Future<void> incrementFavoriteUsage(int id) async {
-    await getIt<IncrementFavoriteUsageUseCase>().execute(id);
-    final updated = await getIt<GetFavoritesUseCase>().execute();
-    state = state.copyWith(favorites: updated);
+    final result = await getIt<IncrementFavoriteUsageUseCase>().execute(id);
+    if (result.isSuccess) {
+      final updated =
+          (await getIt<GetFavoritesUseCase>().execute()).dataOrNull;
+      if (updated != null) state = state.copyWith(favorites: updated);
+    }
   }
 
   /// 기존 지출과 동일한 내용을 현재 시각으로 새로 저장한다

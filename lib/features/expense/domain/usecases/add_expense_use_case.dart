@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-
+import '../../../../core/utils/result.dart';
 import '../entities/expense.dart';
 import '../repositories/expense_repository.dart';
 
@@ -10,7 +10,13 @@ class AddExpenseUseCase {
 
   final ExpenseRepository _repository;
 
-  /// 지출 엔티티를 저장하고 저장된 엔티티를 반환한다
-  Future<ExpenseEntity> execute(ExpenseEntity expense) =>
-      _repository.addExpense(expense);
+  Future<Result<ExpenseEntity>> execute(ExpenseEntity expense) async {
+    try {
+      return Result.success(await _repository.addExpense(expense));
+    } on Exception catch (e) {
+      return Result.failure(DatabaseFailure(e.toString()));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
 }

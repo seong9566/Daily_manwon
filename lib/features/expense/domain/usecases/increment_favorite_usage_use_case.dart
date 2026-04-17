@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-
+import '../../../../core/utils/result.dart';
 import '../repositories/favorite_expense_repository.dart';
 
 /// 즐겨찾기 사용 횟수 증가
@@ -9,5 +9,14 @@ class IncrementFavoriteUsageUseCase {
 
   final FavoriteExpenseRepository _repository;
 
-  Future<void> execute(int id) => _repository.incrementUsageCount(id);
+  Future<Result<void>> execute(int id) async {
+    try {
+      await _repository.incrementUsageCount(id);
+      return Result.success(null);
+    } on Exception catch (e) {
+      return Result.failure(DatabaseFailure(e.toString()));
+    } catch (e) {
+      return Result.failure(UnknownFailure(e.toString()));
+    }
+  }
 }
