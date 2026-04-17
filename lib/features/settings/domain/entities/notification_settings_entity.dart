@@ -8,8 +8,7 @@ part 'notification_settings_entity.freezed.dart';
 /// TimeOfDay는 freezed 직렬화가 불가하므로 시/분을 int 필드로 분리하여 저장한다.
 /// getter를 통해 TimeOfDay로 변환하여 UI에서 사용한다.
 @freezed
-abstract class NotificationSettingsEntity
-    with _$NotificationSettingsEntity {
+sealed class NotificationSettingsEntity with _$NotificationSettingsEntity {
   const NotificationSettingsEntity._();
 
   const factory NotificationSettingsEntity({
