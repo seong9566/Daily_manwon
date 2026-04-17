@@ -1,3 +1,4 @@
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/domain/entities/favorite_expense.dart';
 import 'package:daily_manwon/features/expense/presentation/widgets/favorite_templates_section.dart';
@@ -48,7 +49,7 @@ void main() {
                 isLoading: false,
                 favorites: [
                   FavoriteExpenseEntity(
-                    id: 1, amount: 3500, category: 2,
+                    id: 1, amount: 3500, category: ExpenseCategory.shopping,
                     usageCount: 3,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
@@ -76,12 +77,12 @@ void main() {
                 isLoading: false,
                 favorites: [
                   FavoriteExpenseEntity(
-                    id: 1, amount: 1000, category: 2,
+                    id: 1, amount: 1000, category: ExpenseCategory.shopping,
                     usageCount: 2,
                     createdAt: DateTime.utc(2026, 4, 1),
                   ),
                   FavoriteExpenseEntity(
-                    id: 2, amount: 3000, category: 0,
+                    id: 2, amount: 3000, category: ExpenseCategory.food,
                     usageCount: 1,
                     createdAt: DateTime.utc(2026, 4, 2),
                   ),
@@ -111,7 +112,7 @@ void main() {
                 favorites: [],
                 recentExpenses: [
                   ExpenseEntity(
-                    id: 10, amount: 4500, category: 1,
+                    id: 10, amount: 4500, category: ExpenseCategory.transport,
                     memo: '점심',
                     createdAt: DateTime.utc(2026, 4, 16),
                   ),
@@ -165,7 +166,7 @@ void main() {
   });
 
   testWidgets('"최근 내역" 탭 칩 탭 시 onTemplateTap 콜백 호출', (tester) async {
-    ({int amount, int category, String memo})? captured;
+    ({int amount, ExpenseCategory category, String memo})? captured;
 
     await tester.pumpWidget(
       ProviderScope(
@@ -177,7 +178,7 @@ void main() {
                 favorites: [],
                 recentExpenses: [
                   ExpenseEntity(
-                    id: 10, amount: 4500, category: 1,
+                    id: 10, amount: 4500, category: ExpenseCategory.transport,
                     memo: '점심',
                     createdAt: DateTime.utc(2026, 4, 16),
                   ),
@@ -207,7 +208,7 @@ void main() {
 
     expect(captured, isNotNull);
     expect(captured!.amount, 4500);
-    expect(captured!.category, 1);
+    expect(captured!.category, ExpenseCategory.transport);
     expect(captured!.memo, '점심');
   });
 }

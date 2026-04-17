@@ -12,7 +12,7 @@ import '../../domain/entities/favorite_expense.dart';
 /// 수동·자동학습 칩(자주 쓰는 탭) 및 최근 내역 탭을 제공하는 섹션
 class FavoriteTemplatesSection extends ConsumerStatefulWidget {
   /// 템플릿·내역 탭 시 호출 — amount, category, memo 전달
-  final void Function(({int amount, int category, String memo})) onTemplateTap;
+  final void Function(({int amount, ExpenseCategory category, String memo})) onTemplateTap;
 
   const FavoriteTemplatesSection({super.key, required this.onTemplateTap});
 
@@ -108,7 +108,7 @@ class _FavoriteTemplatesSectionState
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: favorites.map((fav) {
-        final cat = ExpenseCategory.values[fav.category];
+        final cat = fav.category;
         final title = fav.memo.isNotEmpty ? fav.memo : cat.label;
         return Padding(
           padding: const EdgeInsets.only(right: 8),
@@ -158,7 +158,7 @@ class _FavoriteTemplatesSectionState
       itemCount: recentExpenses.length,
       itemBuilder: (context, index) {
         final expense = recentExpenses[index];
-        final cat = ExpenseCategory.values[expense.category];
+        final cat = expense.category;
         final title = expense.memo.isNotEmpty ? expense.memo : cat.label;
 
         return Padding(

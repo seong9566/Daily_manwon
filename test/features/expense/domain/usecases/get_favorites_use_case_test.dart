@@ -1,3 +1,4 @@
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/expense/domain/entities/favorite_expense.dart';
 import 'package:daily_manwon/features/expense/domain/repositories/favorite_expense_repository.dart';
 import 'package:daily_manwon/features/expense/domain/usecases/get_favorites_use_case.dart';
@@ -21,7 +22,7 @@ void main() {
       FavoriteExpenseEntity(
         id: 1,
         amount: 3500,
-        category: 2,
+        category: ExpenseCategory.shopping,
         usageCount: 5,
         createdAt: DateTime.utc(2026, 4, 1),
       ),

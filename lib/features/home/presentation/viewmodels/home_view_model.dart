@@ -185,7 +185,7 @@ class HomeViewModel extends Notifier<HomeState> {
           expenses: expenses
               .map(
                 (e) => {
-                  'category': ExpenseCategory.values[e.category].label,
+                  'category': e.category.label,
                   'time': DateFormat('HH:mm').format(e.createdAt),
                   'amount': e.amount,
                 },
@@ -196,7 +196,7 @@ class HomeViewModel extends Notifier<HomeState> {
               .map((f) => {
                     'id': f.id,
                     'amount': f.amount,
-                    'category': f.category,
+                    'category': f.category.index,
                     'memo': f.memo,
                   })
               .toList(),
@@ -251,7 +251,7 @@ class HomeViewModel extends Notifier<HomeState> {
                 expenses: expenses
                     .map(
                       (e) => {
-                        'category': ExpenseCategory.values[e.category].label,
+                        'category': e.category.label,
                         'time': DateFormat('HH:mm').format(e.createdAt),
                         'amount': e.amount,
                       },
@@ -267,7 +267,7 @@ class HomeViewModel extends Notifier<HomeState> {
                     .map((f) => {
                           'id': f.id,
                           'amount': f.amount,
-                          'category': f.category,
+                          'category': f.category.index,
                           'memo': f.memo,
                         })
                     .toList(),
@@ -341,7 +341,7 @@ class HomeViewModel extends Notifier<HomeState> {
   /// 즐겨찾기 추가 — DB 저장 후 state 갱신
   Future<void> addFavorite({
     required int amount,
-    required int category,
+    required ExpenseCategory category,
     String memo = '',
   }) async {
     await getIt<AddFavoriteUseCase>().execute(
@@ -366,7 +366,7 @@ class HomeViewModel extends Notifier<HomeState> {
               (f) => {
                 'id': f.id,
                 'amount': f.amount,
-                'category': f.category,
+                'category': f.category.index,
                 'memo': f.memo,
               },
             )
@@ -386,7 +386,6 @@ class HomeViewModel extends Notifier<HomeState> {
   Future<void> repeatExpense(ExpenseEntity expense) async {
     await addExpense(
       ExpenseEntity(
-        id: 0,
         amount: expense.amount,
         category: expense.category,
         memo: expense.memo,

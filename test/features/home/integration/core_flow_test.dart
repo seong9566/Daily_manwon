@@ -8,6 +8,7 @@ import 'package:daily_manwon/features/home/domain/repositories/daily_budget_repo
 import 'package:daily_manwon/features/home/domain/usecases/evaluate_and_award_acorn_use_case.dart';
 import 'package:daily_manwon/features/home/domain/usecases/get_acorn_stats_use_case.dart';
 import 'package:daily_manwon/features/home/domain/usecases/get_today_budget_use_case.dart';
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/domain/repositories/expense_repository.dart';
 import 'package:daily_manwon/features/expense/domain/usecases/add_expense_use_case.dart';
@@ -29,7 +30,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(
-      ExpenseEntity(id: 0, amount: 0, category: 0, createdAt: DateTime(2026)),
+      ExpenseEntity(amount: 0, category: ExpenseCategory.food, createdAt: DateTime(2026)),
     );
     registerFallbackValue(DateTime(2026));
   });
@@ -50,7 +51,7 @@ void main() {
       final expense = ExpenseEntity(
         id: 1,
         amount: 3000,
-        category: 1,
+        category: ExpenseCategory.transport,
         memo: '점심',
         createdAt: today,
       );
@@ -74,7 +75,7 @@ void main() {
       final expense = ExpenseEntity(
         id: 2,
         amount: 5000,
-        category: 2,
+        category: ExpenseCategory.shopping,
         createdAt: DateTime.now(),
       );
       when(() => mockExpenseRepo.addExpense(any())).thenAnswer((_) async => expense);

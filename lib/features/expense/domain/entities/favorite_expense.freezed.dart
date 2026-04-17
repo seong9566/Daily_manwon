@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FavoriteExpenseEntity {
 
- int get id; int get amount; int get category; String get memo; int get usageCount; DateTime get createdAt;
+ int get id; int get amount; ExpenseCategory get category; String get memo; int get usageCount; DateTime get createdAt;
 /// Create a copy of FavoriteExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $FavoriteExpenseEntityCopyWith<$Res>  {
   factory $FavoriteExpenseEntityCopyWith(FavoriteExpenseEntity value, $Res Function(FavoriteExpenseEntity) _then) = _$FavoriteExpenseEntityCopyWithImpl;
 @useResult
 $Res call({
- int id, int amount, int category, String memo, int usageCount, DateTime createdAt
+ int id, int amount, ExpenseCategory category, String memo, int usageCount, DateTime createdAt
 });
 
 
@@ -67,7 +67,7 @@ class _$FavoriteExpenseEntityCopyWithImpl<$Res>
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as int,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
+as ExpenseCategory,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
 as String,usageCount: null == usageCount ? _self.usageCount : usageCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
@@ -152,7 +152,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  int usageCount,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int amount,  ExpenseCategory category,  String memo,  int usageCount,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FavoriteExpenseEntity() when $default != null:
 return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.createdAt);case _:
@@ -173,7 +173,7 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  int usageCount,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int amount,  ExpenseCategory category,  String memo,  int usageCount,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _FavoriteExpenseEntity():
 return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.createdAt);}
@@ -190,7 +190,7 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int amount,  int category,  String memo,  int usageCount,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int amount,  ExpenseCategory category,  String memo,  int usageCount,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _FavoriteExpenseEntity() when $default != null:
 return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount,_that.createdAt);case _:
@@ -210,7 +210,7 @@ class _FavoriteExpenseEntity implements FavoriteExpenseEntity {
 
 @override@JsonKey() final  int id;
 @override final  int amount;
-@override final  int category;
+@override final  ExpenseCategory category;
 @override@JsonKey() final  String memo;
 @override@JsonKey() final  int usageCount;
 @override final  DateTime createdAt;
@@ -245,7 +245,7 @@ abstract mixin class _$FavoriteExpenseEntityCopyWith<$Res> implements $FavoriteE
   factory _$FavoriteExpenseEntityCopyWith(_FavoriteExpenseEntity value, $Res Function(_FavoriteExpenseEntity) _then) = __$FavoriteExpenseEntityCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int amount, int category, String memo, int usageCount, DateTime createdAt
+ int id, int amount, ExpenseCategory category, String memo, int usageCount, DateTime createdAt
 });
 
 
@@ -267,7 +267,7 @@ class __$FavoriteExpenseEntityCopyWithImpl<$Res>
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as int,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
+as ExpenseCategory,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
 as String,usageCount: null == usageCount ? _self.usageCount : usageCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,

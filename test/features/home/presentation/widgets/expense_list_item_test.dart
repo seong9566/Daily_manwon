@@ -1,3 +1,4 @@
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/home/presentation/widgets/expense_list_item.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final expense = ExpenseEntity(
-    id: 1, amount: 3500, category: 2, memo: '',
+    id: 1, amount: 3500, category: ExpenseCategory.shopping, memo: '',
     createdAt: DateTime(2026, 4, 13, 10, 30),
   );
 

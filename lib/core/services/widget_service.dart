@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:injectable/injectable.dart';
 
+import '../constants/app_constants.dart';
 import '../../features/expense/domain/entities/expense.dart';
 import '../../features/expense/domain/usecases/add_expense_use_case.dart';
 import '../../features/expense/domain/usecases/increment_favorite_usage_use_case.dart';
@@ -86,9 +87,8 @@ class WidgetService {
 
         await addExpenseUseCase.execute(
           ExpenseEntity(
-            id: 0,
             amount: amount,
-            category: category,
+            category: ExpenseCategory.values[category],
             memo: memo,
             createdAt: DateTime.now(),
           ),

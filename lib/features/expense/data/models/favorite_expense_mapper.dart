@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/favorite_expense.dart';
 
@@ -7,7 +7,7 @@ extension FavoriteExpenseRowMapper on FavoriteExpense {
   FavoriteExpenseEntity toEntity() => FavoriteExpenseEntity(
         id: id,
         amount: amount,
-        category: category,
+        category: ExpenseCategory.values[category],
         memo: memo,
         usageCount: usageCount,
         createdAt: createdAt,
@@ -17,7 +17,7 @@ extension FavoriteExpenseRowMapper on FavoriteExpense {
 extension FavoriteExpenseEntityMapper on FavoriteExpenseEntity {
   FavoriteExpensesCompanion toCompanion() => FavoriteExpensesCompanion.insert(
         amount: amount,
-        category: category,
+        category: category.index,
         memo: Value(memo),
         createdAt: createdAt,
       );

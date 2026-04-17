@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../../core/constants/app_constants.dart';
 
 part 'favorite_expense.freezed.dart';
 
@@ -10,7 +11,7 @@ sealed class FavoriteExpenseEntity with _$FavoriteExpenseEntity {
   const factory FavoriteExpenseEntity({
     @Default(0) int id,
     required int amount,
-    required int category,
+    required ExpenseCategory category,
     @Default('') String memo,
     @Default(0) int usageCount,
     required DateTime createdAt,

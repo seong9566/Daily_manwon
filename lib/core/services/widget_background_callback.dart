@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 
+import '../constants/app_constants.dart';
 import '../di/injection.dart';
 import '../../features/expense/domain/entities/expense.dart';
 import '../../features/expense/domain/usecases/add_expense_use_case.dart';
@@ -39,9 +40,8 @@ FutureOr<void> widgetBackgroundCallback(Uri? uri) async {
   try {
     await getIt<AddExpenseUseCase>().execute(
       ExpenseEntity(
-        id: 0,
         amount: amount,
-        category: category,
+        category: ExpenseCategory.values[category],
         memo: memo,
         createdAt: DateTime.now(),
       ),

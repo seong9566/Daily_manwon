@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/calendar/domain/repositories/calendar_repository.dart';
 import 'package:daily_manwon/features/calendar/domain/usecases/get_monthly_calendar_data_use_case.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
@@ -18,7 +19,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(
-      ExpenseEntity(id: 0, amount: 0, category: 0, createdAt: DateTime(2026)),
+      ExpenseEntity(amount: 0, category: ExpenseCategory.food, createdAt: DateTime(2026)),
     );
     registerFallbackValue(DateTime(2026));
   });
@@ -37,7 +38,7 @@ void main() {
       final expense = ExpenseEntity(
         id: 1,
         amount: 5000,
-        category: 1,
+        category: ExpenseCategory.transport,
         memo: '점심',
         createdAt: today,
       );
@@ -65,7 +66,7 @@ void main() {
       final expense = ExpenseEntity(
         id: 1,
         amount: 3000,
-        category: 2,
+        category: ExpenseCategory.shopping,
         memo: '카페',
         createdAt: today,
       );
@@ -107,8 +108,8 @@ void main() {
       // given
       final day1 = DateTime(2026, 4, 7);
       final day2 = DateTime(2026, 4, 8);
-      final expense1 = ExpenseEntity(id: 1, amount: 3000, category: 1, createdAt: day1);
-      final expense2 = ExpenseEntity(id: 2, amount: 7000, category: 2, createdAt: day2);
+      final expense1 = ExpenseEntity(id: 1, amount: 3000, category: ExpenseCategory.transport, createdAt: day1);
+      final expense2 = ExpenseEntity(id: 2, amount: 7000, category: ExpenseCategory.shopping, createdAt: day2);
       when(
         () => mockCalendarRepo.getMonthlyExpenses(year: 2026, month: 4),
       ).thenAnswer((_) async => {
@@ -171,7 +172,7 @@ void main() {
       final remainingExpense = ExpenseEntity(
         id: 2,
         amount: 4000,
-        category: 1,
+        category: ExpenseCategory.transport,
         createdAt: today,
       );
       when(() => mockExpenseRepo.deleteExpense(1)).thenAnswer((_) async {});

@@ -1,3 +1,4 @@
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/expense/domain/entities/favorite_expense.dart';
 import 'package:daily_manwon/features/expense/domain/repositories/favorite_expense_repository.dart';
 import 'package:daily_manwon/features/expense/domain/usecases/add_favorite_use_case.dart';
@@ -15,7 +16,7 @@ void main() {
     registerFallbackValue(
       FavoriteExpenseEntity(
         amount: 0,
-        category: 0,
+        category: ExpenseCategory.cafe,
         usageCount: 0,
         createdAt: DateTime.utc(2026),
       ),
@@ -32,7 +33,7 @@ void main() {
 
     await useCase.execute(
       amount: 3500,
-      category: 2,
+      category: ExpenseCategory.food,
       memo: '',
     );
 
@@ -42,7 +43,7 @@ void main() {
   test('id 없이 FavoriteExpenseEntity를 생성해 저장한다', () async {
     when(() => repository.addFavorite(any())).thenAnswer((_) async {});
 
-    await useCase.execute(amount: 3000, category: 1, memo: '');
+    await useCase.execute(amount: 3000, category: ExpenseCategory.cafe, memo: '');
 
     final captured = verify(
       () => repository.addFavorite(captureAny()),
@@ -50,6 +51,6 @@ void main() {
 
     expect(captured.id, 0);
     expect(captured.amount, 3000);
-    expect(captured.category, 1);
+    expect(captured.category, ExpenseCategory.cafe);
   });
 }

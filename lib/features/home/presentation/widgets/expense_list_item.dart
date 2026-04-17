@@ -24,7 +24,7 @@ class ExpenseListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final category = ExpenseCategory.values[expense.category];
+    final category = expense.category;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final timeStr = DateFormat('HH:mm').format(expense.createdAt);
 

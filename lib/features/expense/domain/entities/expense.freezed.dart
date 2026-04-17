@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExpenseEntity {
 
- int get id; int get amount; int get category; String get memo; DateTime get createdAt;
+ int get id; int get amount; ExpenseCategory get category; String get memo; DateTime get createdAt;
 /// Create a copy of ExpenseEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $ExpenseEntityCopyWith<$Res>  {
   factory $ExpenseEntityCopyWith(ExpenseEntity value, $Res Function(ExpenseEntity) _then) = _$ExpenseEntityCopyWithImpl;
 @useResult
 $Res call({
- int id, int amount, int category, String memo, DateTime createdAt
+ int id, int amount, ExpenseCategory category, String memo, DateTime createdAt
 });
 
 
@@ -67,7 +67,7 @@ class _$ExpenseEntityCopyWithImpl<$Res>
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as int,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
+as ExpenseCategory,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -151,7 +151,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int amount,  ExpenseCategory category,  String memo,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExpenseEntity() when $default != null:
 return $default(_that.id,_that.amount,_that.category,_that.memo,_that.createdAt);case _:
@@ -172,7 +172,7 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.createdAt)
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int amount,  int category,  String memo,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int amount,  ExpenseCategory category,  String memo,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseEntity():
 return $default(_that.id,_that.amount,_that.category,_that.memo,_that.createdAt);}
@@ -189,7 +189,7 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.createdAt)
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int amount,  int category,  String memo,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int amount,  ExpenseCategory category,  String memo,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ExpenseEntity() when $default != null:
 return $default(_that.id,_that.amount,_that.category,_that.memo,_that.createdAt);case _:
@@ -204,12 +204,12 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.createdAt)
 
 
 class _ExpenseEntity implements ExpenseEntity {
-  const _ExpenseEntity({required this.id, required this.amount, required this.category, this.memo = '', required this.createdAt});
+  const _ExpenseEntity({this.id = 0, required this.amount, required this.category, this.memo = '', required this.createdAt});
   
 
-@override final  int id;
+@override@JsonKey() final  int id;
 @override final  int amount;
-@override final  int category;
+@override final  ExpenseCategory category;
 @override@JsonKey() final  String memo;
 @override final  DateTime createdAt;
 
@@ -243,7 +243,7 @@ abstract mixin class _$ExpenseEntityCopyWith<$Res> implements $ExpenseEntityCopy
   factory _$ExpenseEntityCopyWith(_ExpenseEntity value, $Res Function(_ExpenseEntity) _then) = __$ExpenseEntityCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int amount, int category, String memo, DateTime createdAt
+ int id, int amount, ExpenseCategory category, String memo, DateTime createdAt
 });
 
 
@@ -265,7 +265,7 @@ class __$ExpenseEntityCopyWithImpl<$Res>
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as int,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
+as ExpenseCategory,memo: null == memo ? _self.memo : memo // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

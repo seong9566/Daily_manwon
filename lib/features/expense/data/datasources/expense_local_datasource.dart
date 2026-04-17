@@ -45,7 +45,7 @@ class ExpenseLocalDatasource {
         .write(
       ExpensesCompanion(
         amount: Value(expense.amount),
-        category: Value(expense.category),
+        category: Value(expense.category.index),
         memo: Value(expense.memo),
       ),
     );

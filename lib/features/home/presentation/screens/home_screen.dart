@@ -202,8 +202,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               itemCount: state.expenses.length,
                               itemBuilder: (context, index) {
                                 final expense = state.expenses[index];
-                                final category =
-                                    ExpenseCategory.values[expense.category];
+                                final category = expense.category;
                                 return Semantics(
                                   label: '${category.label} ${expense.amount}원',
                                   child: ExpenseListItem(

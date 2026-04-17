@@ -105,11 +105,11 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
   }
 
   /// 즐겨찾기/자동학습 칩 탭 시 금액·카테고리 자동 채움
-  void _applyTemplate(({int amount, int category, String memo}) template) {
+  void _applyTemplate(({int amount, ExpenseCategory category, String memo}) template) {
     if (_isSaving) return;
     setState(() {
       _amountString = template.amount.toString();
-      _selectedCategory = ExpenseCategory.values[template.category];
+      _selectedCategory = template.category;
     });
     if (!_reduceMotion) _pulseController.forward(from: 0);
     HapticFeedback.lightImpact();
@@ -163,7 +163,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
       _recordDate = DateTime(d.year, d.month, d.day);
       _saveCreatedAt = d;
       _amountString = widget.expense!.amount.toString();
-      _selectedCategory = ExpenseCategory.values[widget.expense!.category];
+      _selectedCategory = widget.expense!.category;
     } else if (widget.date != null) {
       // 캘린더 과거 날짜 지정 모드 — 정오(12:00)로 저장해 UTC 날짜 경계 이탈 방지
       final d = widget.date!;
@@ -251,7 +251,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
             .updateExpense(
               widget.expense!.copyWith(
                 amount: _amount,
-                category: _selectedCategory.index,
+                category: _selectedCategory,
               ),
             );
       } else {
@@ -259,9 +259,8 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
             .read(homeViewModelProvider.notifier)
             .addExpense(
               ExpenseEntity(
-                id: 0,
                 amount: _amount,
-                category: _selectedCategory.index,
+                category: _selectedCategory,
                 createdAt: _saveCreatedAt,
               ),
             );
@@ -270,7 +269,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
       if (_addToFavorite) {
         await ref
             .read(homeViewModelProvider.notifier)
-            .addFavorite(amount: _amount, category: _selectedCategory.index);
+            .addFavorite(amount: _amount, category: _selectedCategory);
       }
 
       if (mounted) {

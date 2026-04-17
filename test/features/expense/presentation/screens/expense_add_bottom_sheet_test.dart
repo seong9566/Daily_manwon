@@ -1,3 +1,4 @@
+import 'package:daily_manwon/core/constants/app_constants.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/presentation/screens/expense_add_screen.dart';
 import 'package:daily_manwon/features/home/presentation/viewmodels/home_view_model.dart';
@@ -75,7 +76,7 @@ void main() {
       final existingExpense = ExpenseEntity(
         id: 1,
         amount: 3000,
-        category: 0,
+        category: ExpenseCategory.food,
         createdAt: DateTime(2026, 3, 15),
       );
       const expectedTitle = '3월 15일 일요일';

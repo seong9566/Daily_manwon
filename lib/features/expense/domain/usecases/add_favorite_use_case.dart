@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-
+import '../../../../core/constants/app_constants.dart';
 import '../entities/favorite_expense.dart';
 import '../repositories/favorite_expense_repository.dart';
 
@@ -12,7 +12,7 @@ class AddFavoriteUseCase {
 
   Future<void> execute({
     required int amount,
-    required int category,
+    required ExpenseCategory category,
     String memo = '',
   }) =>
       _repository.addFavorite(
