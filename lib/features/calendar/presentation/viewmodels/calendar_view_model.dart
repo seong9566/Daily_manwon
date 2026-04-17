@@ -250,7 +250,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
     final month = state.selectedMonth;
     _monthWatchSubscription = _useCase
         .watchExpensesByMonth(year: month.year, month: month.month)
-        .listen((_) => loadMonthData(forceRefresh: true));
+        .listen((_) {
+          final key = _cacheKey(month.year, month.month);
+          if (!_inFlightLoads.contains(key)) {
+            loadMonthData(forceRefresh: true);
+          }
+        });
   }
 
   /// 월을 delta만큼 이동한다 (양수 = 다음 달, 음수 = 이전 달)
