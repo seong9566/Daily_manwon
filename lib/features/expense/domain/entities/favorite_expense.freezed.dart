@@ -205,10 +205,10 @@ return $default(_that.id,_that.amount,_that.category,_that.memo,_that.usageCount
 
 
 class _FavoriteExpenseEntity implements FavoriteExpenseEntity {
-  const _FavoriteExpenseEntity({required this.id, required this.amount, required this.category, this.memo = '', this.usageCount = 0, required this.createdAt});
+  const _FavoriteExpenseEntity({this.id = 0, required this.amount, required this.category, this.memo = '', this.usageCount = 0, required this.createdAt});
   
 
-@override final  int id;
+@override@JsonKey() final  int id;
 @override final  int amount;
 @override final  int category;
 @override@JsonKey() final  String memo;

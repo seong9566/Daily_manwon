@@ -14,7 +14,6 @@ void main() {
   setUpAll(() {
     registerFallbackValue(
       FavoriteExpenseEntity(
-        id: 0,
         amount: 0,
         category: 0,
         usageCount: 0,
@@ -38,5 +37,19 @@ void main() {
     );
 
     verify(() => repository.addFavorite(any())).called(1);
+  });
+
+  test('id 없이 FavoriteExpenseEntity를 생성해 저장한다', () async {
+    when(() => repository.addFavorite(any())).thenAnswer((_) async {});
+
+    await useCase.execute(amount: 3000, category: 1, memo: '');
+
+    final captured = verify(
+      () => repository.addFavorite(captureAny()),
+    ).captured.single as FavoriteExpenseEntity;
+
+    expect(captured.id, 0);
+    expect(captured.amount, 3000);
+    expect(captured.category, 1);
   });
 }

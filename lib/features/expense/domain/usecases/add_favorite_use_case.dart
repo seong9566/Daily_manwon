@@ -17,7 +17,6 @@ class AddFavoriteUseCase {
   }) =>
       _repository.addFavorite(
         FavoriteExpenseEntity(
-          id: 0,
           amount: amount,
           category: category,
           memo: memo,
