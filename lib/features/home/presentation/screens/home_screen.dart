@@ -36,10 +36,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     _subscribeNotificationNavigation();
 
     // 위젯 "+" 버튼 탭 후 콜드 스타트 경로: 프레임 렌더 후 확인
-    // WidgetService.init()은 main.dart에서 runApp 이전에 완료되므로
-    // 이 시점에 _appGroupAvailable = true가 보장된다.
-    // 불변조건: 알림 탭(_handlePendingNotification)과 위젯 탭은
-    // 동시에 발생하지 않으므로 두 경로는 상호 배타적이다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndOpenAddExpense();
     });
@@ -67,8 +63,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   /// Terminated/Background 상태에서 알림 탭 후 앱 진입 시 처리.
-  ///
-  /// pending payload 소비는 HomeViewModel을 통해 NotificationService에 위임한다.
   Future<void> _handlePendingNotification() async {
     final hasPending = await ref
         .read(homeViewModelProvider.notifier)
@@ -77,9 +71,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   /// Foreground 상태에서 알림 탭 이벤트를 구독한다.
-  ///
-  /// NotificationService.navigationStream(static)을 listen하여
-  /// 알림 탭 시 홈 화면으로 이동한다.
   void _subscribeNotificationNavigation() {
     _notifSubscription = NotificationService.navigationStream.listen((payload) {
       if (mounted) context.go(AppRoutes.home);
@@ -87,9 +78,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   /// 위젯 "+" 버튼 탭으로 앱이 열린 경우 지출 입력 화면을 표시한다.
-  ///
-  /// initState(addPostFrameCallback) 및 AppLifecycleState.resumed 에서 호출한다.
-  /// 앱이 이미 포어그라운드(active)일 때 탭 → resumed가 발생하지 않는 Known Limitation이 있다.
   Future<void> _checkAndOpenAddExpense() async {
     final shouldOpen = await ref
         .read(homeViewModelProvider.notifier)
@@ -103,33 +91,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(homeViewModelProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // 신규 칭호 획득 시 Snackbar로 알림 (S-26g)
-    // ref.listen<HomeState>(homeViewModelProvider, (prev, next) {
-    //   if (next.newlyAchievedTitle != null &&
-    //       next.newlyAchievedTitle != prev?.newlyAchievedTitle) {
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //       SnackBar(
-    //         content: Text(
-    //           '새 칭호 획득! ${next.newlyAchievedTitle}',
-    //           style: AppTypography.bodyMedium.copyWith(
-    //             color: isDark ? AppColors.black : AppColors.white,
-    //             fontWeight: FontWeight.w600,
-    //           ),
-    //         ),
-    //         backgroundColor: isDark
-    //             ? AppColors.white
-    //             : AppColors.budgetComfortable,
-    //         duration: const Duration(seconds: 3),
-    //         behavior: SnackBarBehavior.floating,
-    //         shape: RoundedRectangleBorder(
-    //           borderRadius: BorderRadius.circular(12),
-    //         ),
-    //       ),
-    //     );
-    //     ref.read(homeViewModelProvider.notifier).clearAchievedTitle();
-    //   }
-    // });
 
     final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
     final textColor = isDark ? AppColors.darkTextMain : AppColors.textMain;

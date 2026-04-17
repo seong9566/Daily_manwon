@@ -29,7 +29,7 @@ import 'home_state.dart';
 
 part 'home_view_model.g.dart';
 
-/// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
+/// 홈 화면 뷰모델 — 오늘의 예산, 지출을 관리한다
 @riverpod
 class HomeViewModel extends _$HomeViewModel {
   StreamSubscription<List<ExpenseEntity>>? _expenseSubscription;
@@ -88,7 +88,7 @@ class HomeViewModel extends _$HomeViewModel {
       // 남은 예산
       final remaining = await budgetUseCase.getRemainingBudget(DateTime.now());
 
-      // 도토리 + 스트릭
+      // 발도장 + 스트릭
       final acorns = await acornUseCase.getTotalAcorns();
       final streak = await acornUseCase.getStreakDays();
 
@@ -164,7 +164,8 @@ class HomeViewModel extends _$HomeViewModel {
                 (await getIt<GetFavoritesUseCase>().execute()).dataOrNull ?? [];
             final recentList =
                 (await getIt<GetRecentExpensesUseCase>().execute())
-                    .dataOrNull ?? [];
+                    .dataOrNull ??
+                [];
             state = state.copyWith(
               favorites: favoritesList,
               recentExpenses: recentList,
@@ -200,20 +201,24 @@ class HomeViewModel extends _$HomeViewModel {
         remaining: remaining,
         streak: streak,
         expenses: expenses
-            .map((e) => {
-                  'category': e.category.label,
-                  'time': DateFormat('HH:mm').format(e.createdAt),
-                  'amount': e.amount,
-                })
+            .map(
+              (e) => {
+                'category': e.category.label,
+                'time': DateFormat('HH:mm').format(e.createdAt),
+                'amount': e.amount,
+              },
+            )
             .toList(),
         catMood: catMood,
         favorites: favorites
-            .map((f) => {
-                  'id': f.id,
-                  'amount': f.amount,
-                  'category': f.category.index,
-                  'memo': f.memo,
-                })
+            .map(
+              (f) => {
+                'id': f.id,
+                'amount': f.amount,
+                'category': f.category.index,
+                'memo': f.memo,
+              },
+            )
             .toList(),
       ),
     );
@@ -316,12 +321,14 @@ class HomeViewModel extends _$HomeViewModel {
       unawaited(
         getIt<WidgetService>().updateFavorites(
           updated
-              .map((f) => {
-                    'id': f.id,
-                    'amount': f.amount,
-                    'category': f.category.index,
-                    'memo': f.memo,
-                  })
+              .map(
+                (f) => {
+                  'id': f.id,
+                  'amount': f.amount,
+                  'category': f.category.index,
+                  'memo': f.memo,
+                },
+              )
               .toList(),
         ),
       );
@@ -333,8 +340,7 @@ class HomeViewModel extends _$HomeViewModel {
   Future<void> incrementFavoriteUsage(int id) async {
     final result = await getIt<IncrementFavoriteUsageUseCase>().execute(id);
     if (result.isSuccess) {
-      final updated =
-          (await getIt<GetFavoritesUseCase>().execute()).dataOrNull;
+      final updated = (await getIt<GetFavoritesUseCase>().execute()).dataOrNull;
       if (updated != null) state = state.copyWith(favorites: updated);
     }
   }

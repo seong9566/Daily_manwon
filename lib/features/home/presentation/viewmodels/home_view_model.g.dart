@@ -8,15 +8,15 @@ part of 'home_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
+/// 홈 화면 뷰모델 — 오늘의 예산, 지출을 관리한다
 
 @ProviderFor(HomeViewModel)
 final homeViewModelProvider = HomeViewModelProvider._();
 
-/// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
+/// 홈 화면 뷰모델 — 오늘의 예산, 지출을 관리한다
 final class HomeViewModelProvider
     extends $NotifierProvider<HomeViewModel, HomeState> {
-  /// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
+  /// 홈 화면 뷰모델 — 오늘의 예산, 지출을 관리한다
   HomeViewModelProvider._()
     : super(
         from: null,
@@ -46,7 +46,7 @@ final class HomeViewModelProvider
 
 String _$homeViewModelHash() => r'59604c39358f11bab6c896cf0a97bd13a12b3ab3';
 
-/// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
+/// 홈 화면 뷰모델 — 오늘의 예산, 지출을 관리한다
 
 abstract class _$HomeViewModel extends $Notifier<HomeState> {
   HomeState build();
