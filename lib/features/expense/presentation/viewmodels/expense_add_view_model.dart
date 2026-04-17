@@ -1,37 +1,32 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/expense.dart';
-import '../../../home/presentation/viewmodels/home_view_model.dart';
+import '../../domain/usecases/add_expense_use_case.dart';
+import '../../domain/usecases/add_favorite_use_case.dart';
+import '../../domain/usecases/delete_expense_use_case.dart';
+import '../../domain/usecases/update_expense_use_case.dart';
 import 'expense_add_state.dart';
 
-typedef ExpenseAddArgs = ({ExpenseEntity? expense, DateTime? date});
+part 'expense_add_view_model.g.dart';
 
-final expenseAddViewModelProvider =
-    NotifierProvider.autoDispose.family<
-      ExpenseAddViewModel,
-      ExpenseAddState,
-      ExpenseAddArgs
-    >((arg) => ExpenseAddViewModel(arg));
-
-class ExpenseAddViewModel extends Notifier<ExpenseAddState> {
-  ExpenseAddViewModel(this.arg);
-
-  final ExpenseAddArgs arg;
-
+@riverpod
+class ExpenseAddViewModel extends _$ExpenseAddViewModel {
   @override
-  ExpenseAddState build() {
-    if (arg.expense != null) {
-      final d = arg.expense!.createdAt;
+  ExpenseAddState build({ExpenseEntity? expense, DateTime? date}) {
+    if (expense != null) {
+      final d = expense.createdAt;
       return ExpenseAddState(
-        amountString: arg.expense!.amount.toString(),
-        selectedCategory: arg.expense!.category,
+        amountString: expense.amount.toString(),
+        selectedCategory: expense.category,
         recordDate: DateTime(d.year, d.month, d.day),
         saveCreatedAt: d,
       );
     }
-    if (arg.date != null) {
-      final d = arg.date!;
+    if (date != null) {
+      final d = date;
       return ExpenseAddState(
         recordDate: DateTime(d.year, d.month, d.day),
         saveCreatedAt: DateTime(d.year, d.month, d.day, 12),
@@ -84,7 +79,7 @@ class ExpenseAddViewModel extends Notifier<ExpenseAddState> {
     return false;
   }
 
-  /// 즐겨찾기/최근 내역 칩 탭. 호출 후 State에서 pulse 트리거.
+  /// 즐겨찾기/최근 내역 칩 탭.
   void applyTemplate(
     ({int amount, ExpenseCategory category, String memo}) template,
   ) {
@@ -106,44 +101,45 @@ class ExpenseAddViewModel extends Notifier<ExpenseAddState> {
   // ── 저장 ──────────────────────────────────────────────────────────────────
 
   /// 저장. 성공 → Screen이 pop. 실패 → Screen이 SnackBar 표시.
-  Future<Result<void>> save() async {
-    if (!state.canSave) return Result.failure(const ValidationFailure('금액을 입력해주세요'));
+  Future<Result<void>> save({ExpenseEntity? originalExpense}) async {
+    if (!state.canSave) {
+      return Result.failure(const ValidationFailure('금액을 입력해주세요'));
+    }
 
     state = state.copyWith(isSaving: true, saveError: false);
 
     final Result<void> result;
-    if (arg.expense != null) {
-      result = await ref
-          .read(homeViewModelProvider.notifier)
-          .updateExpense(
-            arg.expense!.copyWith(
-              amount: state.amount,
-              category: state.selectedCategory,
-            ),
-          );
+    if (originalExpense != null) {
+      result = await getIt<UpdateExpenseUseCase>().execute(
+        originalExpense.copyWith(
+          amount: state.amount,
+          category: state.selectedCategory,
+        ),
+      );
     } else {
-      result = await ref
-          .read(homeViewModelProvider.notifier)
-          .addExpense(
-            ExpenseEntity(
-              amount: state.amount,
-              category: state.selectedCategory,
-              createdAt: state.saveCreatedAt,
-            ),
-          );
+      result = await getIt<AddExpenseUseCase>().execute(
+        ExpenseEntity(
+          amount: state.amount,
+          category: state.selectedCategory,
+          createdAt: state.saveCreatedAt,
+        ),
+      );
     }
 
     if (result.isSuccess && state.addToFavorite) {
-      await ref
-          .read(homeViewModelProvider.notifier)
-          .addFavorite(
-            amount: state.amount,
-            category: state.selectedCategory,
-          );
+      await getIt<AddFavoriteUseCase>().execute(
+        amount: state.amount,
+        category: state.selectedCategory,
+      );
     }
 
     state = state.copyWith(isSaving: false, saveError: !result.isSuccess);
 
     return result;
+  }
+
+  /// 지출 삭제.
+  Future<void> delete(int id) async {
+    await getIt<DeleteExpenseUseCase>().execute(id);
   }
 }

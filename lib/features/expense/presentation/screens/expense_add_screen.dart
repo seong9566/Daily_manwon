@@ -8,7 +8,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/entities/expense.dart';
-import '../../../home/presentation/viewmodels/home_view_model.dart';
 import '../viewmodels/expense_add_view_model.dart';
 import '../widgets/amount_display_section.dart';
 import '../widgets/category_selector.dart';
@@ -68,14 +67,12 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
   late final Animation<double> _shakeAnim;
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnim;
-  late final ExpenseAddArgs _args;
 
   bool _reduceMotion = false;
 
   @override
   void initState() {
     super.initState();
-    _args = (expense: widget.expense, date: widget.date);
 
     _shakeController = AnimationController(
       vsync: this,
@@ -126,7 +123,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
 
   void _onNumberPressed(String digit) {
     final needsShake = ref
-        .read(expenseAddViewModelProvider(_args).notifier)
+        .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
         .onNumberPressed(digit);
     if (needsShake) {
       _shake();
@@ -136,13 +133,13 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
   }
 
   void _onBackspacePressed() {
-    ref.read(expenseAddViewModelProvider(_args).notifier).onBackspacePressed();
+    ref.read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier).onBackspacePressed();
     HapticFeedback.lightImpact();
   }
 
   void _onAddAmount(int addition) {
     final needsShake = ref
-        .read(expenseAddViewModelProvider(_args).notifier)
+        .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
         .addAmount(addition);
     if (needsShake) {
       _shake();
@@ -155,15 +152,15 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
     ({int amount, ExpenseCategory category, String memo}) template,
   ) {
     ref
-        .read(expenseAddViewModelProvider(_args).notifier)
+        .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
         .applyTemplate(template);
     _pulse();
   }
 
   Future<void> _onSave() async {
     final result = await ref
-        .read(expenseAddViewModelProvider(_args).notifier)
-        .save();
+        .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
+        .save(originalExpense: widget.expense);
     if (!mounted) return;
     result.when(
       success: (_) => Navigator.pop(context, true),
@@ -177,14 +174,14 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
   }
 
   Future<void> _onDelete() async {
-    final vmState = ref.read(expenseAddViewModelProvider(_args));
+    final vmState = ref.read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date));
     if (widget.expense == null || vmState.isSaving) return;
 
     final shouldDelete = await showExpenseDeleteDialog(context);
     if (shouldDelete == true && mounted) {
       await ref
-          .read(homeViewModelProvider.notifier)
-          .deleteExpense(widget.expense!.id);
+          .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
+          .delete(widget.expense!.id);
       if (mounted) Navigator.pop(context, true);
     }
   }
@@ -196,7 +193,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
 
   @override
   Widget build(BuildContext context) {
-    final vmState = ref.watch(expenseAddViewModelProvider(_args));
+    final vmState = ref.watch(expenseAddViewModelProvider(expense: widget.expense, date: widget.date));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.darkSurface : AppColors.white;
     final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
@@ -242,7 +239,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
             shakeAnim: _shakeAnim,
             pulseAnim: _pulseAnim,
             onFavoriteTap: () => ref
-                .read(expenseAddViewModelProvider(_args).notifier)
+                .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
                 .toggleFavorite(),
             isDark: isDark,
           ),
@@ -254,7 +251,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
             child: CategorySelector(
               selectedCategory: vmState.selectedCategory,
               onCategoryChanged: (cat) => ref
-                  .read(expenseAddViewModelProvider(_args).notifier)
+                  .read(expenseAddViewModelProvider(expense: widget.expense, date: widget.date).notifier)
                   .selectCategory(cat),
             ),
           ),

@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../home/presentation/viewmodels/home_view_model.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/favorite_expense.dart';
+import '../viewmodels/favorite_templates_view_model.dart';
 
 /// 수동·자동학습 칩(자주 쓰는 탭) 및 최근 내역 탭을 제공하는 섹션
 class FavoriteTemplatesSection extends ConsumerStatefulWidget {
@@ -28,15 +28,15 @@ class _FavoriteTemplatesSectionState
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(
-      homeViewModelProvider.select((s) => s.isLoading),
+      favoriteTemplatesViewModelProvider.select((s) => s.isLoading),
     );
     if (isLoading) return const SizedBox.shrink();
 
     final favorites = ref.watch(
-      homeViewModelProvider.select((s) => s.favorites),
+      favoriteTemplatesViewModelProvider.select((s) => s.favorites),
     );
     final recentExpenses = ref.watch(
-      homeViewModelProvider.select((s) => s.recentExpenses),
+      favoriteTemplatesViewModelProvider.select((s) => s.recentExpenses),
     );
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -127,8 +127,8 @@ class _FavoriteTemplatesSectionState
               onTap: () async {
                 try {
                   await ref
-                      .read(homeViewModelProvider.notifier)
-                      .incrementFavoriteUsage(fav.id);
+                      .read(favoriteTemplatesViewModelProvider.notifier)
+                      .incrementUsage(fav.id);
                 } catch (_) {}
                 widget.onTemplateTap((
                   amount: fav.amount,
@@ -137,7 +137,7 @@ class _FavoriteTemplatesSectionState
                 ));
               },
               onDelete: () => ref
-                  .read(homeViewModelProvider.notifier)
+                  .read(favoriteTemplatesViewModelProvider.notifier)
                   .deleteFavorite(fav.id),
             ),
           ),
