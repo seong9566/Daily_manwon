@@ -42,6 +42,8 @@ import '../../features/expense/domain/usecases/add_expense_use_case.dart'
     as _i367;
 import '../../features/expense/domain/usecases/add_favorite_use_case.dart'
     as _i407;
+import '../../features/expense/domain/usecases/delete_expense_use_case.dart'
+    as _i105;
 import '../../features/expense/domain/usecases/delete_favorite_use_case.dart'
     as _i175;
 import '../../features/expense/domain/usecases/get_favorites_use_case.dart'
@@ -65,8 +67,6 @@ import '../../features/home/domain/repositories/daily_budget_repository.dart'
     as _i891;
 import '../../features/home/domain/usecases/check_and_award_title_use_case.dart'
     as _i486;
-import '../../features/home/domain/usecases/delete_expense_use_case.dart'
-    as _i1008;
 import '../../features/home/domain/usecases/evaluate_and_award_acorn_use_case.dart'
     as _i497;
 import '../../features/home/domain/usecases/get_acorn_stats_use_case.dart'
@@ -240,14 +240,14 @@ _i174.GetIt $initGetIt(
   gh.lazySingleton<_i367.AddExpenseUseCase>(
     () => _i367.AddExpenseUseCase(gh<_i31.ExpenseRepository>()),
   );
+  gh.lazySingleton<_i105.DeleteExpenseUseCase>(
+    () => _i105.DeleteExpenseUseCase(gh<_i31.ExpenseRepository>()),
+  );
   gh.lazySingleton<_i184.GetRecentExpensesUseCase>(
     () => _i184.GetRecentExpensesUseCase(gh<_i31.ExpenseRepository>()),
   );
   gh.lazySingleton<_i920.UpdateExpenseUseCase>(
     () => _i920.UpdateExpenseUseCase(gh<_i31.ExpenseRepository>()),
-  );
-  gh.lazySingleton<_i1008.DeleteExpenseUseCase>(
-    () => _i1008.DeleteExpenseUseCase(gh<_i31.ExpenseRepository>()),
   );
   gh.lazySingleton<_i578.GetTodayExpensesUseCase>(
     () => _i578.GetTodayExpensesUseCase(gh<_i31.ExpenseRepository>()),

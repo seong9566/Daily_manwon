@@ -7,7 +7,7 @@ import 'package:daily_manwon/features/calendar/domain/usecases/get_monthly_calen
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/domain/repositories/expense_repository.dart';
 import 'package:daily_manwon/features/expense/domain/usecases/add_expense_use_case.dart';
-import 'package:daily_manwon/features/home/domain/usecases/delete_expense_use_case.dart';
+import 'package:daily_manwon/features/expense/domain/usecases/delete_expense_use_case.dart';
 
 class MockExpenseRepository extends Mock implements ExpenseRepository {}
 

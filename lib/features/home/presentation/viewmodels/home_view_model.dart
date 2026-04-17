@@ -20,7 +20,7 @@ import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart'
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
-import '../../domain/usecases/delete_expense_use_case.dart';
+import '../../../expense/domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
 import '../../domain/usecases/get_acorn_stats_use_case.dart';
 import '../../domain/usecases/get_today_budget_use_case.dart';

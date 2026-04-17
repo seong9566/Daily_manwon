@@ -1,29 +1,23 @@
 import 'package:daily_manwon/core/constants/app_constants.dart';
-import 'package:daily_manwon/core/utils/result.dart';
 import 'package:daily_manwon/features/expense/domain/entities/expense.dart';
 import 'package:daily_manwon/features/expense/presentation/screens/expense_add_screen.dart';
-import 'package:daily_manwon/features/home/presentation/viewmodels/home_state.dart';
-import 'package:daily_manwon/features/home/presentation/viewmodels/home_view_model.dart';
+import 'package:daily_manwon/features/expense/presentation/viewmodels/favorite_templates_state.dart';
+import 'package:daily_manwon/features/expense/presentation/viewmodels/favorite_templates_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// HomeViewModel 스텁 — DI/DB 없이 바텀시트 렌더링만 테스트하기 위한 최소 구현
-class _StubHomeViewModel extends HomeViewModel {
+class _StubFavoriteTemplatesViewModel extends FavoriteTemplatesViewModel {
   @override
-  HomeState build() => const HomeState(isLoading: false);
-
-  @override
-  Future<Result<void>> addExpense(ExpenseEntity expense) async =>
-      Result.success(null);
-
-  @override
-  Future<void> refresh() async {}
+  FavoriteTemplatesState build() =>
+      const FavoriteTemplatesState(isLoading: false);
 }
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [
-        homeViewModelProvider.overrideWith(_StubHomeViewModel.new),
+        favoriteTemplatesViewModelProvider.overrideWith(
+          _StubFavoriteTemplatesViewModel.new,
+        ),
       ],
       child: MaterialApp(home: Scaffold(body: child)),
     );
