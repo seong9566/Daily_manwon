@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:daily_manwon/core/services/notification_service.dart';
+import 'package:daily_manwon/features/home/domain/repositories/daily_budget_repository.dart';
 import 'package:daily_manwon/features/settings/domain/entities/notification_settings_entity.dart';
 import 'package:daily_manwon/features/settings/domain/repositories/settings_repository.dart';
 import 'package:daily_manwon/features/settings/domain/usecases/get_notification_settings_use_case.dart';
@@ -23,6 +24,9 @@ class MockNotificationService extends Mock implements NotificationService {}
 
 class MockSettingsRepository extends Mock implements SettingsRepository {}
 
+class MockDailyBudgetRepository extends Mock
+    implements DailyBudgetRepository {}
+
 // ── 테스트 메인 ───────────────────────────────────────────────────────────────
 
 void main() {
@@ -30,6 +34,7 @@ void main() {
   late MockSaveNotificationSettingsUseCase mockSaveUseCase;
   late MockNotificationService mockNotifService;
   late MockSettingsRepository mockSettingsRepo;
+  late MockDailyBudgetRepository mockDailyBudgetRepo;
   late ProviderContainer container;
 
   /// build() 의 microtask 로드에서 반환할 기본 DB 엔티티
@@ -48,6 +53,7 @@ void main() {
     mockSaveUseCase = MockSaveNotificationSettingsUseCase();
     mockNotifService = MockNotificationService();
     mockSettingsRepo = MockSettingsRepository();
+    mockDailyBudgetRepo = MockDailyBudgetRepository();
 
     // build() 의 microtask (loadNotificationSettings, _loadDailyBudget,
     // _loadCarryoverEnabled) 와 AppThemeMode._persistToDatabase 에 대한 기본 스텁
@@ -57,12 +63,15 @@ void main() {
     when(() => mockSettingsRepo.setIsDarkMode(value: any(named: 'value')))
         .thenAnswer((_) async {});
     when(() => mockSaveUseCase.execute(any())).thenAnswer((_) async {});
+    when(() => mockDailyBudgetRepo.updateTodayBaseAmount(any()))
+        .thenAnswer((_) async {});
 
     GetIt.instance
       ..registerSingleton<GetNotificationSettingsUseCase>(mockGetUseCase)
       ..registerSingleton<SaveNotificationSettingsUseCase>(mockSaveUseCase)
       ..registerSingleton<NotificationService>(mockNotifService)
-      ..registerSingleton<SettingsRepository>(mockSettingsRepo);
+      ..registerSingleton<SettingsRepository>(mockSettingsRepo)
+      ..registerSingleton<DailyBudgetRepository>(mockDailyBudgetRepo);
 
     container = ProviderContainer();
   });
