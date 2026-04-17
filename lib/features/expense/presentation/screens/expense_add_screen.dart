@@ -5,16 +5,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/expense.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
+import '../viewmodels/expense_add_view_model.dart';
+import '../widgets/amount_display_section.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/expense_delete_dialog.dart';
 import '../widgets/favorite_templates_section.dart';
 import '../widgets/number_keypad.dart';
+import '../widgets/quick_add_buttons.dart';
+import '../widgets/save_button.dart';
 
 /// 지출 입력 화면을 표시하는 헬퍼 함수
 /// [date]를 지정하면 해당 날짜로 지출을 기록한다. 미지정 시 오늘 날짜로 기록한다.
@@ -34,10 +35,9 @@ Future<bool?> showExpenseAddBottomSheet(
           ExpenseAddScreen(expense: expense, date: date),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(0.0, 1.0);
-        const end = Offset.zero;
         final tween = Tween(
           begin: begin,
-          end: end,
+          end: Offset.zero,
         ).chain(CurveTween(curve: Curves.easeOutCubic));
         return SlideTransition(position: animation.drive(tween), child: child);
       },
@@ -63,76 +63,18 @@ class ExpenseAddScreen extends ConsumerStatefulWidget {
 
 class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
     with TickerProviderStateMixin {
-  /// 현재 입력 중인 금액 문자열 (표시용)
-  late String _amountString;
-
-  /// 선택된 카테고리 — 기본값: 카페
-  late ExpenseCategory _selectedCategory;
-
-  /// 저장 진행 중 여부 — 버튼 로딩 상태 표시용
-  bool _isSaving = false;
-
-  /// 저장 시 즐겨찾기에도 추가할지 여부
-  bool _addToFavorite = false;
-
-  /// 직전 저장 시도가 실패했는지 여부 — 버튼 오류 상태 표시용
-  bool _saveError = false;
-
   late final AnimationController _shakeController;
   late final Animation<double> _shakeAnim;
-
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnim;
+  late final ExpenseAddArgs _args;
 
   bool _reduceMotion = false;
-
-  static String _getWeekdayString(int weekday) {
-    const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
-    return weekdays[weekday - 1];
-  }
-
-  /// 빠른 금액 추가
-  void _addAmount(int addition) {
-    if (_isSaving) return;
-    final next = _amount + addition;
-    if (next > 9999999) {
-      HapticFeedback.heavyImpact();
-      if (!_reduceMotion) _shakeController.forward(from: 0);
-      return;
-    }
-    setState(() => _amountString = next.toString());
-    HapticFeedback.lightImpact();
-  }
-
-  /// 즐겨찾기/자동학습 칩 탭 시 금액·카테고리 자동 채움
-  void _applyTemplate(({int amount, ExpenseCategory category, String memo}) template) {
-    if (_isSaving) return;
-    setState(() {
-      _amountString = template.amount.toString();
-      _selectedCategory = template.category;
-    });
-    if (!_reduceMotion) _pulseController.forward(from: 0);
-    HapticFeedback.lightImpact();
-  }
-
-  /// 헤더에 표시할 날짜 (시분초=0, 표시 전용)
-  late final DateTime _recordDate;
-
-  /// DB에 저장될 실제 createdAt 값.
-  /// - 홈 FAB(date=null): DateTime.now() — 실제 시각 보존 (00:00 저장 방지)
-  /// - 캘린더 과거 날짜: 정오(12:00) — UTC 날짜 경계 이탈 방지
-  /// - 편집 모드: 기존 expense.createdAt — 날짜 변경 없음
-  late final DateTime _saveCreatedAt;
-
-  /// 현재 입력된 금액 (int 변환)
-  int get _amount => _amountString.isEmpty ? 0 : int.parse(_amountString);
-
-  /// 저장 가능 여부 — 금액이 0보다 커야 활성화
-  bool get _canSave => _amount > 0 && !_isSaving;
 
   @override
   void initState() {
     super.initState();
+    _args = (expense: widget.expense, date: widget.date);
 
     _shakeController = AnimationController(
       vsync: this,
@@ -150,35 +92,12 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
       vsync: this,
       duration: const Duration(milliseconds: 280),
     );
-    _pulseAnim = TweenSequence<double>(
-      [
-        TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.06), weight: 1),
-        TweenSequenceItem(tween: Tween(begin: 1.06, end: 1.0), weight: 1),
-      ],
-    ).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeOut));
-
-    if (widget.expense != null) {
-      // 편집 모드 — 기존 날짜·시각 그대로 유지
-      final d = widget.expense!.createdAt;
-      _recordDate = DateTime(d.year, d.month, d.day);
-      _saveCreatedAt = d;
-      _amountString = widget.expense!.amount.toString();
-      _selectedCategory = widget.expense!.category;
-    } else if (widget.date != null) {
-      // 캘린더 과거 날짜 지정 모드 — 정오(12:00)로 저장해 UTC 날짜 경계 이탈 방지
-      final d = widget.date!;
-      _recordDate = DateTime(d.year, d.month, d.day);
-      _saveCreatedAt = DateTime(d.year, d.month, d.day, 12);
-      _amountString = '';
-      _selectedCategory = ExpenseCategory.cafe;
-    } else {
-      // 홈 FAB 모드 — 실제 현재 시각 보존 (자정 저장 방지)
-      final now = DateTime.now();
-      _recordDate = DateTime(now.year, now.month, now.day);
-      _saveCreatedAt = now;
-      _amountString = '';
-      _selectedCategory = ExpenseCategory.cafe;
-    }
+    _pulseAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.06), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 1.06, end: 1.0), weight: 1),
+    ]).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeOut),
+    );
   }
 
   @override
@@ -194,118 +113,89 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
     super.dispose();
   }
 
-  /// 숫자 키 입력 처리
-  /// - 최대 7자리 (9,999,999원) 제한
-  /// - leading zero 방지 (0 입력 후 또 0은 허용하지 않음)
+  void _shake() {
+    if (!_reduceMotion) _shakeController.forward(from: 0);
+    HapticFeedback.heavyImpact();
+  }
+
+  void _pulse() {
+    if (!_reduceMotion) _pulseController.forward(from: 0);
+    HapticFeedback.lightImpact();
+  }
+
   void _onNumberPressed(String digit) {
-    if (_isSaving) return;
-    if (digit == '00') {
-      _onNumberPressed('0');
-      _onNumberPressed('0');
-      return;
+    final needsShake = ref
+        .read(expenseAddViewModelProvider(_args).notifier)
+        .onNumberPressed(digit);
+    if (needsShake) {
+      _shake();
+    } else {
+      HapticFeedback.lightImpact();
     }
-    if (_amountString.length >= 7) {
-      HapticFeedback.heavyImpact();
-      if (!_reduceMotion) _shakeController.forward(from: 0);
-      return;
-    }
-
-    if (_amountString == '0' && digit == '0') {
-      HapticFeedback.heavyImpact();
-      if (!_reduceMotion) _shakeController.forward(from: 0);
-      return;
-    }
-
-    if (_amountString.isEmpty && digit == '0') return;
-
-    setState(() {
-      _amountString += digit;
-    });
-    HapticFeedback.lightImpact();
   }
 
-  /// 백스페이스 처리
   void _onBackspacePressed() {
-    if (_amountString.isEmpty || _isSaving) return;
-    setState(() {
-      _amountString = _amountString.substring(0, _amountString.length - 1);
-    });
+    ref.read(expenseAddViewModelProvider(_args).notifier).onBackspacePressed();
     HapticFeedback.lightImpact();
   }
 
-  /// 지출 저장 처리
-  /// HomeViewModel.addExpense()를 통해 저장 후 화면을 닫는다
-  /// 신규 지출 모드에서 [_addToFavorite]가 true이면 AddFavoriteUseCase를 호출하고 favoritesProvider를 갱신한다
-  Future<void> _onSave() async {
-    if (!_canSave) return;
-
-    setState(() {
-      _isSaving = true;
-      _saveError = false;
-    });
-
-    try {
-      if (widget.expense != null) {
-        await ref
-            .read(homeViewModelProvider.notifier)
-            .updateExpense(
-              widget.expense!.copyWith(
-                amount: _amount,
-                category: _selectedCategory,
-              ),
-            );
-      } else {
-        await ref
-            .read(homeViewModelProvider.notifier)
-            .addExpense(
-              ExpenseEntity(
-                amount: _amount,
-                category: _selectedCategory,
-                createdAt: _saveCreatedAt,
-              ),
-            );
-      }
-
-      if (_addToFavorite) {
-        await ref
-            .read(homeViewModelProvider.notifier)
-            .addFavorite(amount: _amount, category: _selectedCategory);
-      }
-
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-          _saveError = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('저장 중 오류가 발생했습니다.'),
-            action: SnackBarAction(label: '다시 시도', onPressed: _onSave),
-          ),
-        );
-      }
+  void _onAddAmount(int addition) {
+    final needsShake = ref
+        .read(expenseAddViewModelProvider(_args).notifier)
+        .addAmount(addition);
+    if (needsShake) {
+      _shake();
+    } else {
+      HapticFeedback.lightImpact();
     }
+  }
+
+  void _onApplyTemplate(
+    ({int amount, ExpenseCategory category, String memo}) template,
+  ) {
+    ref
+        .read(expenseAddViewModelProvider(_args).notifier)
+        .applyTemplate(template);
+    _pulse();
+  }
+
+  Future<void> _onSave() async {
+    final result = await ref
+        .read(expenseAddViewModelProvider(_args).notifier)
+        .save();
+    if (!mounted) return;
+    result.when(
+      success: (_) => Navigator.pop(context, true),
+      failure: (f) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(f.message.isNotEmpty ? f.message : '저장 중 오류가 발생했습니다.'),
+          action: SnackBarAction(label: '다시 시도', onPressed: _onSave),
+        ),
+      ),
+    );
   }
 
   Future<void> _onDelete() async {
-    if (widget.expense == null || _isSaving) return;
+    final vmState = ref.read(expenseAddViewModelProvider(_args));
+    if (widget.expense == null || vmState.isSaving) return;
 
     final shouldDelete = await showExpenseDeleteDialog(context);
-
     if (shouldDelete == true && mounted) {
-      ref
+      await ref
           .read(homeViewModelProvider.notifier)
           .deleteExpense(widget.expense!.id);
       if (mounted) Navigator.pop(context, true);
     }
   }
 
+  static String _weekdayLabel(int weekday) {
+    const labels = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+    return labels[weekday - 1];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final vmState = ref.watch(expenseAddViewModelProvider(_args));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.darkSurface : AppColors.white;
     final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
@@ -319,7 +209,8 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          '${_recordDate.month}월 ${_recordDate.day}일 ${_getWeekdayString(_recordDate.weekday)}',
+          '${vmState.recordDate.month}월 ${vmState.recordDate.day}일 '
+          '${_weekdayLabel(vmState.recordDate.weekday)}',
           style: AppTypography.titleMedium.copyWith(color: textMainColor),
         ),
         actions: [
@@ -343,110 +234,33 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
       body: Column(
         children: [
           const SizedBox(height: 16),
-
-          // 금액 표시 + 즐겨찾기 아이콘
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: Listenable.merge([
-                  _shakeController,
-                  _pulseController,
-                ]),
-                builder: (context, child) => Transform.translate(
-                  offset: Offset(_shakeAnim.value, 0),
-                  child: Transform.scale(scale: _pulseAnim.value, child: child),
-                ),
-                child: Padding(
-                  // 60px 양쪽 패딩으로 즐겨찾기 아이콘 영역 확보
-                  padding: const EdgeInsets.symmetric(horizontal: 60),
-                  child: Semantics(
-                    label: _amountString.isEmpty
-                        ? '입력 금액 없음'
-                        : '입력 금액 ${CurrencyFormatter.formatWithWon(_amount)}',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          _amountString.isEmpty
-                              ? '0'
-                              : CurrencyFormatter.formatNumberOnly(_amount),
-                          style: AppTypography.displayAmount.copyWith(
-                            color: _amountString.isEmpty
-                                ? (isDark
-                                      ? AppColors.darkTextSub
-                                      : AppColors.textSub)
-                                : textMainColor,
-                          ),
-                        ),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 150),
-                          curve: Curves.easeOut,
-                          child: _amountString.isNotEmpty
-                              ? Text(
-                                  '원',
-                                  style: AppTypography.amountUnit.copyWith(
-                                    color: textSubColor,
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // 즐겨 찾기 아이콘 (좌측 상단)
-              Positioned.fill(
-                top: -24,
-                left: 16,
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: _buildFavoriteIcon(),
-                ),
-              ),
-            ],
+          AmountDisplaySection(
+            amountString: vmState.amountString,
+            amount: vmState.amount,
+            addToFavorite: vmState.addToFavorite,
+            shakeAnim: _shakeAnim,
+            pulseAnim: _pulseAnim,
+            onFavoriteTap: () => ref
+                .read(expenseAddViewModelProvider(_args).notifier)
+                .toggleFavorite(),
+            isDark: isDark,
           ),
-
           const SizedBox(height: 12),
-
-          // 빠른 금액 추가 버튼 영역
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildQuickAddBtn('+ 1천', 1000, isDark),
-              const SizedBox(width: 12),
-              _buildQuickAddBtn('+ 5천', 5000, isDark),
-              const SizedBox(width: 12),
-              _buildQuickAddBtn('+ 1만', 10000, isDark),
-            ],
-          ),
-
+          QuickAddButtons(isDark: isDark, onAdd: _onAddAmount),
           const SizedBox(height: 24),
-
-          // 카테고리 선택 영역
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: CategorySelector(
-              selectedCategory: _selectedCategory,
-              onCategoryChanged: (category) {
-                setState(() => _selectedCategory = category);
-              },
+              selectedCategory: vmState.selectedCategory,
+              onCategoryChanged: (cat) => ref
+                  .read(expenseAddViewModelProvider(_args).notifier)
+                  .selectCategory(cat),
             ),
           ),
-
           const SizedBox(height: 24),
-
-          // 자주 쓰는 / 최근 내역 탭 영역
           if (widget.expense == null)
-            FavoriteTemplatesSection(onTemplateTap: _applyTemplate),
-
+            FavoriteTemplatesSection(onTemplateTap: _onApplyTemplate),
           const Spacer(),
-
-          // 커스텀 숫자 키패드
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: NumberKeypad(
@@ -454,125 +268,14 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
               onBackspacePressed: _onBackspacePressed,
             ),
           ),
-          // 기록하기 버튼
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              0,
-              20,
-              MediaQuery.of(context).padding.bottom + 16,
-            ),
-            child: Semantics(
-              button: true,
-              enabled: _canSave,
-              label: _saveError ? '다시 시도' : (_canSave ? '기록하기' : '금액을 입력해주세요'),
-              child: AnimatedOpacity(
-                opacity: _canSave ? 1.0 : 0.5,
-                duration: const Duration(milliseconds: 200),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: AppSpacing.buttonHeight,
-                  child: ElevatedButton(
-                    onPressed: _canSave ? _onSave : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _saveError
-                          ? AppColors.budgetDanger
-                          : (isDark
-                                ? AppColors.darkTextMain
-                                : AppColors.textMain),
-                      foregroundColor: isDark
-                          ? AppColors.darkBackground
-                          : AppColors.white,
-                      disabledBackgroundColor: _saveError
-                          ? AppColors.budgetDanger
-                          : (isDark
-                                ? AppColors.darkTextMain
-                                : AppColors.textMain),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.card),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isSaving
-                        ? SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: isDark
-                                  ? AppColors.darkBackground
-                                  : AppColors.white,
-                            ),
-                          )
-                        : Text(
-                            _saveError ? '다시 시도' : '기록하기',
-                            style: AppTypography.bodyLarge.copyWith(
-                              color: isDark
-                                  ? AppColors.darkBackground
-                                  : AppColors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ),
+          SaveButton(
+            canSave: vmState.canSave,
+            isSaving: vmState.isSaving,
+            saveError: vmState.saveError,
+            isDark: isDark,
+            onPressed: _onSave,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFavoriteIcon() {
-    return Semantics(
-      button: true,
-      label: _addToFavorite ? '즐겨찾기 해제' : '즐겨찾기에 추가',
-      child: GestureDetector(
-        onTap: () {
-          setState(() => _addToFavorite = !_addToFavorite);
-          HapticFeedback.lightImpact();
-        },
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Center(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                _addToFavorite
-                    ? Icons.star_rounded
-                    : Icons.star_outline_rounded,
-                key: ValueKey(_addToFavorite),
-                size: 24,
-                color: _addToFavorite ? Colors.amber : null,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickAddBtn(String label, int amount, bool isDark) {
-    return Semantics(
-      button: true,
-      label: '${label.replaceAll('+ ', '')}원 추가',
-      child: InkWell(
-        onTap: () => _addAmount(amount),
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkCard : AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-          ),
-          child: Text(
-            label,
-            style: AppTypography.labelMedium.copyWith(
-              color: isDark ? AppColors.darkTextMain : AppColors.textMain,
-            ),
-          ),
-        ),
       ),
     );
   }
