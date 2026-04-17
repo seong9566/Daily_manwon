@@ -27,15 +27,21 @@ class _FavoriteTemplatesSectionState
 
   @override
   Widget build(BuildContext context) {
-    final homeState = ref.watch(homeViewModelProvider);
-    if (homeState.isLoading) return const SizedBox.shrink();
+    final isLoading = ref.watch(
+      homeViewModelProvider.select((s) => s.isLoading),
+    );
+    if (isLoading) return const SizedBox.shrink();
+
+    final favorites = ref.watch(
+      homeViewModelProvider.select((s) => s.favorites),
+    );
+    final recentExpenses = ref.watch(
+      homeViewModelProvider.select((s) => s.recentExpenses),
+    );
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
-
-    final favorites = homeState.favorites;
-    final recentExpenses = homeState.recentExpenses;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
