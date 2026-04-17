@@ -12,7 +12,8 @@ import '../viewmodels/favorite_templates_view_model.dart';
 /// 수동·자동학습 칩(자주 쓰는 탭) 및 최근 내역 탭을 제공하는 섹션
 class FavoriteTemplatesSection extends ConsumerStatefulWidget {
   /// 템플릿·내역 탭 시 호출 — amount, category, memo 전달
-  final void Function(({int amount, ExpenseCategory category, String memo})) onTemplateTap;
+  final void Function(({int amount, ExpenseCategory category, String memo}))
+  onTemplateTap;
 
   const FavoriteTemplatesSection({super.key, required this.onTemplateTap});
 
@@ -210,7 +211,7 @@ class _TemplateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isDark ? AppColors.darkSurface : const Color(0xFFF5F5F5);
+    final bgColor = isDark ? AppColors.darkCard : const Color(0xFFF5F5F5);
     final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
@@ -228,8 +229,8 @@ class _TemplateChip extends StatelessWidget {
           children: [
             Image.asset(
               cat.assetPath,
-              width: 18,
-              height: 18,
+              width: 24,
+              height: 24,
               color: isDark ? AppColors.darkTextMain : null,
               colorBlendMode: isDark ? BlendMode.srcIn : null,
             ),

@@ -7,7 +7,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/flutter-kit-review.mjs",
-            "timeout": 120
+            "timeout": 120,
+            "asyncRewake": true,
+            "rewakeMessage": "flutter_kit 코드 규칙 검증 결과:",
+            "rewakeSummary": "flutter_kit 규칙 위반 감지 — 수정 필요"
           }
         ]
       }
