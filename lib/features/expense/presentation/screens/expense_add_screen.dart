@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/entities/expense.dart';
 import '../../../home/presentation/viewmodels/home_view_model.dart';
@@ -233,7 +234,7 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
       ),
       body: Column(
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           AmountDisplaySection(
             amountString: vmState.amountString,
             amount: vmState.amount,
@@ -245,11 +246,11 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
                 .toggleFavorite(),
             isDark: isDark,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           QuickAddButtons(isDark: isDark, onAdd: _onAddAmount),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: CategorySelector(
               selectedCategory: vmState.selectedCategory,
               onCategoryChanged: (cat) => ref
@@ -257,12 +258,12 @@ class _ExpenseAddScreenState extends ConsumerState<ExpenseAddScreen>
                   .selectCategory(cat),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.xl),
           if (widget.expense == null)
             FavoriteTemplatesSection(onTemplateTap: _onApplyTemplate),
           const Spacer(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             child: NumberKeypad(
               onNumberPressed: _onNumberPressed,
               onBackspacePressed: _onBackspacePressed,

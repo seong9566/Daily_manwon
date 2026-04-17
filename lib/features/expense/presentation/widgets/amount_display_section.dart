@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
 
@@ -40,7 +41,7 @@ class AmountDisplaySection extends StatelessWidget {
             child: Transform.scale(scale: pulseAnim.value, child: child),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 60),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.amountPadding),
             child: Semantics(
               label: amountString.isEmpty
                   ? '입력 금액 없음'
@@ -61,7 +62,7 @@ class AmountDisplaySection extends StatelessWidget {
                     ),
                   ),
                   AnimatedSize(
-                    duration: const Duration(milliseconds: 150),
+                    duration: AppDurations.fast,
                     curve: Curves.easeOut,
                     child: amountString.isNotEmpty
                         ? Text(
@@ -91,11 +92,11 @@ class AmountDisplaySection extends StatelessWidget {
                   HapticFeedback.lightImpact();
                 },
                 child: SizedBox(
-                  width: 44,
-                  height: 44,
+                  width: AppSpacing.touchTarget,
+                  height: AppSpacing.touchTarget,
                   child: Center(
                     child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
+                      duration: AppDurations.normal,
                       child: Icon(
                         addToFavorite
                             ? Icons.star_rounded
