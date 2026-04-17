@@ -66,11 +66,30 @@ lib/
 ## Riverpod 상태 관리
 
 - Riverpod을 BLoC 대신 사용
-- `Notifier`, `AsyncNotifier` 또는 동등한 provider 패턴 사용
+- **`@riverpod` 코드 제너레이터 사용 권장** — `riverpod_generator`로 Provider를 자동 생성하고, 수동 `NotifierProvider` 선언을 지양한다
+- `@riverpod`로 선언된 클래스는 `_$ClassName`을 상속하며, `build()` 메서드에서 초기 상태를 반환한다
+- Family Provider는 `build()` 인자로 파라미터를 직접 선언한다 (별도 typedef 불필요)
 - Provider 상태 전이는 명시적이고 예측 가능해야 함
 - 비즈니스 로직을 위젯에 배치하지 않음
 - Provider는 UseCase나 Repository와 협력하여 UI 준비 상태 노출
 - 위젯은 렌더링과 사용자 상호작용에만 집중
+
+```dart
+// ✅ @riverpod 코드젠 — ViewModel
+@riverpod
+class ExpenseAddViewModel extends _$ExpenseAddViewModel {
+  @override
+  ExpenseAddState build({ExpenseEntity? expense, DateTime? date}) {
+    // 초기 상태 반환
+  }
+}
+
+// ✅ @riverpod 코드젠 — 단순 읽기 전용 Provider
+@riverpod
+SomeInfo? someInfo(Ref ref) {
+  return ref.watch(someRepositoryProvider).data;
+}
+```
 
 ## 3-계층 데이터 모델 패턴
 
