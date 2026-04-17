@@ -30,4 +30,10 @@ abstract interface class CalendarRepository {
     required int year,
     required int month,
   });
+
+  /// 특정 월의 지출 변동을 실시간 스트림으로 구독한다
+  Stream<Map<DateTime, List<ExpenseEntity>>> watchExpensesByMonth({
+    required int year,
+    required int month,
+  });
 }

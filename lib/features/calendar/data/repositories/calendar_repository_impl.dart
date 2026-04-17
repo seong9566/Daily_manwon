@@ -49,4 +49,11 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }) {
     return _datasource.getMonthlyEffectiveBudgets(year, month);
   }
+
+  @override
+  Stream<Map<DateTime, List<ExpenseEntity>>> watchExpensesByMonth({
+    required int year,
+    required int month,
+  }) =>
+      _datasource.watchExpensesByMonth(year: year, month: month);
 }
