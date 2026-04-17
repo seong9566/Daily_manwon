@@ -1,86 +1,18 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/app_date_utils.dart';
-import '../../domain/entities/category_stat.dart';
-import '../../domain/entities/daily_stat.dart';
-import '../../domain/entities/weekday_stat.dart';
 import '../../domain/usecases/get_category_stats_use_case.dart';
 import '../../domain/usecases/get_daily_budget_use_case.dart';
 import '../../domain/usecases/get_daily_stats_use_case.dart';
 import '../../domain/usecases/get_expense_summary_use_case.dart';
 import '../../domain/usecases/get_weekday_stats_use_case.dart';
+import 'stats_state.dart';
 
-enum StatsViewMode { monthly, weekly }
+part 'stats_view_model.g.dart';
 
-/// 통계 화면 상태 — isLoading/errorMessage는 AsyncValue가 처리
-class StatsState {
-  final DateTime selectedMonth;
-  final List<CategoryStat> categoryStats;
-  final List<WeekdayStat> weekdayStats;
-  // 공통
-  final StatsViewMode viewMode;
-  final DateTime selectedWeekStart;
-  // 주간 전용
-  final double dailyBudget; // 설정한 일일 예산
-  final List<DailyStat> dailyStats;
-  final int weeklyTotalSpent;
-  final int weeklyBudget; // 7 × dailyBudget
-  final int weeklySuccessDays;
-  final int weeklyTotalDays;
-  final int? weeklyTopCategoryIndex;
-  final int? prevWeekTotalSpent; // null = 전주 데이터 없음
-
-  const StatsState({
-    required this.selectedMonth,
-    required this.selectedWeekStart,
-    this.viewMode = StatsViewMode.monthly,
-    this.categoryStats = const [],
-    this.weekdayStats = const [],
-    this.dailyStats = const [],
-    this.dailyBudget = 0,
-    this.weeklyTotalSpent = 0,
-    this.weeklyBudget = 0,
-    this.weeklySuccessDays = 0,
-    this.weeklyTotalDays = 7,
-    this.weeklyTopCategoryIndex,
-    this.prevWeekTotalSpent,
-  });
-
-  StatsState copyWith({
-    DateTime? selectedMonth,
-    DateTime? selectedWeekStart,
-    StatsViewMode? viewMode,
-    List<CategoryStat>? categoryStats,
-    List<WeekdayStat>? weekdayStats,
-    List<DailyStat>? dailyStats,
-    int? weeklyTotalSpent,
-    int? weeklyBudget,
-    int? weeklySuccessDays,
-    int? weeklyTopCategoryIndex,
-    int? prevWeekTotalSpent,
-    double? dailyBudget,
-  }) {
-    return StatsState(
-      dailyBudget: dailyBudget ?? this.dailyBudget,
-      selectedMonth: selectedMonth ?? this.selectedMonth,
-      selectedWeekStart: selectedWeekStart ?? this.selectedWeekStart,
-      viewMode: viewMode ?? this.viewMode,
-      categoryStats: categoryStats ?? this.categoryStats,
-      weekdayStats: weekdayStats ?? this.weekdayStats,
-      dailyStats: dailyStats ?? this.dailyStats,
-      weeklyTotalSpent: weeklyTotalSpent ?? this.weeklyTotalSpent,
-      weeklyBudget: weeklyBudget ?? this.weeklyBudget,
-      weeklySuccessDays: weeklySuccessDays ?? this.weeklySuccessDays,
-      weeklyTopCategoryIndex:
-          weeklyTopCategoryIndex ?? this.weeklyTopCategoryIndex,
-      prevWeekTotalSpent: prevWeekTotalSpent ?? this.prevWeekTotalSpent,
-    );
-  }
-}
-
-/// 통계 화면 ViewModel
-class StatsViewModel extends AsyncNotifier<StatsState> {
+@Riverpod(keepAlive: true)
+class StatsViewModel extends _$StatsViewModel {
   GetCategoryStatsUseCase get _categoryStatsUseCase =>
       getIt<GetCategoryStatsUseCase>();
   GetWeekdayStatsUseCase get _weekdayStatsUseCase =>
@@ -127,7 +59,6 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
 
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
-    // 선택 주의 일요일이 오늘보다 미래이면 성공일 0
     final isFutureWeek = weekStart.isAfter(todayStart);
     // no-spend day(amount=0)도 예산 이하이므로 성공으로 계산한다
     // 현재 주의 경우 오늘 포함 이후 날짜(미래)는 제외하여 실제 경과 일수만 카운팅
@@ -154,12 +85,11 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
       weeklyBudget: 7 * dailyBudget,
       weeklySuccessDays: weeklySuccessDays,
       weeklyTopCategoryIndex: weekSummary.topCategoryIndex,
-      // 전주 지출 데이터가 없어도 0원으로 비교 표시
       prevWeekTotalSpent: prevSummary.totalSpent,
     );
   }
 
-  /// 월간/주간 모드 전환 — 재fetch 없음 (데이터 이미 있음)
+  /// 월간/주간 모드 전환 — 재fetch 없음
   void toggleViewMode() {
     final current = state.asData?.value;
     if (current == null) return;
@@ -205,7 +135,7 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
     );
   }
 
-  /// 화면 당김 새로고침 — viewMode·선택 월·선택 주를 유지한 채 데이터만 갱신한다
+  /// 화면 당김 새로고침
   Future<void> refresh() async {
     final now = DateTime.now();
     final current = state.asData?.value;
@@ -220,6 +150,3 @@ class StatsViewModel extends AsyncNotifier<StatsState> {
     );
   }
 }
-
-final statsViewModelProvider =
-    AsyncNotifierProvider<StatsViewModel, StatsState>(StatsViewModel.new);
