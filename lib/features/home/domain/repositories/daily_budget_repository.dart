@@ -28,4 +28,7 @@ abstract interface class DailyBudgetRepository {
 
   /// 특정 날짜의 총 지출액을 반환한다
   Future<int> getTotalExpensesByDate(DateTime date);
+
+  /// 오늘 예산 레코드의 baseAmount를 즉시 업데이트한다 (설정 변경 즉시 반영용)
+  Future<void> updateTodayBaseAmount(int amount);
 }

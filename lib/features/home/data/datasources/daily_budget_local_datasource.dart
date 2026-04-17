@@ -137,6 +137,14 @@ class DailyBudgetLocalDatasource {
     return row?.date;
   }
 
+  Future<void> updateTodayBaseAmount(int amount) async {
+    final existing = await getBudgetByDate(DateTime.now());
+    if (existing == null) return;
+    await (_db.update(_db.dailyBudgets)
+          ..where((t) => t.id.equals(existing.id)))
+        .write(DailyBudgetsCompanion(baseAmount: Value(amount)));
+  }
+
   Future<int> getTotalExpensesByDate(DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));

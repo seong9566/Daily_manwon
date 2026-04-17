@@ -44,7 +44,7 @@ final class HomeViewModelProvider
   }
 }
 
-String _$homeViewModelHash() => r'59604c39358f11bab6c896cf0a97bd13a12b3ab3';
+String _$homeViewModelHash() => r'963696ea4900a1e52b4bc155a9ea7ef749c96d84';
 
 /// 홈 화면 뷰모델 — 오늘의 예산, 지출을 관리한다
 

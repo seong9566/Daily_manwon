@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/providers/budget_change_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
@@ -43,6 +44,7 @@ class HomeViewModel extends _$HomeViewModel {
   HomeState build() {
     ref.onDispose(() => _expenseSubscription?.cancel());
     _lastActiveDate = DateTime.now();
+    ref.listen(budgetChangeProvider, (_, _) => _loadData());
     _loadData();
     _watchExpenses();
     return const HomeState();

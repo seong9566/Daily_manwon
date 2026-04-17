@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/providers/budget_change_provider.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
 import '../../domain/usecases/get_monthly_calendar_data_use_case.dart';
@@ -199,6 +200,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
       selectedWeekStart: AppDateUtils.weekStartOf(now),
       isLoading: true, // invalidate 후 빈 화면 flash 방지 — loadMonthData()에서 false로 전환
     );
+    ref.listen(budgetChangeProvider, (_, _) => loadMonthData(forceRefresh: true));
     Future.microtask(() async {
       await _restoreViewMode();
       await loadMonthData();

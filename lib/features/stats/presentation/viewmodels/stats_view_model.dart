@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/providers/budget_change_provider.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../domain/usecases/get_category_stats_use_case.dart';
 import '../../domain/usecases/get_daily_budget_use_case.dart';
@@ -25,6 +26,7 @@ class StatsViewModel extends _$StatsViewModel {
 
   @override
   Future<StatsState> build() {
+    ref.listen(budgetChangeProvider, (_, _) => refresh());
     final now = DateTime.now();
     return _fetchStats(
       DateTime(now.year, now.month, 1),

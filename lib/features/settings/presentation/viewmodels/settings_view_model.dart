@@ -1,4 +1,6 @@
 import 'package:daily_manwon/core/services/notification_service.dart';
+import 'package:daily_manwon/core/providers/budget_change_provider.dart';
+import 'package:daily_manwon/features/home/domain/repositories/daily_budget_repository.dart';
 import 'package:daily_manwon/features/settings/domain/entities/notification_settings_entity.dart';
 import 'package:daily_manwon/features/settings/domain/repositories/settings_repository.dart';
 import 'package:daily_manwon/features/settings/domain/usecases/get_notification_settings_use_case.dart';
@@ -148,6 +150,8 @@ class SettingsViewModel extends _$SettingsViewModel {
   Future<void> setDailyBudget(int amount) async {
     state = state.copyWith(dailyBudget: amount);
     await _settingsRepository.setDailyBudget(amount);
+    await GetIt.instance<DailyBudgetRepository>().updateTodayBaseAmount(amount);
+    ref.read(budgetChangeProvider.notifier).increment();
   }
 
   Future<void> _loadCarryoverEnabled() async {

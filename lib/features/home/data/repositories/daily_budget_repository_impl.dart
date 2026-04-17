@@ -41,4 +41,8 @@ class DailyBudgetRepositoryImpl implements DailyBudgetRepository {
   @override
   Future<int> getTotalExpensesByDate(DateTime date) =>
       _datasource.getTotalExpensesByDate(date);
+
+  @override
+  Future<void> updateTodayBaseAmount(int amount) =>
+      _datasource.updateTodayBaseAmount(amount);
 }
