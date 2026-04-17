@@ -57,11 +57,7 @@ class CalendarLocalDatasource {
     final end = DateTime(year, month + 1, 1);
 
     final driftStream = (_db.select(_db.expenses)
-          ..where(
-            (e) =>
-                e.createdAt.isBiggerOrEqualValue(start) &
-                e.createdAt.isSmallerThanValue(end),
-          )
+          ..where((e) => e.createdAt.isBetweenValues(start, end))
           ..orderBy([(e) => OrderingTerm.asc(e.createdAt)]))
         .watch()
         .map(_groupByDay);
@@ -131,7 +127,7 @@ class CalendarLocalDatasource {
     for (final key in sortedKeys) {
       buffer.write('${key.millisecondsSinceEpoch}:');
       for (final e in map[key]!) {
-        buffer.write('${e.id},${e.amount},${e.createdAt.millisecondsSinceEpoch};');
+        buffer.write('${e.id},${e.amount},${e.category.index},${e.memo},${e.createdAt.millisecondsSinceEpoch};');
       }
       buffer.write('|');
     }
