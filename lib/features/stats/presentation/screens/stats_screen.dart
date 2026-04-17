@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/app_date_utils.dart';
+import '../viewmodels/stats_state.dart';
 import '../viewmodels/stats_view_model.dart';
 import '../widgets/category_donut_chart.dart';
 import '../widgets/stats_view_mode_toggle.dart';

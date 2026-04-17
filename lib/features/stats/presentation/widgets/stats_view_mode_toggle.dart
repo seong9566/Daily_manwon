@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../viewmodels/stats_view_model.dart';
+import '../viewmodels/stats_state.dart';
 
 /// 통계 화면 월간/주간 전환 토글 버튼
 /// 캘린더 화면의 ViewModeToggle과 동일한 디자인
