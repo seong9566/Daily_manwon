@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/widget_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../../core/utils/result.dart';
@@ -14,81 +15,23 @@ import '../../../expense/domain/usecases/add_expense_use_case.dart';
 import '../../../expense/domain/usecases/add_favorite_use_case.dart';
 import '../../../expense/domain/usecases/delete_favorite_use_case.dart';
 import '../../../expense/domain/usecases/get_favorites_use_case.dart';
+import '../../../expense/domain/usecases/get_recent_expenses_use_case.dart';
 import '../../../expense/domain/usecases/increment_favorite_usage_use_case.dart';
 import '../../../expense/domain/usecases/update_expense_use_case.dart';
 import '../../../calendar/presentation/viewmodels/calendar_view_model.dart';
-import '../../../expense/domain/usecases/get_recent_expenses_use_case.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../domain/usecases/delete_expense_use_case.dart';
 import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
 import '../../domain/usecases/get_acorn_stats_use_case.dart';
 import '../../domain/usecases/get_today_budget_use_case.dart';
 import '../../domain/usecases/get_today_expenses_use_case.dart';
+import 'home_state.dart';
 
-/// 홈 화면 상태
-class HomeState {
-  final int remainingBudget;
-  final int totalBudget;
-  final List<ExpenseEntity> expenses;
-  final int totalAcorns;
-  final int streakDays;
-  final bool isLoading;
-
-  /// 이월 배지 표시용 금액 (0이면 이월 없음)
-  final int carryOver;
-
-  /// 일요일 첫 접근 인터스티셜 트리거 여부
-  final bool isNewWeek;
-
-  /// 수동 즐겨찾기 목록 (usageCount 내림차순)
-  final List<FavoriteExpenseEntity> favorites;
-
-  /// 최근 7일 내 지출 최대 10건 (최신순) — "최근 내역" 탭용
-  final List<ExpenseEntity> recentExpenses;
-
-  const HomeState({
-    this.remainingBudget = 10000,
-    this.totalBudget = 10000,
-    this.expenses = const [],
-    this.totalAcorns = 0,
-    this.streakDays = 0,
-    this.isLoading = true,
-    this.carryOver = 0,
-    this.isNewWeek = false,
-    this.favorites = const [],
-    this.recentExpenses = const [],
-  });
-
-  HomeState copyWith({
-    int? remainingBudget,
-    int? totalBudget,
-    List<ExpenseEntity>? expenses,
-    int? totalAcorns,
-    int? streakDays,
-    bool? isLoading,
-    int? carryOver,
-    bool? isNewWeek,
-    List<FavoriteExpenseEntity>? favorites,
-    List<ExpenseEntity>? recentExpenses,
-    bool clearTitle = false,
-  }) {
-    return HomeState(
-      remainingBudget: remainingBudget ?? this.remainingBudget,
-      totalBudget: totalBudget ?? this.totalBudget,
-      expenses: expenses ?? this.expenses,
-      totalAcorns: totalAcorns ?? this.totalAcorns,
-      streakDays: streakDays ?? this.streakDays,
-      isLoading: isLoading ?? this.isLoading,
-      carryOver: carryOver ?? this.carryOver,
-      isNewWeek: isNewWeek ?? this.isNewWeek,
-      favorites: favorites ?? this.favorites,
-      recentExpenses: recentExpenses ?? this.recentExpenses,
-    );
-  }
-}
+part 'home_view_model.g.dart';
 
 /// 홈 화면 뷰모델 — 오늘의 예산, 지출, 도토리, 스트릭을 관리한다
-class HomeViewModel extends Notifier<HomeState> {
+@riverpod
+class HomeViewModel extends _$HomeViewModel {
   StreamSubscription<List<ExpenseEntity>>? _expenseSubscription;
   DateTime _lastActiveDate = DateTime.now();
 
@@ -175,35 +118,13 @@ class HomeViewModel extends Notifier<HomeState> {
         recentExpenses: recentList,
       );
 
-      // 홈 위젯 데이터 갱신 (비동기 실행 — 실패해도 앱 동작에 영향 없음)
-      final catMood = isNewWeek
-          ? 'new_week'
-          : CharacterMood.fromRemaining(remaining, totalBudget).name;
-      unawaited(
-        getIt<WidgetService>().updateWidget(
-          total: totalBudget,
-          used: totalBudget - remaining,
-          remaining: remaining,
-          streak: streak,
-          expenses: expenses
-              .map(
-                (e) => {
-                  'category': e.category.label,
-                  'time': DateFormat('HH:mm').format(e.createdAt),
-                  'amount': e.amount,
-                },
-              )
-              .toList(),
-          catMood: catMood,
-          favorites: favoritesList
-              .map((f) => {
-                    'id': f.id,
-                    'amount': f.amount,
-                    'category': f.category.index,
-                    'memo': f.memo,
-                  })
-              .toList(),
-        ),
+      _updateHomeWidget(
+        total: totalBudget,
+        remaining: remaining,
+        streak: streak,
+        isNewWeek: isNewWeek,
+        expenses: expenses,
+        favorites: favoritesList,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -242,44 +163,60 @@ class HomeViewModel extends Notifier<HomeState> {
             final favoritesList =
                 (await getIt<GetFavoritesUseCase>().execute()).dataOrNull ?? [];
             final recentList =
-                (await getIt<GetRecentExpensesUseCase>().execute()).dataOrNull ?? [];
+                (await getIt<GetRecentExpensesUseCase>().execute())
+                    .dataOrNull ?? [];
             state = state.copyWith(
               favorites: favoritesList,
               recentExpenses: recentList,
             );
-            unawaited(
-              getIt<WidgetService>().updateWidget(
-                total: state.totalBudget,
-                used: state.totalBudget - remaining,
-                remaining: remaining,
-                streak: state.streakDays,
-                expenses: expenses
-                    .map(
-                      (e) => {
-                        'category': e.category.label,
-                        'time': DateFormat('HH:mm').format(e.createdAt),
-                        'amount': e.amount,
-                      },
-                    )
-                    .toList(),
-                catMood: state.isNewWeek
-                    ? 'new_week'
-                    : CharacterMood.fromRemaining(
-                        remaining,
-                        state.totalBudget,
-                      ).name,
-                favorites: favoritesList
-                    .map((f) => {
-                          'id': f.id,
-                          'amount': f.amount,
-                          'category': f.category.index,
-                          'memo': f.memo,
-                        })
-                    .toList(),
-              ),
+            _updateHomeWidget(
+              total: state.totalBudget,
+              remaining: remaining,
+              streak: state.streakDays,
+              isNewWeek: state.isNewWeek,
+              expenses: expenses,
+              favorites: favoritesList,
             );
           }
         });
+  }
+
+  /// 홈 위젯 갱신 공통 로직 — _loadData / _watchExpenses 양쪽에서 사용
+  void _updateHomeWidget({
+    required int total,
+    required int remaining,
+    required int streak,
+    required bool isNewWeek,
+    required List<ExpenseEntity> expenses,
+    required List<FavoriteExpenseEntity> favorites,
+  }) {
+    final catMood = isNewWeek
+        ? 'new_week'
+        : CharacterMood.fromRemaining(remaining, total).name;
+    unawaited(
+      getIt<WidgetService>().updateWidget(
+        total: total,
+        used: total - remaining,
+        remaining: remaining,
+        streak: streak,
+        expenses: expenses
+            .map((e) => {
+                  'category': e.category.label,
+                  'time': DateFormat('HH:mm').format(e.createdAt),
+                  'amount': e.amount,
+                })
+            .toList(),
+        catMood: catMood,
+        favorites: favorites
+            .map((f) => {
+                  'id': f.id,
+                  'amount': f.amount,
+                  'category': f.category.index,
+                  'memo': f.memo,
+                })
+            .toList(),
+      ),
+    );
   }
 
   /// 새 주 인터스티셜 확인 후 상태를 초기화한다
@@ -295,11 +232,6 @@ class HomeViewModel extends Notifier<HomeState> {
     return '${sunday.year}-${sunday.month.toString().padLeft(2, '0')}-${sunday.day.toString().padLeft(2, '0')}';
   }
 
-  /// 칭호 Snackbar 표시 후 상태를 초기화한다 (S-26g)
-  void clearAchievedTitle() {
-    state = state.copyWith(clearTitle: true);
-  }
-
   /// 수동 새로고침
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true);
@@ -311,6 +243,7 @@ class HomeViewModel extends Notifier<HomeState> {
     final result = await getIt<AddExpenseUseCase>().execute(expense);
     return result.when(
       success: (_) {
+        // TODO(architecture): CalendarViewModel이 expense 스트림을 직접 구독하면 제거 가능
         ref.invalidate(calendarViewModelProvider);
         return Result.success(null);
       },
@@ -321,6 +254,7 @@ class HomeViewModel extends Notifier<HomeState> {
   /// 지출 수정
   Future<Result<void>> updateExpense(ExpenseEntity expense) async {
     final result = await getIt<UpdateExpenseUseCase>().execute(expense);
+    // TODO(architecture): CalendarViewModel expense 스트림 구독으로 대체 예정
     if (result.isSuccess) ref.invalidate(calendarViewModelProvider);
     return result;
   }
@@ -328,26 +262,29 @@ class HomeViewModel extends Notifier<HomeState> {
   /// 지출 삭제
   Future<void> deleteExpense(int id) async {
     await getIt<DeleteExpenseUseCase>().execute(id);
+    // TODO(architecture): CalendarViewModel expense 스트림 구독으로 대체 예정
     ref.invalidate(calendarViewModelProvider);
   }
 
   /// 위젯 버튼 탭으로 기록된 pending 지출을 처리한다.
   ///
   /// HomeScreen의 AppLifecycleState.resumed 콜백에서 호출한다.
-  /// 처리 후 [_watchExpenses] 스트림이 자동으로 변경을 감지해 UI를 갱신한다.
   Future<void> processPendingWidgetExpense() async {
     await getIt<WidgetService>().processPendingWidgetExpense();
   }
 
   /// 위젯 "직접 입력(+)" 버튼 탭 여부를 확인하고 플래그를 초기화한다.
   ///
-  /// HomeScreen의 initState 및 AppLifecycleState.resumed 콜백에서 호출한다.
   /// true 반환 시 HomeScreen에서 showExpenseAddBottomSheet를 호출해야 한다.
-  ///
-  /// 이 메서드는 도메인 로직이 없는 아키텍처 경계 위임자다.
-  /// Screen → Service 직접 호출을 차단하기 위해 존재한다.
   Future<bool> checkPendingOpenExpense() async {
     return getIt<WidgetService>().checkAndClearPendingOpenExpense();
+  }
+
+  /// 알림 탭으로 앱이 열린 경우 pending payload를 소비하고 true를 반환한다.
+  ///
+  /// Screen이 SharedPreferences에 직접 접근하지 않도록 위임한다.
+  Future<bool> checkAndConsumePendingNotification() async {
+    return getIt<NotificationService>().checkAndConsumePendingNotification();
   }
 
   /// 즐겨찾기 추가 — DB 저장 후 state 갱신
@@ -414,8 +351,3 @@ class HomeViewModel extends Notifier<HomeState> {
     );
   }
 }
-
-/// 홈 뷰모델 프로바이더
-final homeViewModelProvider = NotifierProvider<HomeViewModel, HomeState>(
-  HomeViewModel.new,
-);

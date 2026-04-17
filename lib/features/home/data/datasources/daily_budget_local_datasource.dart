@@ -101,8 +101,7 @@ class DailyBudgetLocalDatasource {
   /// 특정 날짜의 남은 예산 계산 (effectiveBudget - 총 지출)
   Future<int> getRemainingBudget(DateTime date) async {
     final budget = await getBudgetByDate(date);
-    final effectiveBudget = (budget?.baseAmount ?? AppConstants.dailyBudget)
-        + (budget?.carryOver ?? 0);
+    final effectiveBudget = budget?.effectiveBudget ?? AppConstants.dailyBudget;
 
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));

@@ -155,6 +155,20 @@ class NotificationService {
     _navigationController.add(response.payload ?? 'home');
   }
 
+  /// Terminated/Background 상태에서 알림 탭으로 진입한 pending payload를 소비한다.
+  ///
+  /// payload가 존재하면 true를 반환하고 SharedPreferences에서 제거한다.
+  /// HomeScreen이 SharedPreferences에 직접 접근하지 않도록 이 서비스를 거친다.
+  Future<bool> checkAndConsumePendingNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final payload = prefs.getString('pending_notification_payload');
+    if (payload != null) {
+      await prefs.remove('pending_notification_payload');
+      return true;
+    }
+    return false;
+  }
+
   /// 앱이 Terminated 상태에서 알림 탭으로 실행된 경우,
   /// getNotificationAppLaunchDetails()로 감지하여 payload를 SharedPreferences에 저장한다.
   Future<void> _checkLaunchedFromNotification() async {

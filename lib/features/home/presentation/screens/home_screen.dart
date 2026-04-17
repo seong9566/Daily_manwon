@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../../core/router/app_router.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -70,16 +68,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   /// Terminated/Background 상태에서 알림 탭 후 앱 진입 시 처리.
   ///
-  /// notification_handler.dart의 onBackgroundNotificationTap이 저장한
-  /// pending payload를 소비하고 홈 화면으로 이동한다.
+  /// pending payload 소비는 HomeViewModel을 통해 NotificationService에 위임한다.
   Future<void> _handlePendingNotification() async {
-    final prefs = await SharedPreferences.getInstance();
-    final payload = prefs.getString('pending_notification_payload');
-    if (payload != null) {
-      // payload 소비 후 홈으로 이동
-      await prefs.remove('pending_notification_payload');
-      if (mounted) context.go(AppRoutes.home);
-    }
+    final hasPending = await ref
+        .read(homeViewModelProvider.notifier)
+        .checkAndConsumePendingNotification();
+    if (hasPending && mounted) context.go(AppRoutes.home);
   }
 
   /// Foreground 상태에서 알림 탭 이벤트를 구독한다.
