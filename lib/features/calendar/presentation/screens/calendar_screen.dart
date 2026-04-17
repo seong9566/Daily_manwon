@@ -203,10 +203,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           expenses: ref
                               .read(calendarViewModelProvider.notifier)
                               .getExpensesForDate(state.selectedDate),
-                          onExpenseTap: (expense) {
+                          onExpenseTap: (item) {
                             showExpenseAddBottomSheet(
                               context,
-                              expense: expense,
+                              expense: item.toExpenseEntity(),
                             );
                           },
                         ),

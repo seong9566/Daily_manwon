@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../expense/domain/entities/expense.dart';
 import '../../../home/presentation/widgets/expense_list_item.dart';
+import '../models/calendar_expense_item.dart';
 
 /// 선택된 날짜의 지출 내역 섹션
 /// 캘린더 하단에 표시되며, 날짜 헤더 + 총액 + 지출 리스트로 구성된다
@@ -14,10 +14,10 @@ class DailyExpenseDetail extends StatelessWidget {
   final DateTime date;
 
   /// 해당 날짜의 지출 목록
-  final List<ExpenseEntity> expenses;
+  final List<CalendarExpenseItem> expenses;
 
   /// 지출 항목 탭 시 호출되는 콜백
-  final void Function(ExpenseEntity expense)? onExpenseTap;
+  final void Function(CalendarExpenseItem expense)? onExpenseTap;
 
   const DailyExpenseDetail({
     super.key,
@@ -92,10 +92,10 @@ class DailyExpenseDetail extends StatelessWidget {
               color: dividerColor,
             ),
             itemBuilder: (context, index) {
-              final expense = expenses[index];
+              final item = expenses[index];
               return ExpenseListItem(
-                expense: expense,
-                onTap: onExpenseTap != null ? () => onExpenseTap!(expense) : null,
+                expense: item.toExpenseEntity(),
+                onTap: onExpenseTap != null ? () => onExpenseTap!(item) : null,
               );
             },
           ),
