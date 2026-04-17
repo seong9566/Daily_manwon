@@ -22,12 +22,12 @@ class NumberKeypad extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 키패드 레이아웃 정의: null = 빈 셀, 'back' = 백스페이스
-    final keys = <String?>[
+    // 키패드 레이아웃 정의: 'back' = 백스페이스
+    final keys = <String>[
       '1', '2', '3',
       '4', '5', '6',
       '7', '8', '9',
-      null, '0', 'back',
+      '00', '0', 'back',
     ];
 
     return GridView.builder(
@@ -36,16 +36,11 @@ class NumberKeypad extends StatelessWidget {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         // 키 높이를 너비보다 살짝 작게 — 콤팩트한 키패드 느낌
-        childAspectRatio: 1.4,
+        childAspectRatio: 2.0,
       ),
       itemCount: keys.length,
       itemBuilder: (context, index) {
         final key = keys[index];
-
-        // 빈 셀 — 하단 왼쪽 자리
-        if (key == null) {
-          return ExcludeSemantics(child: const SizedBox.shrink());
-        }
 
         // 백스페이스 키
         if (key == 'back') {

@@ -1,3 +1,4 @@
+import 'package:daily_manwon/core/utils/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -90,7 +91,10 @@ class _FavoriteTemplatesSectionState
 
   // ── "자주 쓰는" 탭 ────────────────────────────────────────────────────────
 
-  Widget _buildFavoritesSpace(List<FavoriteExpenseEntity> favorites, bool isDark) {
+  Widget _buildFavoritesSpace(
+    List<FavoriteExpenseEntity> favorites,
+    bool isDark,
+  ) {
     if (favorites.isEmpty) {
       return Center(
         child: Text(
@@ -200,43 +204,61 @@ class _TemplateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InputChip(
-      avatar: Image.asset(cat.assetPath, width: 24, height: 24),
-      label: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            style: AppTypography.bodySmall.copyWith(
-              color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+    final bgColor = isDark ? AppColors.darkSurface : const Color(0xFFF5F5F5);
+    final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
+    final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              cat.assetPath,
+              width: 18,
+              height: 18,
+              color: isDark ? AppColors.darkTextMain : null,
+              colorBlendMode: isDark ? BlendMode.srcIn : null,
             ),
-          ),
-          Text(
-            _formatAmount(amount),
-            style: AppTypography.bodyMedium.copyWith(
-              color: isDark ? AppColors.darkTextMain : AppColors.textMain,
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: textSubColor,
+                    height: 1.2,
+                  ),
+                ),
+                Text(
+                  CurrencyFormatter.formatWithWon(amount),
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: textMainColor,
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            if (onDelete != null) ...[
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: onDelete,
+                child: Icon(Icons.close_rounded, size: 14, color: textSubColor),
+              ),
+            ],
+          ],
+        ),
       ),
-      backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
-      side: BorderSide(
-        color: isDark ? AppColors.white : AppColors.black,
-        width: 1.5,
-      ),
-      deleteIconColor: isDark ? AppColors.darkTextSub : AppColors.textSub,
-      onPressed: onTap,
-      onDeleted: onDelete,
     );
   }
-}
-
-// ── 공통 유틸 ─────────────────────────────────────────────────────────────────
-
-String _formatAmount(int amount) {
-  if (amount >= 10000) {
-    return '${(amount / 10000).toStringAsFixed(amount % 10000 == 0 ? 0 : 1)}만';
-  }
-  return '${amount.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원';
 }

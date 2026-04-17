@@ -15,7 +15,7 @@ class _StubHomeViewModel extends HomeViewModel {
 }
 
 void main() {
-  testWidgets('즐겨찾기 없고 최근 내역 없으면 첫 탭에 칩 미표시', (tester) async {
+  testWidgets('즐겨찾기 없고 최근 내역 없으면 첫 탭에 빈 상태 문구 표시', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -35,7 +35,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(InputChip), findsNothing);
+    expect(find.text('자주 쓰는 내역이 없습니다.'), findsOneWidget);
   });
 
   testWidgets('즐겨찾기 1개 표시', (tester) async {
@@ -63,7 +63,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(InputChip), findsOneWidget);
+    expect(find.text('3,500원'), findsOneWidget);
   });
 
   testWidgets('즐겨찾기 2개 표시', (tester) async {
@@ -96,7 +96,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(InputChip), findsNWidgets(2));
+    expect(find.text('1,000원'), findsOneWidget);
+    expect(find.text('3,000원'), findsOneWidget);
   });
 
   testWidgets('"최근 내역" 탭 전환 후 recentExpenses 칩 표시', (tester) async {
@@ -127,13 +128,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // 기본 탭("자주 쓰는")에는 칩 없음
-    expect(find.byType(InputChip), findsNothing);
+    expect(find.text('4,500원'), findsNothing);
 
     // "최근 내역" 탭 탭
     await tester.tap(find.text('최근 내역'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(InputChip), findsOneWidget);
+    expect(find.text('4,500원'), findsOneWidget);
   });
 
   testWidgets('"최근 내역" 탭 빈 상태 — 안내 문구 표시', (tester) async {
@@ -160,7 +161,6 @@ void main() {
     await tester.tap(find.text('최근 내역'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(InputChip), findsNothing);
     expect(find.text('최근 내역이 없습니다.'), findsOneWidget);
   });
 
@@ -201,8 +201,8 @@ void main() {
     await tester.tap(find.text('최근 내역'));
     await tester.pumpAndSettle();
 
-    // 칩 탭
-    await tester.tap(find.byType(InputChip));
+    // 칩 탭 (amount 텍스트로 식별)
+    await tester.tap(find.text('4,500원'));
     await tester.pumpAndSettle();
 
     expect(captured, isNotNull);
