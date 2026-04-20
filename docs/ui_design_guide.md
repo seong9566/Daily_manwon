@@ -1,17 +1,18 @@
 ## UI 디자인 가이드: 심플 미니멀 UI + 숫자 감정 표현
 
 **Date**: 2026-03-25
-**Status**: 초안
+**Updated**: 2026-04-21
+**Status**: v2 — Primary black/white 전환 반영
 **컨셉**: 숫자 자체가 감정을 표현하는 미니멀 앱
 
 ---
 
 ### 디자인 원칙
 
-1. **숫자가 주인공**: 남은 금액 숫자가 크기·색상·모션으로 감정을 전달
+1. **숫자가 주인공**: 남은 금액 숫자가 색상·굵기·모션으로 감정을 전달
 2. **미니멀 레이아웃**: 불필요한 장식 제거, 핵심 정보만 화면에
 3. **마이크로 인터랙션**: 모든 인터랙션에 의미 있는 피드백 제공
-4. **시간대 반응**: 배경 톤이 하루의 흐름을 자연스럽게 반영
+4. **고양이 캐릭터**: 예산 상태에 따라 고양이 표정이 함께 변화
 
 ---
 
@@ -21,19 +22,23 @@
 
 | 상태 | 조건 (비율) | 10,000원 기준 | 의미 |
 |------|------------|--------------|------|
-| **여유** | 잔액 ≥ 70% | ≥ 7,000원 | 오늘 잘 하고 있음 |
-| **보통** | 30% ≤ 잔액 < 70% | 3,000~6,999원 | 적당히 사용 중 |
+| **여유** | 잔액 ≥ 50% | ≥ 5,000원 | 오늘 잘 하고 있음 |
+| **보통** | 30% ≤ 잔액 < 50% | 3,000~4,999원 | 적당히 사용 중 |
 | **위험** | 0% ≤ 잔액 < 30% | 1~2,999원 | 거의 다 씀 |
 | **초과** | 잔액 < 0% | 0원 미만 | 예산 초과 |
 
+> 임계값은 `AppConstants.comfortableRatioThreshold = 0.5`, `normalRatioThreshold = 0.3`으로 관리
+
 ### 1.2 상태별 타이포그래피 스펙
 
-| 상태 | 폰트 크기 | 폰트 웨이트 | 색상 | 색상 코드 |
-|------|----------|-----------|------|----------|
-| 여유 | 72sp | Black (900) | 민트 그린 | `#2DBD8E` |
-| 보통 | 60sp | ExtraBold (800) | 앰버 오렌지 | `#F5A623` |
-| 위험 | 52sp | Bold (700) | 코랄 레드 | `#E85D5D` |
-| 초과 | 48sp | Bold (700) | 딥 레드 | `#C0392B` |
+폰트 크기는 **44sp 고정** (레이아웃 안정성). 색상과 웨이트로만 상태를 구분.
+
+| 상태 | 폰트 크기 | 폰트 웨이트 | 색상 (라이트) | 색상 (다크) |
+|------|----------|-----------|------|------|
+| 여유 | 44sp | Black (900) | `#000000` 검정 | `#FFFFFF` 흰색 |
+| 보통 | 44sp | ExtraBold (800) | `#F5A623` 앰버 오렌지 | `#F5A623` |
+| 위험 | 44sp | Bold (700) | `#E85D5D` 코랄 레드 | `#E85D5D` |
+| 초과 | 44sp | Bold (700) | `#C0392B` 딥 레드 | `#C0392B` |
 
 ### 1.3 상태 전환 모션
 
@@ -86,48 +91,12 @@ Text('+ 어제 이월 ${formatWon(carryOver)}')
 
 ---
 
-## 2. 시간대별 배경 톤 스펙
+## 2. 배경 — ~~시간대별 배경 톤~~ (2026-04-07 제거됨)
 
-### 2.1 시간 구간 및 색상
-
-| 시간대 | 구간 | 배경색 | 색상 코드 | 분위기 |
-|--------|------|--------|----------|--------|
-| 새벽 | 00:00 ~ 04:59 | 딥 블루그레이 | `#1A1D2E` | 고요함 |
-| 아침 | 05:00 ~ 08:59 | 따뜻한 크림 | `#FFF8E7` | 상쾌한 시작 |
-| 오전 | 09:00 ~ 11:59 | 밝은 화이트 | `#F8F9FA` | 집중 |
-| 점심 | 12:00 ~ 13:59 | 연한 민트 화이트 | `#F0FAF6` | 활기 |
-| 오후 | 14:00 ~ 16:59 | 밝은 화이트 | `#F8F9FA` | 집중 |
-| 저녁 | 17:00 ~ 20:59 | 따뜻한 앰버 | `#FFF3E0` | 하루 마무리 |
-| 밤 | 21:00 ~ 23:59 | 차분한 블루그레이 | `#EEF0F8` | 휴식 |
-
-### 2.2 텍스트 색상 (배경 대비)
-
-| 시간대 | 주 텍스트 | 보조 텍스트 |
-|--------|----------|-----------|
-| 새벽 (다크) | `#FFFFFF` | `#A0A8C0` |
-| 나머지 (라이트) | `#1A1A2E` | `#6B7280` |
-
-### 2.3 구현 코드
-
-```dart
-Color _getBackgroundColor(int hour) {
-  if (hour >= 0 && hour < 5)   return const Color(0xFF1A1D2E);  // 새벽
-  if (hour >= 5 && hour < 9)   return const Color(0xFFFFF8E7);  // 아침
-  if (hour >= 9 && hour < 12)  return const Color(0xFFF8F9FA);  // 오전
-  if (hour >= 12 && hour < 14) return const Color(0xFFF0FAF6);  // 점심
-  if (hour >= 14 && hour < 17) return const Color(0xFFF8F9FA);  // 오후
-  if (hour >= 17 && hour < 21) return const Color(0xFFFFF3E0);  // 저녁
-  return const Color(0xFFEEF0F8);                                // 밤
-}
-
-// 전환: 매 분마다 체크, AnimatedContainer로 자연스럽게
-AnimatedContainer(
-  duration: const Duration(seconds: 3),
-  curve: Curves.easeInOut,
-  color: _getBackgroundColor(DateTime.now().hour),
-  child: child,
-)
-```
+> **제거 사유**: Primary Color를 검정/흰색으로 전환하면서 시간대별 배경 톤 개념 폐기.
+> `TimeBasedTheme` 유틸리티 및 `AppColors.bg*` 토큰 삭제 완료.
+>
+> 현재 배경: 라이트모드 `#FFFFFF`, 다크모드 `#1A1A1A` 고정.
 
 ---
 
@@ -164,7 +133,7 @@ widget
 | Duration | 300ms |
 | Easing | `Curves.elasticOut` |
 | 효과 | 체크 아이콘 scale + fade in |
-| 색상 | 민트 그린 `#2DBD8E` |
+| 색상 | 에메랄드 그린 `#2DBD8E` (`AppColors.statusComfortableStrong`) |
 
 ### 3.3 지출 기록 완료 (대형 > 5,000원)
 
@@ -188,19 +157,26 @@ mainAmountWidget
 |------|-----|
 | Duration | 3,000ms |
 | 패키지 | `confetti ^0.7.x` |
-| 파티클 색상 | `[#2DBD8E, #F5A623, #E85D5D, #4A90D9]` |
+| 파티클 수 | 80개 |
+| 파티클 색상 | 감정색 4종 + 카테고리색 4종 = 8색 (primary black 제외) |
 | 발사 각도 | 상단 중앙 → 180° 확산 |
 
 ```dart
 ConfettiWidget(
   confettiController: _confettiController,
   blastDirectionality: BlastDirectionality.explosive,
-  numberOfParticles: 30,
+  numberOfParticles: 80,
   colors: const [
-    Color(0xFF2DBD8E),
-    Color(0xFFF5A623),
-    Color(0xFFE85D5D),
-    Color(0xFF4A90D9),
+    // 감정색
+    Color(0xFFF5A623), // 앰버
+    Color(0xFFE85D5D), // 코랄
+    Color(0xFFC0392B), // 딥레드
+    Color(0xFFFFE66D), // 노랑
+    // 카테고리색
+    Color(0xFFFF9B9B), // 식비
+    Color(0xFF9BB8FF), // 교통
+    Color(0xFFC4A882), // 카페
+    Color(0xFFC49BFF), // 쇼핑
   ],
   child: const SizedBox(),
 )
@@ -337,13 +313,14 @@ Container(
 
 ### 6.1 주요 색상
 
-| 이름 | 용도 | 색상 코드 |
-|------|------|----------|
-| Primary Green | 여유 상태, 성공, CTA 버튼 | `#2DBD8E` |
-| Amber Orange | 주의 상태, 경고 | `#F5A623` |
-| Coral Red | 위험 상태, 에러 | `#E85D5D` |
-| Deep Red | 초과 상태 | `#C0392B` |
-| Sky Blue | 보조 액센트, 링크 | `#4A90D9` |
+| 이름 | 용도 | 라이트 | 다크 |
+|------|------|--------|------|
+| Primary | CTA 버튼, 네비게이션 강조 | `#000000` 검정 | `#FFFFFF` 흰색 |
+| Budget Comfortable | 여유 상태 숫자 | `#000000` 검정 | `#FFFFFF` 흰색 |
+| Budget Warning | 보통 상태 숫자 | `#F5A623` 앰버 | `#F5A623` |
+| Budget Danger | 위험 상태 숫자 | `#E85D5D` 코랄 | `#E85D5D` |
+| Budget Over | 초과 상태 숫자 | `#C0392B` 딥레드 | `#C0392B` |
+| Accent | 수정 스와이프 배경, 보조 링크 | `#4A90D9` 스카이블루 | `#4A90D9` |
 
 ### 6.2 뉴트럴 색상
 
@@ -359,7 +336,7 @@ Container(
 
 | 레벨 | 용도 | 크기 | 웨이트 |
 |------|------|------|--------|
-| Display | 메인 금액 숫자 | 48~72sp | Black 900 |
+| Display | 메인 금액 숫자 | 44sp 고정 | Black 900 (여유) / ExtraBold 800 (보통) / Bold 700 (위험·초과) |
 | Headline | 섹션 제목 | 24sp | Bold 700 |
 | Title | 카드 제목 | 18sp | SemiBold 600 |
 | Body | 본문 | 16sp | Regular 400 |
@@ -386,7 +363,7 @@ Container(
 │  오늘 지출                    │  ← Title
 │  [지출 리스트 아이템들]        │
 │                             │
-└──────── [+ 지출 기록] ───────┘  ← FAB, Primary Green
+└──────── [+ 지출 기록] ───────┘  ← FAB, 검정 원형 (#000000)
 ```
 
 ### 7.2 지출 입력 바텀시트
@@ -406,7 +383,7 @@ Container(
 │  [  7  ][  8  ][  9  ]     │
 │  [ 00  ][  0  ][ ← ]       │
 │                             │
-│  [      기록하기      ]      │  ← 확인 버튼, Primary Green
+│  [      기록하기      ]      │  ← 확인 버튼, 검정 배경 (#000000)
 └─────────────────────────────┘
 ```
 
@@ -435,7 +412,7 @@ assets/
 ### 8.2 앱 아이콘 컨셉
 
 - **형태**: 원형 배경 + 중앙에 "₩" 또는 "만원" 텍스트
-- **배경색**: Primary Green `#2DBD8E`
+- **배경색**: `#000000` 검정
 - **텍스트색**: 흰색
 - **스타일**: 미니멀, 볼드 타이포그래피 중심
 - **생성 도구**: Recraft AI (SVG) 또는 Figma에서 직접 제작

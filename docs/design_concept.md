@@ -1,8 +1,8 @@
 ## 디자인 컨셉: 하루 만원 살기 플래너
 
 **Date**: 2026-03-25
-**Updated**: 2026-03-26
-**Status**: 구현 완료 (Sprint 1)
+**Updated**: 2026-04-21
+**Status**: 구현 완료 (Sprint 1 + 2)
 
 ---
 
@@ -31,27 +31,27 @@
 
 #### 상태 색상 (HeroBudgetNumber, 프로그레스 바, 캘린더 dot)
 
-숫자 감정 표현에 사용되는 핵심 색상. `ui_design_guide.md` 기준으로 구현됨.
+숫자 감정 표현에 사용되는 핵심 색상. `app_colors.dart` 기준으로 구현됨.
+
+> 폰트 크기 44sp 고정 (상태 전환 시 레이아웃 흔들림 방지).
+> 임계값: `comfortableRatioThreshold = 0.5` (50%), `normalRatioThreshold = 0.3` (30%)
 
 ```
 Status Colors (숫자 감정 — 구현 완료)
-├── 여유 (≥5000):    #2DBD8E  (민트 그린, fontWeight 900, 72sp)
-├── 주의 (1000~4999): #F5A623  (앰버 오렌지, fontWeight 800, 60sp)
-├── 위험 (<1000):    #E85D5D  (코랄 레드, fontWeight 700, 52sp)
-├── 초과 (<0):       #C0392B  (딥 레드, fontWeight 700, 48sp)
-└── 보조 액센트:     #4A90D9  (스카이 블루 — 수정 스와이프 배경)
+├── 여유 (≥50%):  #000000 라이트 / #FFFFFF 다크  (fontWeight 900, 44sp)
+├── 보통 (30~49%): #F5A623  (앰버 오렌지, fontWeight 800, 44sp)
+├── 위험 (0~29%):  #E85D5D  (코랄 레드, fontWeight 700, 44sp)
+├── 초과 (<0%):    #C0392B  (딥 레드, fontWeight 700, 44sp)
+└── 보조 액센트:  #4A90D9  (스카이 블루 — 수정 스와이프 배경)
 ```
 
 #### 기반 색상 (AppColors — 테마, 네비게이션, 카드 등)
 
-AppColors 클래스에 정의된 기존 파스텔 톤. 숫자 외 UI 요소에 사용.
-
 ```
 Primary Colors (메인 색상)
-├── 메인 배경:     #FFF8F0  (웜 화이트) — 시간대별 배경으로 대체
-├── 프라이머리:    #FFB366  (파스텔 오렌지)
-├── 프라이머리 다크: #E6944D (진한 오렌지 — 강조)
-└── 프라이머리 라이트: #FFD9B3 (연한 오렌지 — 서브)
+├── 프라이머리 (라이트): #000000 검정 — 버튼 배경, 네비게이션 강조
+├── 프라이머리 (다크):   #FFFFFF 흰색 — 다크모드 버튼, 강조
+└── 프라이머리 라이트:   #EEEEEE 연회색 — 네비게이션 인디케이터 배경
 
 Category Colors (카테고리 대표 색상)
 ├── 식비:          #FF9B9B  (파스텔 레드)
@@ -68,8 +68,8 @@ Category Chip Colors (카테고리 배경 칩 — 구현 완료)
 └── 기타:          #F0F0F0  (연한 그레이)
 
 Neutral Colors (뉴트럴)
-├── 텍스트 메인:   #1A1A2E  (다크 네이비) — 시간대별 텍스트 색상으로 대체
-├── 텍스트 서브:   #6B7280  (미디엄 그레이)
+├── 텍스트 메인:   #3D3D3D  (다크 그레이)
+├── 텍스트 서브:   #8E8E8E  (미디엄 그레이)
 ├── 구분선:        #E5E7EB  (라이트 그레이)
 └── 카드 배경:     #FFFFFF  (화이트)
 ```
@@ -94,10 +94,10 @@ Dark Mode Colors (구현 완료)
 
 | 용도 | 크기 | 굵기 | 구현 파일 |
 |------|------|------|----------|
-| 남은 금액 (여유) | 72sp | Black (900) | `hero_budget_number.dart` |
-| 남은 금액 (보통) | 60sp | ExtraBold (800) | `hero_budget_number.dart` |
-| 남은 금액 (위험) | 52sp | Bold (700) | `hero_budget_number.dart` |
-| 남은 금액 (초과) | 48sp | Bold (700) | `hero_budget_number.dart` |
+| 남은 금액 (여유) | **44sp 고정** | Black (900) | `hero_budget_number.dart` |
+| 남은 금액 (보통) | 44sp 고정 | ExtraBold (800) | `hero_budget_number.dart` |
+| 남은 금액 (위험) | 44sp 고정 | Bold (700) | `hero_budget_number.dart` |
+| 남은 금액 (초과) | 44sp 고정 | Bold (700) | `hero_budget_number.dart` |
 | 바텀시트 금액 입력 | 44sp | Bold (700) | `expense_add_screen.dart` |
 | 섹션 타이틀 | 18sp | SemiBold (600) | AppTypography.titleMedium |
 | 리스트 항목 금액 | 16sp | Medium (500) | AppTypography.bodyLarge |
@@ -112,12 +112,12 @@ Dark Mode Colors (구현 완료)
 
 숫자 자체가 잔액 상태를 감각적으로 표현한다. `HeroBudgetNumber` 위젯에 구현됨.
 
-| 상태 | 조건 (비율) | 10,000원 기준 | 크기 | 색상 | 모션 |
+| 상태 | 조건 (비율) | 10,000원 기준 | 크기 | 색상 (라이트/다크) | 모션 |
 |------|------------|--------------|------|------|------|
-| 여유 | ≥ 70% | ≥ 7,000원 | 72sp, w900 | #2DBD8E | 바운스 scale (elasticOut, 300ms) |
-| 보통 | 30~69% | 3,000~6,999원 | 60sp, w800 | #F5A623 | 바운스 + shakeX (2px, 1회) |
-| 위험 | 0~29% | 1~2,999원 | 52sp, w700 | #E85D5D | 바운스 + shakeX (2px, 1회) |
-| 초과 | < 0% | < 0원 | 48sp, w700 | #C0392B | 바운스 + shakeX (4px, hz:4, 1회) |
+| 여유 | ≥ 50% | ≥ 5,000원 | 44sp, w900 | 검정 / 흰색 | 없음 (정적) |
+| 보통 | 30~49% | 3,000~4,999원 | 44sp, w800 | #F5A623 | shakeX (2px, 1회) |
+| 위험 | 0~29% | 1~2,999원 | 44sp, w700 | #E85D5D | shakeX (2px, 1회) |
+| 초과 | < 0% | < 0원 | 44sp, w700 | #C0392B | shakeX (4px, hz:4, 1회) |
 
 **지출 기록 시 인터랙션** (구현 완료):
 - 금액 변경 시: `ValueKey(remainingBudget)`로 바운스 scale 1.08→1.0 (elasticOut, 300ms)
@@ -129,27 +129,12 @@ Dark Mode Colors (구현 완료)
 
 ---
 
-### 5. 시간대별 배경 톤 변화
+### 5. ~~시간대별 배경 톤 변화~~ (2026-04-07 제거됨)
 
-`TimeBasedTheme` 유틸리티에 구현됨. `AnimatedContainer` (3s, easeInOut)로 자연스럽게 전환.
-
-| 시간대 | 구간 | 배경색 | 분위기 |
-|--------|------|--------|--------|
-| 새벽 | 00:00~04:59 | #1A1D2E | 고요함 (텍스트: 흰색) |
-| 아침 | 05:00~08:59 | #FFF8E7 | 상쾌한 시작 |
-| 오전 | 09:00~11:59 | #F8F9FA | 집중 |
-| 점심 | 12:00~13:59 | #F0FAF6 | 활기 |
-| 오후 | 14:00~16:59 | #F8F9FA | 집중 |
-| 저녁 | 17:00~20:59 | #FFF3E0 | 하루 마무리 |
-| 밤 | 21:00~23:59 | #EEF0F8 | 휴식 |
-
-**특수 상태**:
-- 예산 초과 시: #FFF0F0 (핑크 틴트)
-- 다크모드: #1A1A1A 고정
-
-**시간대별 텍스트 색상**:
-- 새벽 (0~4시): 주 텍스트 #FFFFFF, 보조 #A0A8C0
-- 나머지: 주 텍스트 #1A1A2E, 보조 #6B7280
+> **제거 사유**: Primary Color를 검정/흰색으로 전환하면서 시간대별 배경 톤 개념 폐기.
+> `TimeBasedTheme` 유틸리티 및 관련 `AppColors.bg*` 토큰 삭제 완료.
+>
+> **현재 배경**: 라이트모드 `#FFFFFF`, 다크모드 `#1A1A1A` 고정.
 
 ---
 
@@ -188,11 +173,11 @@ Dark Mode Colors (구현 완료)
 - 둥근 모서리 (20px), 다크모드 대응
 
 **마이크로 인터랙션 가이드**:
-- 숫자 상태 전환: AnimatedDefaultTextStyle (400ms, easeInOut)
-- 금액 변경: 바운스 scale 1.08→1.0 (300ms, elasticOut)
-- 위험 상태 진입: shakeX 1회 후 멈춤
+- 숫자 상태 전환: AnimatedDefaultTextStyle (300ms, easeInOut) — 색상·웨이트만 변화
+- 금액 변경: TweenAnimationBuilder<int> 카운팅 (600ms, easeOutCubic)
+- 위험 상태 진입: shakeX 2px, 1회 후 멈춤
+- 초과 상태 진입: shakeX 4px, hz:4, 1회
 - 이월 금액: fadeIn + slideY (300ms)
-- 시간대 배경 전환: AnimatedContainer (3000ms, easeInOut)
 - 숫자 키패드 탭: HapticFeedback.lightImpact()
 
 ---
@@ -203,11 +188,11 @@ Dark Mode Colors (구현 완료)
 
 ```
 ┌─────────────────────────┐
-│                         │  ← 시간대별 배경색 (AnimatedContainer)
+│                         │  ← 배경: 라이트 #FFFFFF / 다크 #1A1A1A
 │     2026. 03. 26        │  ← 날짜, 12sp
 │     오늘 남은 금액       │  ← 12sp, 보조 색상
 │                         │
-│     ₩7,200              │  ← 히어로 숫자 (72sp, #2DBD8E)
+│     ₩7,200              │  ← 히어로 숫자 (44sp, 검정 — 여유 상태)
 │  + 어제 이월 ₩1,200     │  ← 이월 금액, fadeIn 애니메이션
 │                         │
 │     ━━━━━━━━░░          │  ← 프로그레스 바 (상태별 색상)
@@ -226,8 +211,8 @@ Dark Mode Colors (구현 완료)
 │              │ + │ FAB  │  ← 검정 원형, 흰색 +
 │              └───┘      │
 │                         │
-│  🏠    📅    ⚙️          │
-│  홈   캘린더  설정       │
+│  🏠    📅    📊    ⚙️    │
+│  홈  캘린더 통계  설정   │
 └─────────────────────────┘
 ```
 
@@ -333,18 +318,22 @@ Dark Mode Colors (구현 완료)
 |------------|----------|
 | 숫자 감정 표현 | `lib/features/home/presentation/widgets/hero_budget_number.dart` |
 | 금액 카운트다운 | `lib/features/home/presentation/widgets/budget_countdown.dart` |
-| 시간대 배경 | `lib/core/utils/time_based_theme.dart` |
-| 도토리/스트릭 뱃지 | `lib/features/home/presentation/widgets/acorn_streak_badge.dart` |
+| 고양이 캐릭터 | `lib/features/home/presentation/widgets/budget_cat_indicator.dart` |
+| 도토리/스트릭 뱃지 | `lib/core/widgets/acorn_streak_badge.dart` |
+| 이월 배지 | `lib/features/home/presentation/widgets/carryover_badge_widget.dart` |
 | 지출 리스트 아이템 | `lib/features/home/presentation/widgets/expense_list_item.dart` |
 | 메인 홈 화면 | `lib/features/home/presentation/screens/home_screen.dart` |
 | 바텀시트 | `lib/features/expense/presentation/screens/expense_add_screen.dart` |
 | 숫자 키패드 | `lib/features/expense/presentation/widgets/number_keypad.dart` |
 | 카테고리 선택 | `lib/features/expense/presentation/widgets/category_selector.dart` |
+| 즐겨찾기 템플릿 | `lib/features/expense/presentation/widgets/favorite_templates_section.dart` |
 | 캘린더 화면 | `lib/features/calendar/presentation/screens/calendar_screen.dart` |
 | 캘린더 날짜 셀 | `lib/features/calendar/presentation/widgets/calendar_day_cell.dart` |
+| 통계 화면 | `lib/features/stats/presentation/screens/stats_screen.dart` |
 | 설정 화면 | `lib/features/settings/presentation/screens/settings_screen.dart` |
 | 축하 다이얼로그 | `lib/features/home/presentation/widgets/success_dialog.dart` |
 | 다크모드 전환 | `lib/core/theme/theme_provider.dart` |
 | 컬러 팔레트 | `lib/core/theme/app_colors.dart` |
 | 타이포그래피 | `lib/core/theme/app_typography.dart` |
 | 카테고리 이모지/칩색 | `lib/core/constants/app_constants.dart` (ExpenseCategory enum) |
+| 바텀 네비게이션 | `lib/core/router/app_shell.dart` |
