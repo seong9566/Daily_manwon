@@ -177,6 +177,8 @@ class _SlidingWeeklyGridState extends ConsumerState<SlidingWeeklyGrid>
                 onTap: () => widget.onDateSelected(day),
                 mood: mood,
                 totalSpent: totalSpent,
+                baseAmount: monthBaseAmounts[day],
+                effectiveBudget: monthEffectiveBudgets[day],
               ),
             ),
           );

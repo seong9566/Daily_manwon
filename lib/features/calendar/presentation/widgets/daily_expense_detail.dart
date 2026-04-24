@@ -19,11 +19,19 @@ class DailyExpenseDetail extends StatelessWidget {
   /// 지출 항목 탭 시 호출되는 콜백
   final void Function(CalendarExpenseItem expense)? onExpenseTap;
 
+  /// 기본 예산 (설정된 하루 예산)
+  final int? baseAmount;
+
+  /// 이월 포함 실제 예산
+  final int? effectiveBudget;
+
   const DailyExpenseDetail({
     super.key,
     required this.date,
     required this.expenses,
     this.onExpenseTap,
+    this.baseAmount,
+    this.effectiveBudget,
   });
 
   @override
@@ -42,6 +50,18 @@ class DailyExpenseDetail extends StatelessWidget {
         // ── 구분선 ───────────────────────────────────
         Divider(height: 1, thickness: 1, color: dividerColor),
         const SizedBox(height: 16),
+
+        // ── 예산 구성 카드 (이월이 있을 때만) ───────────
+        if (effectiveBudget != null &&
+            baseAmount != null &&
+            effectiveBudget! > baseAmount!) ...[
+          _BudgetBreakdownCard(
+            baseAmount: baseAmount!,
+            effectiveBudget: effectiveBudget!,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+        ],
 
         // ── 날짜 헤더 + 총액 ─────────────────────────
         Padding(
@@ -101,6 +121,121 @@ class DailyExpenseDetail extends StatelessWidget {
           ),
 
         const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class _BudgetBreakdownCard extends StatelessWidget {
+  final int baseAmount;
+  final int effectiveBudget;
+  final bool isDark;
+
+  const _BudgetBreakdownCard({
+    required this.baseAmount,
+    required this.effectiveBudget,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final carryOver = effectiveBudget - baseAmount;
+    final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+    final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '오늘 예산 구성',
+            style: AppTypography.bodySmall.copyWith(
+              color: textSubColor,
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _BudgetRow(
+            label: '기본 예산',
+            amount: baseAmount,
+            dotColor: AppColors.statusComfortableStrong,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 4),
+          _BudgetRow(
+            label: '이월',
+            amount: carryOver,
+            prefix: '+',
+            dotColor: AppColors.accent,
+            isDark: isDark,
+          ),
+          Divider(height: 16, thickness: 1, color: dividerColor),
+          _BudgetRow(
+            label: '합계',
+            amount: effectiveBudget,
+            isBold: true,
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BudgetRow extends StatelessWidget {
+  final String label;
+  final int amount;
+  final String prefix;
+  final Color? dotColor;
+  final bool isBold;
+  final bool isDark;
+
+  const _BudgetRow({
+    required this.label,
+    required this.amount,
+    required this.isDark,
+    this.prefix = '',
+    this.dotColor,
+    this.isBold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textMainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
+    final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+
+    return Row(
+      children: [
+        if (dotColor != null) ...[
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: dotColor!, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+        ],
+        Text(
+          label,
+          style: AppTypography.bodySmall.copyWith(
+            color: textSubColor,
+            fontSize: 12,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          '$prefix${CurrencyFormatter.formatWithWon(amount)}',
+          style: AppTypography.bodySmall.copyWith(
+            color: dotColor ?? textMainColor,
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
       ],
     );
   }

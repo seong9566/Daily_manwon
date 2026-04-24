@@ -9,6 +9,7 @@ import 'hero_budget_number.dart';
 class HomeBudgetHeader extends StatelessWidget {
   final int remainingBudget;
   final int totalBudget;
+  final int carryOver;
   final Color subTextColor;
 
   const HomeBudgetHeader({
@@ -16,6 +17,7 @@ class HomeBudgetHeader extends StatelessWidget {
     required this.remainingBudget,
     required this.totalBudget,
     required this.subTextColor,
+    this.carryOver = 0,
   });
 
   @override
@@ -42,6 +44,7 @@ class HomeBudgetHeader extends StatelessWidget {
         BudgetProgressBar(
           remaining: remainingBudget,
           total: totalBudget,
+          carryOver: carryOver,
         ),
         const SizedBox(height: 24),
       ],
