@@ -23,6 +23,12 @@ class WeeklyCalendarDayCell extends StatelessWidget {
   /// 해당일 지출 합계 (null 또는 0 = 뱃지 미표시)
   final int? totalSpent;
 
+  /// 기본 일일 예산 (이월 없는 원래 예산)
+  final int? baseAmount;
+
+  /// 이월 포함 실질 예산 (null = 미표시)
+  final int? effectiveBudget;
+
   const WeeklyCalendarDayCell({
     super.key,
     required this.date,
@@ -32,6 +38,8 @@ class WeeklyCalendarDayCell extends StatelessWidget {
     this.onTap,
     this.mood,
     this.totalSpent,
+    this.baseAmount,
+    this.effectiveBudget,
   });
 
   @override
@@ -61,9 +69,24 @@ class WeeklyCalendarDayCell extends StatelessWidget {
               isSelected: isSelected,
               isDark: isDark,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
-            // 지출 금액 뱃지 — 지출이 있는 과거 날짜만 표시
+            // 이월 예산 미니 스플릿 바 (이월이 있는 과거 날짜만)
+            if (!isFuture &&
+                effectiveBudget != null &&
+                baseAmount != null &&
+                effectiveBudget! > baseAmount!)
+              _MiniSplitBar(
+                key: const Key('mini-split-bar'),
+                carryOver: effectiveBudget! - baseAmount!,
+                effectiveBudget: effectiveBudget!,
+              )
+            else
+              const SizedBox(height: 3),
+
+            const SizedBox(height: 2),
+
+            // 지출 금액 뱃지
             if (!isFuture &&
                 mood != null &&
                 totalSpent != null &&
@@ -74,7 +97,43 @@ class WeeklyCalendarDayCell extends StatelessWidget {
                 isDark: isDark,
               )
             else
-              const SizedBox(height: 12), // 바 높이(3px)와 맞춤
+              const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniSplitBar extends StatelessWidget {
+  final int carryOver;
+  final int effectiveBudget;
+
+  const _MiniSplitBar({
+    super.key,
+    required this.carryOver,
+    required this.effectiveBudget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseAmount = effectiveBudget - carryOver;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(2),
+      child: SizedBox(
+        width: 28,
+        height: 3,
+        child: Row(
+          children: [
+            Flexible(
+              flex: carryOver,
+              child: Container(color: AppColors.accent),
+            ),
+            if (baseAmount > 0)
+              Flexible(
+                flex: baseAmount,
+                child: Container(color: AppColors.statusComfortableStrong),
+              ),
           ],
         ),
       ),

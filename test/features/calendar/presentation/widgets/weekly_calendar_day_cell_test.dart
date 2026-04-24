@@ -51,5 +51,37 @@ void main() {
 
       expect(find.byType(LinearProgressIndicator), findsNothing);
     });
+
+    testWidgets('이월 예산이 있으면 미니 스플릿 바가 표시된다', (tester) async {
+      await tester.pumpWidget(wrap(
+        WeeklyCalendarDayCell(
+          date: DateTime(2026, 4, 22),
+          isToday: false,
+          isSelected: false,
+          isFuture: false,
+          mood: CharacterMood.comfortable,
+          totalSpent: 3000,
+          baseAmount: 10000,
+          effectiveBudget: 20000,
+        ),
+      ));
+      expect(find.byKey(const Key('mini-split-bar')), findsOneWidget);
+    });
+
+    testWidgets('이월 예산이 없으면 미니 스플릿 바가 표시되지 않는다', (tester) async {
+      await tester.pumpWidget(wrap(
+        WeeklyCalendarDayCell(
+          date: DateTime(2026, 4, 22),
+          isToday: false,
+          isSelected: false,
+          isFuture: false,
+          mood: CharacterMood.comfortable,
+          totalSpent: 3000,
+          baseAmount: 10000,
+          effectiveBudget: 10000,
+        ),
+      ));
+      expect(find.byKey(const Key('mini-split-bar')), findsNothing);
+    });
   });
 }
