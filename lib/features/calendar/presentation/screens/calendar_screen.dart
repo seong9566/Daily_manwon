@@ -198,18 +198,29 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
                       // 선택된 날짜 지출 내역
                       if (state.selectedDate != null)
-                        DailyExpenseDetail(
-                          date: state.selectedDate!,
-                          expenses: ref
-                              .read(calendarViewModelProvider.notifier)
-                              .getExpensesForDate(state.selectedDate),
-                          onExpenseTap: (item) {
-                            showExpenseAddBottomSheet(
-                              context,
-                              expense: item.toExpenseEntity(),
-                            );
-                          },
-                        ),
+                        Builder(builder: (context) {
+                          final date = state.selectedDate!;
+                          final notifier =
+                              ref.read(calendarViewModelProvider.notifier);
+                          final baseAmounts = notifier
+                              .getCachedBaseAmounts(date.year, date.month);
+                          final effectiveBudgets = notifier
+                              .getCachedEffectiveBudgets(date.year, date.month);
+
+                          return DailyExpenseDetail(
+                            date: date,
+                            expenses: notifier
+                                .getExpensesForDate(state.selectedDate),
+                            onExpenseTap: (item) {
+                              showExpenseAddBottomSheet(
+                                context,
+                                expense: item.toExpenseEntity(),
+                              );
+                            },
+                            baseAmount: baseAmounts[date],
+                            effectiveBudget: effectiveBudgets[date],
+                          );
+                        }),
 
                       const SizedBox(height: 24),
                     ],
