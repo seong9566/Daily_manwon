@@ -111,6 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       remainingBudget: state.remainingBudget,
                       totalBudget: state.totalBudget,
                       subTextColor: subTextColor,
+                      carryOver: state.carryOver,
                     ),
                     // 이월 배지
                     if (state.carryOver != 0)
