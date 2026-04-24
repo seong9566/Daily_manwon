@@ -8,10 +8,7 @@ import '../utils/currency_formatter.dart';
 /// 예산 잔액 진행 바 — 홈/주간/월간 공용
 ///
 /// [remaining] / [total] 비율로 고양이 마커 위치와 색상을 결정한다.
-/// - ratio >= 0.5 (여유): 고양이 이미지 여유_clean, 바 색상 budgetComfortable
-/// - ratio >= 0.3 (보통): 보통_clean, budgetWarning
-/// - ratio >= 0.0 (위험): 위험_clean, budgetDanger
-/// - ratio < 0.0 (초과): 초과_clean, budgetOver
+/// [carryOver] > 0이면 바를 이월(파랑)/기본(초록) 두 영역으로 분리해 표시한다.
 class BudgetProgressBar extends StatelessWidget {
   /// 남은 예산 (음수 = 초과)
   final int remaining;
@@ -226,6 +223,9 @@ class _SpeechBubble extends StatelessWidget {
 
 /// 이월/기본 예산 범례 — 스플릿 바 하단에 표시
 class _BudgetLegend extends StatelessWidget {
+  // sub-caption: bodySmall(12)보다 작은 보조 레이블 전용 크기
+  static const double _legendFontSize = 10.0;
+
   final int carryOver;
   final int baseAmount;
 
@@ -236,6 +236,7 @@ class _BudgetLegend extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
 
+    // accent / statusComfortableStrong: 브랜드 고정 색상 — 다크 모드 별도 변형 불필요
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -243,14 +244,14 @@ class _BudgetLegend extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           '이월 +${CurrencyFormatter.formatWithWon(carryOver)}',
-          style: AppTypography.bodySmall.copyWith(color: textColor, fontSize: 10),
+          style: AppTypography.bodySmall.copyWith(color: textColor, fontSize: _legendFontSize),
         ),
         const SizedBox(width: 12),
         _Dot(color: AppColors.statusComfortableStrong),
         const SizedBox(width: 4),
         Text(
           '기본 ${CurrencyFormatter.formatWithWon(baseAmount)}',
-          style: AppTypography.bodySmall.copyWith(color: textColor, fontSize: 10),
+          style: AppTypography.bodySmall.copyWith(color: textColor, fontSize: _legendFontSize),
         ),
       ],
     );
