@@ -77,7 +77,7 @@ class BudgetProgressBar extends StatelessWidget {
                             final baseAmount = total - carryOver;
                             return SizedBox(
                               height: barHeight,
-                              child: LayoutBuilder(builder: (_, c) {
+                              child: LayoutBuilder(builder: (_, __) {
                                 return Stack(
                                   children: [
                                     // 배경 (회색)
