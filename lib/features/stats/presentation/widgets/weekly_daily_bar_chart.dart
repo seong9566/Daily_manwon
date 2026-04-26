@@ -98,7 +98,7 @@ class WeeklyDailyBarChart extends StatelessWidget {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      '예산 ${CurrencyFormatter.formatWithWon(dailyBudget.toInt())}',
+                      '일일 예산 ${CurrencyFormatter.formatWithWon(dailyBudget.toInt())}',
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.budgetWarning,
                         fontSize: 11,
