@@ -48,16 +48,6 @@ class WeeklyDailyBarChart extends StatelessWidget {
       color: AppColors.budgetWarning.withAlpha(180),
       strokeWidth: 1.5,
       dashArray: [4, 4],
-      label: HorizontalLineLabel(
-        show: true,
-        alignment: Alignment.topRight,
-        labelResolver: (_) => CurrencyFormatter.format(dailyBudget.toInt()),
-        style: AppTypography.bodySmall.copyWith(
-          color: AppColors.budgetWarning,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
 
     return Container(
@@ -76,12 +66,49 @@ class WeeklyDailyBarChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '일별 지출',
-            style: AppTypography.labelMedium.copyWith(
-              color: textMain,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '일별 지출',
+                style: AppTypography.labelMedium.copyWith(
+                  color: textMain,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.budgetWarning.withAlpha(38),
+                  border: Border.all(
+                    color: AppColors.budgetWarning.withAlpha(102),
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: AppColors.budgetWarning,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      '예산 ${CurrencyFormatter.formatWithWon(dailyBudget.toInt())}',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.budgetWarning,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           StatsBarChart(
