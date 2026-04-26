@@ -114,11 +114,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       carryOver: state.carryOver,
                     ),
                     // 이월 배지
-                    if (state.carryOver != 0)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: CarryoverBadgeWidget(carryOver: state.carryOver),
-                      ),
+                    // if (state.carryOver != 0)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(bottom: 8),
+                    //     child: CarryoverBadgeWidget(carryOver: state.carryOver),
+                    //   ),
                     // "오늘의 지출" 헤더
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
