@@ -13,6 +13,7 @@ struct SimpleEntry: TimelineEntry {
     let used: Int
     let remaining: Int
     let streak: Int
+    let weeklySuccessDays: Int
     let expenses: [ExpenseItem]
     let catMood: String  // "comfortable", "normal", "danger", "over"
     let favorites: [FavoriteItem]  // 추가 (최대 4개)

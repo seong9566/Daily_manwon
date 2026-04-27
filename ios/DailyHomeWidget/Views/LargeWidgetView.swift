@@ -51,16 +51,12 @@ struct DailyHomeLargeView: View {
 
                 Spacer()
 
-                StreakBadgeView(
-                    streak: entry.streak,
-                    colors: colors,
-                    spacing: 3,
-                    iconSize: 11,
-                    textSize: 12,
-                    hPadding: 8,
-                    vPadding: 4,
-                    cornerRadius: 12
-                )
+                if entry.weeklySuccessDays > 0 {
+                    StreakBadgeView(
+                        weeklySuccessDays: entry.weeklySuccessDays,
+                        colors: colors
+                    )
+                }
             }
 
             Spacer().frame(height: 8)
@@ -191,7 +187,7 @@ struct DailyHomeLargeView: View {
     DailyHomeWidget()
 } timeline: {
     SimpleEntry(
-        date: Date(), total: 10000, baseDailyBudget: 10000, used: 4800, remaining: 5200, streak: 12,
+        date: Date(), total: 10000, baseDailyBudget: 10000, used: 4800, remaining: 5200, streak: 12, weeklySuccessDays: 3,
         expenses: [
             ExpenseItem(category: "점심", time: "12:30", amount: 3500),
             ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
@@ -203,7 +199,7 @@ struct DailyHomeLargeView: View {
         ]
     )
     SimpleEntry(
-        date: Date(), total: 10000, baseDailyBudget: 10000, used: 11500, remaining: -1500, streak: 0,
+        date: Date(), total: 10000, baseDailyBudget: 10000, used: 11500, remaining: -1500, streak: 0, weeklySuccessDays: 0,
         expenses: [
             ExpenseItem(category: "점심", time: "12:30", amount: 8500),
             ExpenseItem(category: "카페", time: "15:15", amount: 2800),

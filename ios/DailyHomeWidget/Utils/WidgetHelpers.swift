@@ -26,24 +26,23 @@ func formatNumber(_ number: Int) -> String {
     return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
 }
 
-// MARK: - 스트릭 배지 공유 뷰
-// Small: spacing=2, iconSize=10, textSize=10, hPadding=6, vPadding=3, cornerRadius=10
+// MARK: - 이번 주 성공일 배지 공유 뷰
 // Medium/Large: spacing=3, iconSize=11, textSize=12, hPadding=8, vPadding=4, cornerRadius=12
 struct StreakBadgeView: View {
-    let streak: Int
+    let weeklySuccessDays: Int
     let colors: WidgetColorPalette
-    var spacing: CGFloat = 2
-    var iconSize: CGFloat = 10
-    var textSize: CGFloat = 10
-    var hPadding: CGFloat = 6
-    var vPadding: CGFloat = 3
-    var cornerRadius: CGFloat = 10
+    var spacing: CGFloat = 3
+    var iconSize: CGFloat = 11
+    var textSize: CGFloat = 12
+    var hPadding: CGFloat = 8
+    var vPadding: CGFloat = 4
+    var cornerRadius: CGFloat = 12
 
     var body: some View {
         HStack(spacing: spacing) {
             Text("🔥")
                 .font(.system(size: iconSize))
-            Text("\(streak)일째")
+            Text("이번주 성공일 : \(weeklySuccessDays)일")
                 .font(.system(size: textSize, weight: .semibold))
                 .foregroundColor(.black)
         }

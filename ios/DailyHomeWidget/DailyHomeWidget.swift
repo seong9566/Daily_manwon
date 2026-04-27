@@ -21,7 +21,7 @@ struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(
             date: Date(), total: 10000, baseDailyBudget: 10000, used: 0,
-            remaining: 10000, streak: 0, expenses: [], catMood: "comfortable",
+            remaining: 10000, streak: 0, weeklySuccessDays: 0, expenses: [], catMood: "comfortable",
             favorites: []
         )
     }
@@ -29,7 +29,7 @@ struct Provider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
         let entry = SimpleEntry(
             date: Date(), total: 10000, baseDailyBudget: 10000, used: 2800,
-            remaining: 7200, streak: 12,
+            remaining: 7200, streak: 12, weeklySuccessDays: 3,
             expenses: [
                 ExpenseItem(category: "점심", time: "12:30", amount: 3500),
                 ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
@@ -48,9 +48,11 @@ struct Provider: TimelineProvider {
         // 다른 프로세스(Intent, Flutter)가 기록한 최신값을 읽도록 강제 동기화
         userDefault?.synchronize()
 
-        let total          = userDefault?.integer(forKey: "totalKey")          ?? 0
-        let baseDailyBudget = userDefault?.integer(forKey: "baseDailyBudgetKey") ?? total
-        let streak         = userDefault?.integer(forKey: "streakKey")         ?? 0
+        let total             = userDefault?.integer(forKey: "totalKey")             ?? 0
+        let baseDailyBudget   = userDefault?.integer(forKey: "baseDailyBudgetKey") ?? total
+        let streak            = userDefault?.integer(forKey: "streakKey")            ?? 0
+        let weeklySuccessDays = userDefault?.integer(forKey: "weeklySuccessKey")     ?? 0
+        let carryOverEnabled  = userDefault?.bool(forKey: "carryOverEnabledKey")     ?? false
 
         // 자정 기준 날짜 불일치 감지: Flutter가 마지막으로 데이터를 쓴 날짜와 오늘을 비교
         // locale/calendar 명시 고정 — 비-Gregorian 기기에서도 Dart와 동일한 문자열 생성
@@ -64,6 +66,7 @@ struct Provider: TimelineProvider {
         // lastUpdatedDateKey가 오늘과 다르면 새 날 (기존 설치 이행 포함: "" != today → 리셋)
         let isNewDay = lastUpdatedStr != todayStr
 
+        var todayTotal: Int
         let used: Int
         let remaining: Int
         let catMood: String
@@ -71,16 +74,23 @@ struct Provider: TimelineProvider {
 
         if isNewDay {
             // 자정이 지났으나 Flutter가 아직 갱신하지 않은 상태 → 당일 데이터 리셋
+            // 어제 남은 예산을 읽어 오늘 이월분을 계산한다 (overwrite 전에 읽어야 함)
+            let yesterdayRemaining = userDefault?.integer(forKey: "remainingKey") ?? 0
+            let isSunday = Calendar.current.component(.weekday, from: Date()) == 1
+            let todayCarryOver = (carryOverEnabled && !isSunday) ? max(0, yesterdayRemaining) : 0
+            todayTotal = baseDailyBudget + todayCarryOver
+
             used = 0
-            remaining = baseDailyBudget  // 이월 제외한 기본 일일 예산 사용 (Flutter가 앱 열릴 때 정확한 값으로 갱신)
+            remaining = todayTotal
             catMood = "comfortable"
-            // expenses는 빈 배열 유지
             // lastUpdatedDateKey를 오늘로 즉시 갱신 — 같은 날 내 Intent 낙관적 업데이트가 stale key 기준으로 동작하는 문제 방지
             userDefault?.set(todayStr, forKey: "lastUpdatedDateKey")
             userDefault?.set(0, forKey: "usedKey")
-            userDefault?.set(baseDailyBudget, forKey: "remainingKey")
+            userDefault?.set(todayTotal, forKey: "remainingKey")
+            userDefault?.set(todayTotal, forKey: "totalKey")
             userDefault?.synchronize()
         } else {
+            todayTotal = total
             used      = userDefault?.integer(forKey: "usedKey")      ?? 0
             remaining = userDefault?.integer(forKey: "remainingKey") ?? 0
             catMood   = userDefault?.string(forKey: "cat_mood")      ?? "comfortable"
@@ -101,11 +111,12 @@ struct Provider: TimelineProvider {
 
         let entry = SimpleEntry(
             date: Date(),
-            total: total,
+            total: todayTotal,
             baseDailyBudget: baseDailyBudget,
             used: used,
             remaining: remaining,
             streak: streak,
+            weeklySuccessDays: weeklySuccessDays,
             expenses: expenses,
             catMood: catMood,
             favorites: favorites

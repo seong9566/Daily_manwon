@@ -25,6 +25,7 @@ import '../../domain/usecases/evaluate_and_award_acorn_use_case.dart';
 import '../../domain/usecases/get_acorn_stats_use_case.dart';
 import '../../domain/usecases/get_today_budget_use_case.dart';
 import '../../domain/usecases/get_today_expenses_use_case.dart';
+import '../../../stats/domain/usecases/get_daily_stats_use_case.dart';
 import 'home_state.dart';
 
 part 'home_view_model.g.dart';
@@ -93,6 +94,19 @@ class HomeViewModel extends _$HomeViewModel {
       final acorns = await acornUseCase.getTotalAcorns();
       final streak = await acornUseCase.getStreakDays();
 
+      // 이번 주 성공 일수 (오늘 제외, 예산 이하 성공일 카운트)
+      final weekStart = AppDateUtils.weekStartOf(DateTime.now());
+      final dailyStats = await getIt<GetDailyStatsUseCase>().execute(weekStart: weekStart);
+      final baseDailyBudgetForSuccess = totalBudget - carryOver;
+      final weeklySuccessDays = dailyStats
+          .where(
+            (s) =>
+                !AppDateUtils.isSameDay(s.date, DateTime.now()) &&
+                !s.date.isAfter(AppDateUtils.todayStart) &&
+                s.amount <= baseDailyBudgetForSuccess,
+          )
+          .length;
+
       // 새 주 감지 (일요일 + 이월 활성화 + 이번 주 미확인)
       final carryoverEnabled = await settingsRepository.getCarryoverEnabled();
       final weekKey = _currentWeekKey();
@@ -117,6 +131,8 @@ class HomeViewModel extends _$HomeViewModel {
         isNewWeek: isNewWeek,
         favorites: favoritesList,
         recentExpenses: recentList,
+        weeklySuccessDays: weeklySuccessDays,
+        carryOverEnabled: carryoverEnabled,
       );
 
       _updateHomeWidget(
@@ -124,6 +140,8 @@ class HomeViewModel extends _$HomeViewModel {
         baseDailyBudget: totalBudget - carryOver,
         remaining: remaining,
         streak: streak,
+        weeklySuccessDays: weeklySuccessDays,
+        carryOverEnabled: carryoverEnabled,
         isNewWeek: isNewWeek,
         expenses: expenses,
         favorites: favoritesList,
@@ -177,6 +195,8 @@ class HomeViewModel extends _$HomeViewModel {
               baseDailyBudget: state.totalBudget - state.carryOver,
               remaining: remaining,
               streak: state.streakDays,
+              weeklySuccessDays: state.weeklySuccessDays,
+              carryOverEnabled: state.carryOverEnabled,
               isNewWeek: state.isNewWeek,
               expenses: expenses,
               favorites: favoritesList,
@@ -191,6 +211,8 @@ class HomeViewModel extends _$HomeViewModel {
     required int baseDailyBudget,
     required int remaining,
     required int streak,
+    required int weeklySuccessDays,
+    required bool carryOverEnabled,
     required bool isNewWeek,
     required List<ExpenseEntity> expenses,
     required List<FavoriteExpenseEntity> favorites,
@@ -205,6 +227,8 @@ class HomeViewModel extends _$HomeViewModel {
         used: total - remaining,
         remaining: remaining,
         streak: streak,
+        weeklySuccessDays: weeklySuccessDays,
+        carryOverEnabled: carryOverEnabled,
         expenses: expenses
             .map(
               (e) => {

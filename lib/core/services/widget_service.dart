@@ -138,6 +138,8 @@ class WidgetService {
     required int used,
     required int remaining,
     required int streak,
+    required int weeklySuccessDays,
+    required bool carryOverEnabled,
     required List<Map<String, dynamic>> expenses,
     required String catMood,
     List<Map<String, dynamic>> favorites = const [],
@@ -147,7 +149,7 @@ class WidgetService {
       return;
     }
     debugPrint(
-      'WidgetService: updateWidget 호출 — total=$total, used=$used, remaining=$remaining, streak=$streak, catMood=$catMood',
+      'WidgetService: updateWidget 호출 — total=$total, used=$used, remaining=$remaining, streak=$streak, weeklySuccessDays=$weeklySuccessDays, carryOverEnabled=$carryOverEnabled, catMood=$catMood',
     );
     try {
       final now = DateTime.now();
@@ -158,6 +160,8 @@ class WidgetService {
       await HomeWidget.saveWidgetData<int>('usedKey', used);
       await HomeWidget.saveWidgetData<int>('remainingKey', remaining);
       await HomeWidget.saveWidgetData<int>('streakKey', streak);
+      await HomeWidget.saveWidgetData<int>('weeklySuccessKey', weeklySuccessDays);
+      await HomeWidget.saveWidgetData<bool>('carryOverEnabledKey', carryOverEnabled);
       await HomeWidget.saveWidgetData<String>('expensesKey', jsonEncode(expenses));
       await HomeWidget.saveWidgetData<String>('cat_mood', catMood);
       await HomeWidget.saveWidgetData<String>('favoritesKey', jsonEncode(favorites));
