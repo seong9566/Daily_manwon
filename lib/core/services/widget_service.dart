@@ -149,6 +149,9 @@ class WidgetService {
       'WidgetService: updateWidget 호출 — total=$total, used=$used, remaining=$remaining, streak=$streak, catMood=$catMood',
     );
     try {
+      final now = DateTime.now();
+      final dateStr =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       await HomeWidget.saveWidgetData<int>('totalKey', total);
       await HomeWidget.saveWidgetData<int>('usedKey', used);
       await HomeWidget.saveWidgetData<int>('remainingKey', remaining);
@@ -156,6 +159,7 @@ class WidgetService {
       await HomeWidget.saveWidgetData<String>('expensesKey', jsonEncode(expenses));
       await HomeWidget.saveWidgetData<String>('cat_mood', catMood);
       await HomeWidget.saveWidgetData<String>('favoritesKey', jsonEncode(favorites));
+      await HomeWidget.saveWidgetData<String>('lastUpdatedDateKey', dateStr);
       await HomeWidget.updateWidget(iOSName: 'DailyHomeWidget');
       debugPrint('WidgetService: 위젯 갱신 완료');
     } catch (e) {

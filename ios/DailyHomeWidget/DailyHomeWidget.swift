@@ -49,16 +49,37 @@ struct Provider: TimelineProvider {
         userDefault?.synchronize()
 
         let total     = userDefault?.integer(forKey: "totalKey")     ?? 0
-        let used      = userDefault?.integer(forKey: "usedKey")      ?? 0
-        let remaining = userDefault?.integer(forKey: "remainingKey") ?? 0
         let streak    = userDefault?.integer(forKey: "streakKey")    ?? 0
-        let catMood   = userDefault?.string(forKey: "cat_mood")      ?? "comfortable"
 
-        // JSON 문자열로 저장된 지출 목록 파싱
+        // 자정 기준 날짜 불일치 감지: Flutter가 마지막으로 데이터를 쓴 날짜와 오늘을 비교
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let todayStr = formatter.string(from: Date())
+        let lastUpdatedStr = userDefault?.string(forKey: "lastUpdatedDateKey") ?? ""
+        // lastUpdatedDateKey가 존재하고 오늘과 다르면 새 날이 시작된 것
+        let isNewDay = !lastUpdatedStr.isEmpty && lastUpdatedStr != todayStr
+
+        let used: Int
+        let remaining: Int
+        let catMood: String
         var expenses: [ExpenseItem] = []
-        if let jsonString = userDefault?.string(forKey: "expensesKey"),
-           let data = jsonString.data(using: .utf8) {
-            expenses = (try? JSONDecoder().decode([ExpenseItem].self, from: data)) ?? []
+
+        if isNewDay {
+            // 자정이 지났으나 Flutter가 아직 갱신하지 않은 상태 → 당일 데이터 리셋
+            used = 0
+            remaining = total
+            catMood = "comfortable"
+            // expenses는 빈 배열 유지
+        } else {
+            used      = userDefault?.integer(forKey: "usedKey")      ?? 0
+            remaining = userDefault?.integer(forKey: "remainingKey") ?? 0
+            catMood   = userDefault?.string(forKey: "cat_mood")      ?? "comfortable"
+
+            // JSON 문자열로 저장된 지출 목록 파싱
+            if let jsonString = userDefault?.string(forKey: "expensesKey"),
+               let data = jsonString.data(using: .utf8) {
+                expenses = (try? JSONDecoder().decode([ExpenseItem].self, from: data)) ?? []
+            }
         }
 
         var favorites: [FavoriteItem] = []
@@ -79,7 +100,12 @@ struct Provider: TimelineProvider {
             favorites: favorites
         )
 
-        let timeline = Timeline(entries: [entry], policy: .atEnd)
+        // 다음 자정 시각 계산 — 자정 이후 WidgetKit이 자동으로 getTimeline을 재호출한다
+        let calendar = Calendar.current
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+        let nextMidnight = calendar.startOfDay(for: tomorrow)
+
+        let timeline = Timeline(entries: [entry], policy: .after(nextMidnight))
         completion(timeline)
     }
 }
