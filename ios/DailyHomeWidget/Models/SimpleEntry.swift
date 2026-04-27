@@ -9,6 +9,7 @@ import WidgetKit
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let total: Int
+    let baseDailyBudget: Int
     let used: Int
     let remaining: Int
     let streak: Int

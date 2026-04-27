@@ -20,7 +20,7 @@ struct Provider: TimelineProvider {
 
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(
-            date: Date(), total: 10000, used: 0,
+            date: Date(), total: 10000, baseDailyBudget: 10000, used: 0,
             remaining: 10000, streak: 0, expenses: [], catMood: "comfortable",
             favorites: []
         )
@@ -28,7 +28,7 @@ struct Provider: TimelineProvider {
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
         let entry = SimpleEntry(
-            date: Date(), total: 10000, used: 2800,
+            date: Date(), total: 10000, baseDailyBudget: 10000, used: 2800,
             remaining: 7200, streak: 12,
             expenses: [
                 ExpenseItem(category: "점심", time: "12:30", amount: 3500),
@@ -102,6 +102,7 @@ struct Provider: TimelineProvider {
         let entry = SimpleEntry(
             date: Date(),
             total: total,
+            baseDailyBudget: baseDailyBudget,
             used: used,
             remaining: remaining,
             streak: streak,

@@ -56,11 +56,11 @@ struct WidgetColorPalette {
     /// Small 위젯 금액 폰트 크기
     static func smallFontSize(for status: BudgetStatus) -> CGFloat { 24 }
 
-    /// Medium 위젯 "남은 예산" 금액 폰트 크기 (주 정보 — 더 크게)
-    static func mediumRemainingFontSize(for status: BudgetStatus) -> CGFloat { 28 }
+    /// Medium 위젯 "남은 예산" 금액 폰트 크기
+    static func mediumRemainingFontSize(for status: BudgetStatus) -> CGFloat { 18 }
 
-    /// Medium 위젯 "사용한 예산" 금액 폰트 크기 (보조 정보 — 더 작게)
-    static func mediumUsedFontSize(for status: BudgetStatus) -> CGFloat { 20 }
+    /// Medium 위젯 "사용한 예산" 금액 폰트 크기
+    static func mediumUsedFontSize(for status: BudgetStatus) -> CGFloat { 18 }
 
     /// Large 위젯 "남은 예산" 금액 폰트 크기
     static func largeRemainingFontSize(for status: BudgetStatus) -> CGFloat { 18 }

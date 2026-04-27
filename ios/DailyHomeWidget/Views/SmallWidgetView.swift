@@ -31,7 +31,7 @@ struct DailyHomeSmallView: View {
                 Image(catImageName(for: entry.catMood))
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 64, height: 64)
+                    .frame(width: 56, height: 56)
                 Spacer()
             }
 
@@ -52,29 +52,20 @@ struct DailyHomeSmallView: View {
                     .lineLimit(1)
                 Spacer()
             }
-
-            if status == .over {
-                HStack {
-                    Spacer()
-                    Text("초과!")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(colors.secondaryText)
-                    Spacer()
-                }
-            }
+     
 
             Spacer()
 
-            WidgetProgressBar(ratio: entry.progressRatio, colors: colors)
+            WidgetProgressBar(entry: entry, colors: colors)
 
-            Spacer().frame(height: 8)
+            Spacer().frame(height: 4)
 
             Button(intent: OpenAddExpenseIntent()) {
                 Text(status.addButtonLabel)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(WidgetColorPalette.buttonTextColor)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(colors.accentBg)
@@ -82,7 +73,7 @@ struct DailyHomeSmallView: View {
             }
             .buttonStyle(.plain)
 
-            Spacer().frame(height: 4)
+            Spacer().frame(height: 14)
         }
 
         content.widgetBackground(colors.background)
@@ -92,7 +83,7 @@ struct DailyHomeSmallView: View {
 #Preview(as: .systemSmall) {
     DailyHomeWidget()
 } timeline: {
-    SimpleEntry(date: Date(), total: 10000, used: 3000, remaining: 7000, streak: 12, expenses: [], catMood: "comfortable", favorites: [])
-    SimpleEntry(date: Date(), total: 10000, used: 9000, remaining: 1000, streak: 5, expenses: [], catMood: "normal", favorites: [])
-    SimpleEntry(date: Date(), total: 10000, used: 12000, remaining: -2000, streak: 0, expenses: [], catMood: "over", favorites: [])
+    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 3000, remaining: 7000, streak: 12, expenses: [], catMood: "comfortable", favorites: [])
+    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 9000, remaining: 1000, streak: 5, expenses: [], catMood: "normal", favorites: [])
+    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 12000, remaining: -2000, streak: 0, expenses: [], catMood: "over", favorites: [])
 }

@@ -109,7 +109,7 @@ struct DailyHomeLargeView: View {
             }
 
             // 프로그레스 바
-            WidgetProgressBar(ratio: entry.progressRatio, colors: colors)
+            WidgetProgressBar(entry: entry, colors: colors)
 
             // ── 빠른 입력 헤더 + "+" 버튼 (항상 표시) ─────────────────
             Spacer().frame(height: 12)
@@ -191,7 +191,7 @@ struct DailyHomeLargeView: View {
     DailyHomeWidget()
 } timeline: {
     SimpleEntry(
-        date: Date(), total: 10000, used: 4800, remaining: 5200, streak: 12,
+        date: Date(), total: 10000, baseDailyBudget: 10000, used: 4800, remaining: 5200, streak: 12,
         expenses: [
             ExpenseItem(category: "점심", time: "12:30", amount: 3500),
             ExpenseItem(category: "아메리카노", time: "15:15", amount: 1300),
@@ -203,7 +203,7 @@ struct DailyHomeLargeView: View {
         ]
     )
     SimpleEntry(
-        date: Date(), total: 10000, used: 11500, remaining: -1500, streak: 0,
+        date: Date(), total: 10000, baseDailyBudget: 10000, used: 11500, remaining: -1500, streak: 0,
         expenses: [
             ExpenseItem(category: "점심", time: "12:30", amount: 8500),
             ExpenseItem(category: "카페", time: "15:15", amount: 2800),

@@ -58,18 +58,35 @@ struct StreakBadgeView: View {
 
 // MARK: - 프로그레스 바 공유 뷰
 struct WidgetProgressBar: View {
-    let ratio: Double
+    let entry: SimpleEntry
     let colors: WidgetColorPalette
     var height: CGFloat = 6
 
     var body: some View {
+        let carryOver = entry.total - entry.baseDailyBudget
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 3)
                     .fill(colors.accentBg)
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(colors.progressColor)
-                    .frame(width: geometry.size.width * CGFloat(ratio))
+                
+                let totalWidth = geometry.size.width * CGFloat(entry.progressRatio)
+                if carryOver > 0 && entry.total > 0 {
+                    HStack(spacing: 0) {
+                        Rectangle()
+                            .fill(Color(red: 74/255.0, green: 144/255.0, blue: 217/255.0)) // #4A90D9 (AppColors.accent)
+                            .frame(width: totalWidth * CGFloat(carryOver) / CGFloat(entry.total))
+                        if entry.baseDailyBudget > 0 {
+                            Rectangle()
+                                .fill(Color(red: 45/255.0, green: 189/255.0, blue: 142/255.0)) // #2DBD8E (AppColors.statusComfortableStrong)
+                                .frame(width: totalWidth * CGFloat(entry.baseDailyBudget) / CGFloat(entry.total))
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                } else {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(colors.progressColor)
+                        .frame(width: totalWidth)
+                }
             }
         }
         .frame(height: height)
