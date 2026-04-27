@@ -3,17 +3,18 @@
 //  DailyHomeWidget
 //
 
+import AppIntents
 import SwiftUI
 import WidgetKit
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MARK: - Widget Entry View (Medium 4×2)
-// 이미지 레이아웃:
+// 레이아웃:
 //  ┌──────────────────────────────────────┐
-//  │ 총 예산 ₩10,000            🔥 12일  │
-//  │──────────────────────────────────────│
-//  │ 남은 예산       │  사용한 예산       │
-//  │ ₩7,200 (큰글씨) │  ₩2,800           │
+//  │ 남은 예산       │  사용한 예산 [고양이]│
+//  │ ₩7,200 (큰글씨) │  ₩2,800             │
+//  │ ████████░░ 진행바                    │
+//  │ [      + 지출 추가      ]            │
 //  └──────────────────────────────────────┘
 // ─────────────────────────────────────────────────────────────────────────────
 struct DailyHomeMediumView: View {
@@ -32,38 +33,10 @@ struct DailyHomeMediumView: View {
         "₩\(formatNumber(entry.used))"
     }
 
-    private var totalText: String {
-        "총 예산 ₩\(formatNumber(entry.total))"
-    }
-
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
 
-            // ── 상단 행: 총 예산 + 스트릭 배지 ─────────────────────────
-            HStack {
-                Text(totalText)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(colors.secondaryText)
-
-                Spacer()
-
-                StreakBadgeView(
-                    streak: entry.streak,
-                    colors: colors,
-                    spacing: 3,
-                    iconSize: 11,
-                    textSize: 12,
-                    hPadding: 8,
-                    vPadding: 4,
-                    cornerRadius: 12
-                )
-            }
-
-            // 구분선
-            Divider()
-                .padding(.vertical, 8)
-
-            // ── 하단: 남은 예산 | 사용한 예산 (좌우 분할) ────────────
+            // ── 남은 예산 | 사용한 예산 (좌우 분할) ──────────────────
             HStack(alignment: .center, spacing: 0) {
                 // 좌측: 남은 예산
                 VStack(alignment: .leading, spacing: 4) {
@@ -112,10 +85,18 @@ struct DailyHomeMediumView: View {
 
             Spacer().frame(height: 6)
 
-            Text(status.statusMessage)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(colors.secondaryText)
-                .lineLimit(1)
+            Button(intent: OpenAddExpenseIntent()) {
+                Text("+ 지출 추가")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(colors.secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(colors.accentBg)
+                    )
+            }
+            .buttonStyle(.plain)
         }
 
         content.widgetBackground(colors.background)
