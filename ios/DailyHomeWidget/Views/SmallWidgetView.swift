@@ -3,6 +3,7 @@
 //  DailyHomeWidget
 //
 
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -23,17 +24,6 @@ struct DailyHomeSmallView: View {
 
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
-            // 상단: 남은 예산 라벨 + 스트릭 배지
-            HStack {
-                Text("남은 예산")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(colors.secondaryText)
-
-                Spacer()
-
-                StreakBadgeView(streak: entry.streak, colors: colors)
-            }
-
             Spacer()
 
             HStack {
@@ -72,10 +62,18 @@ struct DailyHomeSmallView: View {
 
             Spacer().frame(height: 8)
 
-            Text(status.statusMessage)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(colors.secondaryText)
-                .lineLimit(1)
+            Button(intent: OpenAddExpenseIntent()) {
+                Text("+ 지출 추가")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(colors.secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(colors.accentBg)
+                    )
+            }
+            .buttonStyle(.plain)
         }
 
         content.widgetBackground(colors.background)
