@@ -41,7 +41,9 @@ class AmountDisplaySection extends StatelessWidget {
             child: Transform.scale(scale: pulseAnim.value, child: child),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.amountPadding),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.amountPadding,
+            ),
             child: Semantics(
               label: amountString.isEmpty
                   ? '입력 금액 없음'
@@ -78,8 +80,8 @@ class AmountDisplaySection extends StatelessWidget {
             ),
           ),
         ),
-        Positioned.fill(
-          top: -24,
+        Positioned(
+          top: 4,
           left: 16,
           child: Align(
             alignment: Alignment.topLeft,
@@ -87,25 +89,70 @@ class AmountDisplaySection extends StatelessWidget {
               button: true,
               label: addToFavorite ? '즐겨찾기 해제' : '즐겨찾기에 추가',
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   onFavoriteTap();
                   HapticFeedback.lightImpact();
                 },
-                child: SizedBox(
-                  width: AppSpacing.touchTarget,
-                  height: AppSpacing.touchTarget,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: AppDurations.normal,
-                      child: Icon(
-                        addToFavorite
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded,
-                        key: ValueKey(addToFavorite),
-                        size: 24,
-                        color: addToFavorite ? Colors.amber : null,
-                      ),
+                child: AnimatedContainer(
+                  duration: AppDurations.normal,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: addToFavorite
+                        ? Colors.amber.withValues(alpha: isDark ? 0.15 : 0.1)
+                        : isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: addToFavorite
+                          ? Colors.amber.withValues(alpha: 0.5)
+                          : isDark
+                          ? Colors.white12
+                          : Colors.black12,
+                      width: 1,
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: AppDurations.normal,
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          addToFavorite
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          key: ValueKey(addToFavorite),
+                          size: 16,
+                          color: addToFavorite ? Colors.amber : textSubColor,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      AnimatedDefaultTextStyle(
+                        duration: AppDurations.normal,
+                        style: AppTypography.labelMedium.copyWith(
+                          fontSize: 12,
+                          color: addToFavorite
+                              ? (isDark
+                                    ? Colors.amber.shade300
+                                    : Colors.amber.shade700)
+                              : textSubColor,
+                          fontWeight: addToFavorite
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                        child: const Text("즐겨찾기"),
+                      ),
+                    ],
                   ),
                 ),
               ),
