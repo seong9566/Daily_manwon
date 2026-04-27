@@ -7,14 +7,10 @@ import SwiftUI
 
 struct WidgetColorPalette {
     let background: Color
-    let primaryText: Color
-    let secondaryText: Color
-    let accentBg: Color
-    let progressColor: Color
-
-    // 버튼 텍스트 전용 고정 색상: #4A4A4A
-    // accentBg(#EEEEEE) 위 대비 ≈7.7:1 — 모든 상태에서 AA 통과
-    static let buttonTextColor = Color(red: 74/255, green: 74/255, blue: 74/255)
+    let primaryText: Color    // 금액, 제목
+    let secondaryText: Color  // 라벨, 설명
+    let accentBg: Color       // 버튼 배경, 프로그레스 바 트랙 등
+    let progressColor: Color  // 프로그레스 바 채움 색상
 
     static func palette(for status: BudgetStatus) -> WidgetColorPalette {
         let bg            = Color.white
@@ -41,7 +37,7 @@ struct WidgetColorPalette {
         case .danger:
             return WidgetColorPalette(
                 background:    bg,
-                primaryText:   Color(red: 232/255, green: 93/255,  blue: 93/255), // #E85D5D
+                primaryText:   Color(red: 232/255, green: 93/255,  blue: 93/255), // #E85D5D, 대형 텍스트(24pt+) 대비 ≈3.4:1 — AA 통과
                 secondaryText: secondaryText,
                 accentBg:      accentBg,
                 progressColor: Color(red: 232/255, green: 93/255,  blue: 93/255)  // #E85D5D
@@ -49,7 +45,7 @@ struct WidgetColorPalette {
         case .over:
             return WidgetColorPalette(
                 background:    bg,
-                primaryText:   Color(red: 192/255, green: 57/255,  blue: 43/255), // #C0392B
+                primaryText:   Color(red: 192/255, green: 57/255,  blue: 43/255), // #C0392B, 흰 배경 대비 ≈5.4:1
                 secondaryText: secondaryText,
                 accentBg:      accentBg,
                 progressColor: Color(red: 232/255, green: 93/255,  blue: 93/255)  // #E85D5D
@@ -57,9 +53,22 @@ struct WidgetColorPalette {
         }
     }
 
+    /// Small 위젯 금액 폰트 크기
     static func smallFontSize(for status: BudgetStatus) -> CGFloat { 24 }
+
+    /// Medium 위젯 "남은 예산" 금액 폰트 크기 (주 정보 — 더 크게)
     static func mediumRemainingFontSize(for status: BudgetStatus) -> CGFloat { 28 }
+
+    /// Medium 위젯 "사용한 예산" 금액 폰트 크기 (보조 정보 — 더 작게)
     static func mediumUsedFontSize(for status: BudgetStatus) -> CGFloat { 20 }
+
+    /// Large 위젯 "남은 예산" 금액 폰트 크기
     static func largeRemainingFontSize(for status: BudgetStatus) -> CGFloat { 18 }
+
+    /// Large 위젯 "사용한 예산" 금액 폰트 크기
     static func largeUsedFontSize(for status: BudgetStatus) -> CGFloat { 18 }
+
+    // 버튼 텍스트 전용 고정 색상: #4A4A4A
+    // accentBg(#EEEEEE) 위 대비 ≈7.7:1 — 모든 상태에서 WCAG AA 통과
+    static let buttonTextColor = Color(red: 74/255, green: 74/255, blue: 74/255)
 }
