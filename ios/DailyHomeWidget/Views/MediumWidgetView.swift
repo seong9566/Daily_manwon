@@ -87,7 +87,8 @@ struct DailyHomeMediumView: View {
                     .padding(.top, 4)
             }
 
-            Spacer()
+            Divider()
+                .padding(.vertical, 8)
 
             // 프로그레스 바
             WidgetProgressBar(ratio: entry.progressRatio, colors: colors)

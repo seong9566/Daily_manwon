@@ -81,6 +81,8 @@ struct DailyHomeSmallView: View {
                     )
             }
             .buttonStyle(.plain)
+
+            Spacer().frame(height: 4)
         }
 
         content.widgetBackground(colors.background)
