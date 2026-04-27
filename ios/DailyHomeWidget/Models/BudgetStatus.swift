@@ -59,4 +59,8 @@ enum BudgetStatus {
         case .over:        return "예산을 초과했어요"
         }
     }
+
+    var addButtonLabel: String {
+        self == .over ? "지출 기록" : "+ 지출 추가"
+    }
 }

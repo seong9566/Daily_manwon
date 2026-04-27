@@ -22,12 +22,8 @@ struct DailyHomeSmallView: View {
         return entry.remaining < 0 ? "-₩\(formatted)" : "₩\(formatted)"
     }
 
-    private var addButtonLabel: String {
-        status == .over ? "지출 기록" : "+ 지출 추가"
-    }
-
     var body: some View {
-        let content = VStack(alignment: .leading, spacing: 0) {
+        let content = VStack(alignment: .center, spacing: 0) {
             Spacer()
 
             HStack {
@@ -74,7 +70,7 @@ struct DailyHomeSmallView: View {
             Spacer().frame(height: 8)
 
             Button(intent: OpenAddExpenseIntent()) {
-                Text(addButtonLabel)
+                Text(status.addButtonLabel)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(WidgetColorPalette.buttonTextColor)
                     .frame(maxWidth: .infinity)
