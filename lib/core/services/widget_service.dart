@@ -134,6 +134,7 @@ class WidgetService {
 
   Future<void> updateWidget({
     required int total,
+    required int baseDailyBudget,
     required int used,
     required int remaining,
     required int streak,
@@ -153,6 +154,7 @@ class WidgetService {
       final dateStr =
           '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       await HomeWidget.saveWidgetData<int>('totalKey', total);
+      await HomeWidget.saveWidgetData<int>('baseDailyBudgetKey', baseDailyBudget);
       await HomeWidget.saveWidgetData<int>('usedKey', used);
       await HomeWidget.saveWidgetData<int>('remainingKey', remaining);
       await HomeWidget.saveWidgetData<int>('streakKey', streak);

@@ -53,9 +53,27 @@ struct AddFavoriteExpenseIntent: AppIntent {
 
         // ── 낙관적(optimistic) 잔액 업데이트 ─────────────────────────────
         // Flutter 콜백 실행 전에 위젯에 즉시 반영되도록 잔액을 미리 차감한다.
-        // 앱이 열리면 Flutter가 정확한 값으로 덮어쓴다.
-        let currentRemaining = defaults?.integer(forKey: "remainingKey") ?? 0
-        let currentUsed      = defaults?.integer(forKey: "usedKey")      ?? 0
+        // 자정 이후 stale key 방지: lastUpdatedDateKey가 오늘과 다르면 baseDailyBudgetKey 기준으로 계산
+        let intentFormatter = DateFormatter()
+        intentFormatter.locale = Locale(identifier: "en_US_POSIX")
+        intentFormatter.calendar = Calendar(identifier: .gregorian)
+        intentFormatter.timeZone = TimeZone.current
+        intentFormatter.dateFormat = "yyyy-MM-dd"
+        let intentTodayStr = intentFormatter.string(from: Date())
+        let intentLastUpdated = defaults?.string(forKey: "lastUpdatedDateKey") ?? ""
+        let isNewDayForIntent = intentLastUpdated != intentTodayStr
+
+        let currentRemaining: Int
+        let currentUsed: Int
+        if isNewDayForIntent {
+            // 새 날: baseDailyBudget 기준 리셋 상태에서 차감
+            let baseDailyBudget = defaults?.integer(forKey: "baseDailyBudgetKey") ?? 0
+            currentRemaining = baseDailyBudget
+            currentUsed = 0
+        } else {
+            currentRemaining = defaults?.integer(forKey: "remainingKey") ?? 0
+            currentUsed      = defaults?.integer(forKey: "usedKey")      ?? 0
+        }
         defaults?.set(currentRemaining - amount, forKey: "remainingKey")
         defaults?.set(currentUsed + amount,      forKey: "usedKey")
 

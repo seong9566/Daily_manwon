@@ -121,6 +121,7 @@ class HomeViewModel extends _$HomeViewModel {
 
       _updateHomeWidget(
         total: totalBudget,
+        baseDailyBudget: totalBudget - carryOver,
         remaining: remaining,
         streak: streak,
         isNewWeek: isNewWeek,
@@ -173,6 +174,7 @@ class HomeViewModel extends _$HomeViewModel {
             );
             _updateHomeWidget(
               total: state.totalBudget,
+              baseDailyBudget: state.totalBudget - state.carryOver,
               remaining: remaining,
               streak: state.streakDays,
               isNewWeek: state.isNewWeek,
@@ -186,6 +188,7 @@ class HomeViewModel extends _$HomeViewModel {
   /// 홈 위젯 갱신 공통 로직 — _loadData / _watchExpenses 양쪽에서 사용
   void _updateHomeWidget({
     required int total,
+    required int baseDailyBudget,
     required int remaining,
     required int streak,
     required bool isNewWeek,
@@ -198,6 +201,7 @@ class HomeViewModel extends _$HomeViewModel {
     unawaited(
       getIt<WidgetService>().updateWidget(
         total: total,
+        baseDailyBudget: baseDailyBudget,
         used: total - remaining,
         remaining: remaining,
         streak: streak,

@@ -48,16 +48,21 @@ struct Provider: TimelineProvider {
         // 다른 프로세스(Intent, Flutter)가 기록한 최신값을 읽도록 강제 동기화
         userDefault?.synchronize()
 
-        let total     = userDefault?.integer(forKey: "totalKey")     ?? 0
-        let streak    = userDefault?.integer(forKey: "streakKey")    ?? 0
+        let total          = userDefault?.integer(forKey: "totalKey")          ?? 0
+        let baseDailyBudget = userDefault?.integer(forKey: "baseDailyBudgetKey") ?? total
+        let streak         = userDefault?.integer(forKey: "streakKey")         ?? 0
 
         // 자정 기준 날짜 불일치 감지: Flutter가 마지막으로 데이터를 쓴 날짜와 오늘을 비교
+        // locale/calendar 명시 고정 — 비-Gregorian 기기에서도 Dart와 동일한 문자열 생성
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone.current
         formatter.dateFormat = "yyyy-MM-dd"
         let todayStr = formatter.string(from: Date())
         let lastUpdatedStr = userDefault?.string(forKey: "lastUpdatedDateKey") ?? ""
-        // lastUpdatedDateKey가 존재하고 오늘과 다르면 새 날이 시작된 것
-        let isNewDay = !lastUpdatedStr.isEmpty && lastUpdatedStr != todayStr
+        // lastUpdatedDateKey가 오늘과 다르면 새 날 (기존 설치 이행 포함: "" != today → 리셋)
+        let isNewDay = lastUpdatedStr != todayStr
 
         let used: Int
         let remaining: Int
@@ -67,9 +72,14 @@ struct Provider: TimelineProvider {
         if isNewDay {
             // 자정이 지났으나 Flutter가 아직 갱신하지 않은 상태 → 당일 데이터 리셋
             used = 0
-            remaining = total
+            remaining = baseDailyBudget  // 이월 제외한 기본 일일 예산 사용 (Flutter가 앱 열릴 때 정확한 값으로 갱신)
             catMood = "comfortable"
             // expenses는 빈 배열 유지
+            // lastUpdatedDateKey를 오늘로 즉시 갱신 — 같은 날 내 Intent 낙관적 업데이트가 stale key 기준으로 동작하는 문제 방지
+            userDefault?.set(todayStr, forKey: "lastUpdatedDateKey")
+            userDefault?.set(0, forKey: "usedKey")
+            userDefault?.set(baseDailyBudget, forKey: "remainingKey")
+            userDefault?.synchronize()
         } else {
             used      = userDefault?.integer(forKey: "usedKey")      ?? 0
             remaining = userDefault?.integer(forKey: "remainingKey") ?? 0
