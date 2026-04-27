@@ -12,7 +12,8 @@ import WidgetKit
 // 레이아웃:
 //  ┌──────────────────────────────────────┐
 //  │ 남은 예산       │  사용한 예산 [고양이]│
-//  │ ₩7,200 (큰글씨) │  ₩2,800             │
+//  │ ₩7,200 (큰글씨) │  ₩2,800 (작은글씨)  │
+//  │ (초과 시 "초과!" 표시)               │
 //  │ ████████░░ 진행바                    │
 //  │ [      + 지출 추가      ]            │
 //  └──────────────────────────────────────┘
@@ -34,7 +35,7 @@ struct DailyHomeMediumView: View {
     }
 
     var body: some View {
-        let content = VStack(alignment: .leading, spacing: 0) {
+        let content = VStack(alignment: .center, spacing: 0) {
 
             // ── 남은 예산 | 사용한 예산 (좌우 분할) ──────────────────
             HStack(alignment: .center, spacing: 0) {
@@ -52,7 +53,7 @@ struct DailyHomeMediumView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                // 세로 구분선 (텍스트와 수직 중앙 정렬)
+                // 세로 구분선
                 Divider()
                     .frame(height: 40)
                     .padding(.horizontal, 12)
@@ -78,6 +79,14 @@ struct DailyHomeMediumView: View {
                     .padding(.leading, 8)
             }
 
+            if status == .over {
+                Text("초과!")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(colors.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+            }
+
             Spacer()
 
             // 프로그레스 바
@@ -86,11 +95,11 @@ struct DailyHomeMediumView: View {
             Spacer().frame(height: 6)
 
             Button(intent: OpenAddExpenseIntent()) {
-                Text("+ 지출 추가")
+                Text(status.addButtonLabel)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(colors.secondaryText)
+                    .foregroundColor(WidgetColorPalette.buttonTextColor)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(colors.accentBg)
