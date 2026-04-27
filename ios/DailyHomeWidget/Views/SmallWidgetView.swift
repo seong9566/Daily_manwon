@@ -22,6 +22,10 @@ struct DailyHomeSmallView: View {
         return entry.remaining < 0 ? "-₩\(formatted)" : "₩\(formatted)"
     }
 
+    private var addButtonLabel: String {
+        status == .over ? "지출 기록" : "+ 지출 추가"
+    }
+
     var body: some View {
         let content = VStack(alignment: .leading, spacing: 0) {
             Spacer()
@@ -32,6 +36,14 @@ struct DailyHomeSmallView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 64, height: 64)
+                Spacer()
+            }
+
+            HStack {
+                Spacer()
+                Text("남은 예산")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(colors.secondaryText)
                 Spacer()
             }
 
@@ -57,17 +69,16 @@ struct DailyHomeSmallView: View {
 
             Spacer()
 
-            // 프로그레스 바
             WidgetProgressBar(ratio: entry.progressRatio, colors: colors)
 
             Spacer().frame(height: 8)
 
             Button(intent: OpenAddExpenseIntent()) {
-                Text("+ 지출 추가")
+                Text(addButtonLabel)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(colors.secondaryText)
+                    .foregroundColor(WidgetColorPalette.buttonTextColor)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(colors.accentBg)
