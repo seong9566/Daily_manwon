@@ -30,9 +30,11 @@ class BudgetProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ratio: mood 계산에는 원시값(음수 허용), bar fill에는 clamp(0,1)
-    // total ≤ 0: 음수 이월이 기본 예산 초과 → -1.0으로 fromRatio(.over) 유도
-    final ratio = total > 0 ? remaining / total : -1.0;
+    // carryOver < 0 시 기본 예산(baseAmount) 기준으로 ratio 계산.
+    // effectiveBudget 기준이면 remaining/total = 1.0 → comfortable 오판 발생.
+    // total ≤ 0: -1.0 폴백으로 fromRatio(.over) 유도.
+    final int moodRef = (carryOver < 0 && total > 0) ? total - carryOver : total;
+    final ratio = moodRef > 0 ? remaining / moodRef : -1.0;
     final mood = CharacterMood.fromRatio(ratio);
     final barRatio = ratio.clamp(0.0, 1.0);
 
