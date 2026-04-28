@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeState {
 
- int get remainingBudget; int get totalBudget; List<ExpenseEntity> get expenses; int get totalAcorns; int get streakDays; bool get isLoading; int get carryOver; bool get isNewWeek; List<FavoriteExpenseEntity> get favorites; List<ExpenseEntity> get recentExpenses;
+ int get remainingBudget; int get totalBudget; List<ExpenseEntity> get expenses; int get totalAcorns; int get streakDays; bool get isLoading; int get carryOver; bool get isNewWeek; List<FavoriteExpenseEntity> get favorites; List<ExpenseEntity> get recentExpenses; int get weeklySuccessDays; bool get carryOverEnabled;
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $HomeStateCopyWith<HomeState> get copyWith => _$HomeStateCopyWithImpl<HomeState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.remainingBudget, remainingBudget) || other.remainingBudget == remainingBudget)&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&const DeepCollectionEquality().equals(other.expenses, expenses)&&(identical(other.totalAcorns, totalAcorns) || other.totalAcorns == totalAcorns)&&(identical(other.streakDays, streakDays) || other.streakDays == streakDays)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.carryOver, carryOver) || other.carryOver == carryOver)&&(identical(other.isNewWeek, isNewWeek) || other.isNewWeek == isNewWeek)&&const DeepCollectionEquality().equals(other.favorites, favorites)&&const DeepCollectionEquality().equals(other.recentExpenses, recentExpenses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.remainingBudget, remainingBudget) || other.remainingBudget == remainingBudget)&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&const DeepCollectionEquality().equals(other.expenses, expenses)&&(identical(other.totalAcorns, totalAcorns) || other.totalAcorns == totalAcorns)&&(identical(other.streakDays, streakDays) || other.streakDays == streakDays)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.carryOver, carryOver) || other.carryOver == carryOver)&&(identical(other.isNewWeek, isNewWeek) || other.isNewWeek == isNewWeek)&&const DeepCollectionEquality().equals(other.favorites, favorites)&&const DeepCollectionEquality().equals(other.recentExpenses, recentExpenses)&&(identical(other.weeklySuccessDays, weeklySuccessDays) || other.weeklySuccessDays == weeklySuccessDays)&&(identical(other.carryOverEnabled, carryOverEnabled) || other.carryOverEnabled == carryOverEnabled));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,remainingBudget,totalBudget,const DeepCollectionEquality().hash(expenses),totalAcorns,streakDays,isLoading,carryOver,isNewWeek,const DeepCollectionEquality().hash(favorites),const DeepCollectionEquality().hash(recentExpenses));
+int get hashCode => Object.hash(runtimeType,remainingBudget,totalBudget,const DeepCollectionEquality().hash(expenses),totalAcorns,streakDays,isLoading,carryOver,isNewWeek,const DeepCollectionEquality().hash(favorites),const DeepCollectionEquality().hash(recentExpenses),weeklySuccessDays,carryOverEnabled);
 
 @override
 String toString() {
-  return 'HomeState(remainingBudget: $remainingBudget, totalBudget: $totalBudget, expenses: $expenses, totalAcorns: $totalAcorns, streakDays: $streakDays, isLoading: $isLoading, carryOver: $carryOver, isNewWeek: $isNewWeek, favorites: $favorites, recentExpenses: $recentExpenses)';
+  return 'HomeState(remainingBudget: $remainingBudget, totalBudget: $totalBudget, expenses: $expenses, totalAcorns: $totalAcorns, streakDays: $streakDays, isLoading: $isLoading, carryOver: $carryOver, isNewWeek: $isNewWeek, favorites: $favorites, recentExpenses: $recentExpenses, weeklySuccessDays: $weeklySuccessDays, carryOverEnabled: $carryOverEnabled)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $HomeStateCopyWith<$Res>  {
   factory $HomeStateCopyWith(HomeState value, $Res Function(HomeState) _then) = _$HomeStateCopyWithImpl;
 @useResult
 $Res call({
- int remainingBudget, int totalBudget, List<ExpenseEntity> expenses, int totalAcorns, int streakDays, bool isLoading, int carryOver, bool isNewWeek, List<FavoriteExpenseEntity> favorites, List<ExpenseEntity> recentExpenses
+ int remainingBudget, int totalBudget, List<ExpenseEntity> expenses, int totalAcorns, int streakDays, bool isLoading, int carryOver, bool isNewWeek, List<FavoriteExpenseEntity> favorites, List<ExpenseEntity> recentExpenses, int weeklySuccessDays, bool carryOverEnabled
 });
 
 
@@ -62,7 +62,7 @@ class _$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? remainingBudget = null,Object? totalBudget = null,Object? expenses = null,Object? totalAcorns = null,Object? streakDays = null,Object? isLoading = null,Object? carryOver = null,Object? isNewWeek = null,Object? favorites = null,Object? recentExpenses = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? remainingBudget = null,Object? totalBudget = null,Object? expenses = null,Object? totalAcorns = null,Object? streakDays = null,Object? isLoading = null,Object? carryOver = null,Object? isNewWeek = null,Object? favorites = null,Object? recentExpenses = null,Object? weeklySuccessDays = null,Object? carryOverEnabled = null,}) {
   return _then(_self.copyWith(
 remainingBudget: null == remainingBudget ? _self.remainingBudget : remainingBudget // ignore: cast_nullable_to_non_nullable
 as int,totalBudget: null == totalBudget ? _self.totalBudget : totalBudget // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,9 @@ as bool,carryOver: null == carryOver ? _self.carryOver : carryOver // ignore: ca
 as int,isNewWeek: null == isNewWeek ? _self.isNewWeek : isNewWeek // ignore: cast_nullable_to_non_nullable
 as bool,favorites: null == favorites ? _self.favorites : favorites // ignore: cast_nullable_to_non_nullable
 as List<FavoriteExpenseEntity>,recentExpenses: null == recentExpenses ? _self.recentExpenses : recentExpenses // ignore: cast_nullable_to_non_nullable
-as List<ExpenseEntity>,
+as List<ExpenseEntity>,weeklySuccessDays: null == weeklySuccessDays ? _self.weeklySuccessDays : weeklySuccessDays // ignore: cast_nullable_to_non_nullable
+as int,carryOverEnabled: null == carryOverEnabled ? _self.carryOverEnabled : carryOverEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -156,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int remainingBudget,  int totalBudget,  List<ExpenseEntity> expenses,  int totalAcorns,  int streakDays,  bool isLoading,  int carryOver,  bool isNewWeek,  List<FavoriteExpenseEntity> favorites,  List<ExpenseEntity> recentExpenses)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int remainingBudget,  int totalBudget,  List<ExpenseEntity> expenses,  int totalAcorns,  int streakDays,  bool isLoading,  int carryOver,  bool isNewWeek,  List<FavoriteExpenseEntity> favorites,  List<ExpenseEntity> recentExpenses,  int weeklySuccessDays,  bool carryOverEnabled)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.totalAcorns,_that.streakDays,_that.isLoading,_that.carryOver,_that.isNewWeek,_that.favorites,_that.recentExpenses);case _:
+return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.totalAcorns,_that.streakDays,_that.isLoading,_that.carryOver,_that.isNewWeek,_that.favorites,_that.recentExpenses,_that.weeklySuccessDays,_that.carryOverEnabled);case _:
   return orElse();
 
 }
@@ -177,10 +179,10 @@ return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.tot
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int remainingBudget,  int totalBudget,  List<ExpenseEntity> expenses,  int totalAcorns,  int streakDays,  bool isLoading,  int carryOver,  bool isNewWeek,  List<FavoriteExpenseEntity> favorites,  List<ExpenseEntity> recentExpenses)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int remainingBudget,  int totalBudget,  List<ExpenseEntity> expenses,  int totalAcorns,  int streakDays,  bool isLoading,  int carryOver,  bool isNewWeek,  List<FavoriteExpenseEntity> favorites,  List<ExpenseEntity> recentExpenses,  int weeklySuccessDays,  bool carryOverEnabled)  $default,) {final _that = this;
 switch (_that) {
 case _HomeState():
-return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.totalAcorns,_that.streakDays,_that.isLoading,_that.carryOver,_that.isNewWeek,_that.favorites,_that.recentExpenses);}
+return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.totalAcorns,_that.streakDays,_that.isLoading,_that.carryOver,_that.isNewWeek,_that.favorites,_that.recentExpenses,_that.weeklySuccessDays,_that.carryOverEnabled);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -194,10 +196,10 @@ return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.tot
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int remainingBudget,  int totalBudget,  List<ExpenseEntity> expenses,  int totalAcorns,  int streakDays,  bool isLoading,  int carryOver,  bool isNewWeek,  List<FavoriteExpenseEntity> favorites,  List<ExpenseEntity> recentExpenses)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int remainingBudget,  int totalBudget,  List<ExpenseEntity> expenses,  int totalAcorns,  int streakDays,  bool isLoading,  int carryOver,  bool isNewWeek,  List<FavoriteExpenseEntity> favorites,  List<ExpenseEntity> recentExpenses,  int weeklySuccessDays,  bool carryOverEnabled)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.totalAcorns,_that.streakDays,_that.isLoading,_that.carryOver,_that.isNewWeek,_that.favorites,_that.recentExpenses);case _:
+return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.totalAcorns,_that.streakDays,_that.isLoading,_that.carryOver,_that.isNewWeek,_that.favorites,_that.recentExpenses,_that.weeklySuccessDays,_that.carryOverEnabled);case _:
   return null;
 
 }
@@ -209,7 +211,7 @@ return $default(_that.remainingBudget,_that.totalBudget,_that.expenses,_that.tot
 
 
 class _HomeState implements HomeState {
-  const _HomeState({this.remainingBudget = 10000, this.totalBudget = 10000, final  List<ExpenseEntity> expenses = const [], this.totalAcorns = 0, this.streakDays = 0, this.isLoading = true, this.carryOver = 0, this.isNewWeek = false, final  List<FavoriteExpenseEntity> favorites = const [], final  List<ExpenseEntity> recentExpenses = const []}): _expenses = expenses,_favorites = favorites,_recentExpenses = recentExpenses;
+  const _HomeState({this.remainingBudget = 10000, this.totalBudget = 10000, final  List<ExpenseEntity> expenses = const [], this.totalAcorns = 0, this.streakDays = 0, this.isLoading = true, this.carryOver = 0, this.isNewWeek = false, final  List<FavoriteExpenseEntity> favorites = const [], final  List<ExpenseEntity> recentExpenses = const [], this.weeklySuccessDays = 0, this.carryOverEnabled = false}): _expenses = expenses,_favorites = favorites,_recentExpenses = recentExpenses;
   
 
 @override@JsonKey() final  int remainingBudget;
@@ -240,6 +242,8 @@ class _HomeState implements HomeState {
   return EqualUnmodifiableListView(_recentExpenses);
 }
 
+@override@JsonKey() final  int weeklySuccessDays;
+@override@JsonKey() final  bool carryOverEnabled;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -251,16 +255,16 @@ _$HomeStateCopyWith<_HomeState> get copyWith => __$HomeStateCopyWithImpl<_HomeSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.remainingBudget, remainingBudget) || other.remainingBudget == remainingBudget)&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&const DeepCollectionEquality().equals(other._expenses, _expenses)&&(identical(other.totalAcorns, totalAcorns) || other.totalAcorns == totalAcorns)&&(identical(other.streakDays, streakDays) || other.streakDays == streakDays)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.carryOver, carryOver) || other.carryOver == carryOver)&&(identical(other.isNewWeek, isNewWeek) || other.isNewWeek == isNewWeek)&&const DeepCollectionEquality().equals(other._favorites, _favorites)&&const DeepCollectionEquality().equals(other._recentExpenses, _recentExpenses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.remainingBudget, remainingBudget) || other.remainingBudget == remainingBudget)&&(identical(other.totalBudget, totalBudget) || other.totalBudget == totalBudget)&&const DeepCollectionEquality().equals(other._expenses, _expenses)&&(identical(other.totalAcorns, totalAcorns) || other.totalAcorns == totalAcorns)&&(identical(other.streakDays, streakDays) || other.streakDays == streakDays)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.carryOver, carryOver) || other.carryOver == carryOver)&&(identical(other.isNewWeek, isNewWeek) || other.isNewWeek == isNewWeek)&&const DeepCollectionEquality().equals(other._favorites, _favorites)&&const DeepCollectionEquality().equals(other._recentExpenses, _recentExpenses)&&(identical(other.weeklySuccessDays, weeklySuccessDays) || other.weeklySuccessDays == weeklySuccessDays)&&(identical(other.carryOverEnabled, carryOverEnabled) || other.carryOverEnabled == carryOverEnabled));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,remainingBudget,totalBudget,const DeepCollectionEquality().hash(_expenses),totalAcorns,streakDays,isLoading,carryOver,isNewWeek,const DeepCollectionEquality().hash(_favorites),const DeepCollectionEquality().hash(_recentExpenses));
+int get hashCode => Object.hash(runtimeType,remainingBudget,totalBudget,const DeepCollectionEquality().hash(_expenses),totalAcorns,streakDays,isLoading,carryOver,isNewWeek,const DeepCollectionEquality().hash(_favorites),const DeepCollectionEquality().hash(_recentExpenses),weeklySuccessDays,carryOverEnabled);
 
 @override
 String toString() {
-  return 'HomeState(remainingBudget: $remainingBudget, totalBudget: $totalBudget, expenses: $expenses, totalAcorns: $totalAcorns, streakDays: $streakDays, isLoading: $isLoading, carryOver: $carryOver, isNewWeek: $isNewWeek, favorites: $favorites, recentExpenses: $recentExpenses)';
+  return 'HomeState(remainingBudget: $remainingBudget, totalBudget: $totalBudget, expenses: $expenses, totalAcorns: $totalAcorns, streakDays: $streakDays, isLoading: $isLoading, carryOver: $carryOver, isNewWeek: $isNewWeek, favorites: $favorites, recentExpenses: $recentExpenses, weeklySuccessDays: $weeklySuccessDays, carryOverEnabled: $carryOverEnabled)';
 }
 
 
@@ -271,7 +275,7 @@ abstract mixin class _$HomeStateCopyWith<$Res> implements $HomeStateCopyWith<$Re
   factory _$HomeStateCopyWith(_HomeState value, $Res Function(_HomeState) _then) = __$HomeStateCopyWithImpl;
 @override @useResult
 $Res call({
- int remainingBudget, int totalBudget, List<ExpenseEntity> expenses, int totalAcorns, int streakDays, bool isLoading, int carryOver, bool isNewWeek, List<FavoriteExpenseEntity> favorites, List<ExpenseEntity> recentExpenses
+ int remainingBudget, int totalBudget, List<ExpenseEntity> expenses, int totalAcorns, int streakDays, bool isLoading, int carryOver, bool isNewWeek, List<FavoriteExpenseEntity> favorites, List<ExpenseEntity> recentExpenses, int weeklySuccessDays, bool carryOverEnabled
 });
 
 
@@ -288,7 +292,7 @@ class __$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? remainingBudget = null,Object? totalBudget = null,Object? expenses = null,Object? totalAcorns = null,Object? streakDays = null,Object? isLoading = null,Object? carryOver = null,Object? isNewWeek = null,Object? favorites = null,Object? recentExpenses = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? remainingBudget = null,Object? totalBudget = null,Object? expenses = null,Object? totalAcorns = null,Object? streakDays = null,Object? isLoading = null,Object? carryOver = null,Object? isNewWeek = null,Object? favorites = null,Object? recentExpenses = null,Object? weeklySuccessDays = null,Object? carryOverEnabled = null,}) {
   return _then(_HomeState(
 remainingBudget: null == remainingBudget ? _self.remainingBudget : remainingBudget // ignore: cast_nullable_to_non_nullable
 as int,totalBudget: null == totalBudget ? _self.totalBudget : totalBudget // ignore: cast_nullable_to_non_nullable
@@ -300,7 +304,9 @@ as bool,carryOver: null == carryOver ? _self.carryOver : carryOver // ignore: ca
 as int,isNewWeek: null == isNewWeek ? _self.isNewWeek : isNewWeek // ignore: cast_nullable_to_non_nullable
 as bool,favorites: null == favorites ? _self._favorites : favorites // ignore: cast_nullable_to_non_nullable
 as List<FavoriteExpenseEntity>,recentExpenses: null == recentExpenses ? _self._recentExpenses : recentExpenses // ignore: cast_nullable_to_non_nullable
-as List<ExpenseEntity>,
+as List<ExpenseEntity>,weeklySuccessDays: null == weeklySuccessDays ? _self.weeklySuccessDays : weeklySuccessDays // ignore: cast_nullable_to_non_nullable
+as int,carryOverEnabled: null == carryOverEnabled ? _self.carryOverEnabled : carryOverEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

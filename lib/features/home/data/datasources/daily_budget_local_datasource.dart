@@ -155,4 +155,14 @@ class DailyBudgetLocalDatasource {
         .get();
     return expenses.fold<int>(0, (sum, e) => sum + e.amount);
   }
+
+  /// 특정 날짜의 예산 row에 저장된 carryOver 값을 갱신한다.
+  /// 소급 입력으로 인한 중간 날짜 stale 보정에 사용된다.
+  Future<void> updateCarryOverForDate(DateTime date, int carryOver) async {
+    final existing = await getBudgetByDate(date);
+    if (existing == null) return;
+    await (_db.update(_db.dailyBudgets)
+          ..where((t) => t.id.equals(existing.id)))
+        .write(DailyBudgetsCompanion(carryOver: Value(carryOver)));
+  }
 }

@@ -83,7 +83,7 @@ struct DailyHomeSmallView: View {
 #Preview(as: .systemSmall) {
     DailyHomeWidget()
 } timeline: {
-    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 3000, remaining: 7000, streak: 12, expenses: [], catMood: "comfortable", favorites: [])
-    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 9000, remaining: 1000, streak: 5, expenses: [], catMood: "normal", favorites: [])
-    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 12000, remaining: -2000, streak: 0, expenses: [], catMood: "over", favorites: [])
+    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 3000, remaining: 7000, streak: 12, weeklySuccessDays: 3, expenses: [], catMood: "comfortable", favorites: [])
+    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 9000, remaining: 1000, streak: 5, weeklySuccessDays: 2, expenses: [], catMood: "normal", favorites: [])
+    SimpleEntry(date: Date(), total: 10000, baseDailyBudget: 10000, used: 12000, remaining: -2000, streak: 0, weeklySuccessDays: 0, expenses: [], catMood: "over", favorites: [])
 }

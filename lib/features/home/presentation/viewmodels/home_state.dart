@@ -18,5 +18,7 @@ sealed class HomeState with _$HomeState {
     @Default(false) bool isNewWeek,
     @Default([]) List<FavoriteExpenseEntity> favorites,
     @Default([]) List<ExpenseEntity> recentExpenses,
+    @Default(0) int weeklySuccessDays,
+    @Default(false) bool carryOverEnabled,
   }) = _HomeState;
 }
