@@ -37,6 +37,9 @@ void main() {
   setUp(() {
     mockBudgetRepo = MockDailyBudgetRepository();
     mockSettingsRepo = MockSettingsRepository();
+    // _syncWeeklyCarryOvers가 updateCarryOverForDate를 호출할 수 있으므로 기본 stub 등록
+    when(() => mockBudgetRepo.updateCarryOverForDate(any(), any()))
+        .thenAnswer((_) async {});
   });
 
   // ── 헬퍼: _fillMissingDays를 no-op으로 만든다 (lastDate=null 반환)
