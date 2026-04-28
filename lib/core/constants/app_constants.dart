@@ -99,15 +99,14 @@ enum CharacterMood {
 
   /// 잔액(remaining)과 총 예산(total)을 기준으로 감정 상태를 결정한다
   static CharacterMood fromRemaining(int remaining, int total) {
-    if (total <= 0) {
-      return remaining >= 0 ? CharacterMood.comfortable : CharacterMood.danger;
-    }
+    // effectiveBudget ≤ 0: 음수 이월이 기본 예산을 초과 → 시작부터 초과 상태
+    if (total <= 0) return CharacterMood.over;
     return fromRatio(remaining / total);
   }
 
   /// 예산(budget)과 지출(spent)을 기준으로 감정 상태를 결정한다
   static CharacterMood fromSpent(int budget, int spent) {
-    if (budget <= 0) return CharacterMood.danger;
+    if (budget <= 0) return CharacterMood.over;
     return fromRatio((budget - spent) / budget);
   }
 

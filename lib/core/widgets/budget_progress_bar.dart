@@ -31,7 +31,8 @@ class BudgetProgressBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // ratio: mood 계산에는 원시값(음수 허용), bar fill에는 clamp(0,1)
-    final ratio = total > 0 ? remaining / total : 0.0;
+    // total ≤ 0: 음수 이월이 기본 예산 초과 → -1.0으로 fromRatio(.over) 유도
+    final ratio = total > 0 ? remaining / total : -1.0;
     final mood = CharacterMood.fromRatio(ratio);
     final barRatio = ratio.clamp(0.0, 1.0);
 
@@ -170,8 +171,8 @@ class BudgetProgressBar extends StatelessWidget {
               },
             ),
           ),
-          // 범례 (이월이 있을 때만)
-          if (carryOver > 0 && total > 0) ...[
+          // 범례 (이월이 있을 때 — 양수·음수 모두 표시)
+          if (carryOver != 0) ...[
             const SizedBox(height: 8),
             _BudgetLegend(carryOver: carryOver, baseAmount: total - carryOver),
           ],
@@ -221,9 +222,8 @@ class _SpeechBubble extends StatelessWidget {
   }
 }
 
-/// 이월/기본 예산 범례 — 스플릿 바 하단에 표시
+/// 이월/기본 예산 범례 — 스플릿 바 하단에 표시 (양수·음수 이월 모두 지원)
 class _BudgetLegend extends StatelessWidget {
-  // sub-caption: bodySmall(12)보다 작은 보조 레이블 전용 크기
   static const double _legendFontSize = 10.0;
 
   final int carryOver;
@@ -235,15 +235,19 @@ class _BudgetLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+    final isNegative = carryOver < 0;
 
-    // accent / statusComfortableStrong: 브랜드 고정 색상 — 다크 모드 별도 변형 불필요
+    final carryLabel = isNegative ? '초과이월' : '이월';
+    final carryPrefix = isNegative ? '-' : '+';
+    final carryDotColor = isNegative ? AppColors.budgetDanger : AppColors.accent;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _Dot(color: AppColors.accent),
+        _Dot(color: carryDotColor),
         const SizedBox(width: 4),
         Text(
-          '이월 +${CurrencyFormatter.formatWithWon(carryOver)}',
+          '$carryLabel $carryPrefix${CurrencyFormatter.formatWithWon(carryOver.abs())}',
           style: AppTypography.bodySmall.copyWith(color: textColor, fontSize: _legendFontSize),
         ),
         const SizedBox(width: 12),
