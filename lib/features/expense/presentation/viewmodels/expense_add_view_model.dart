@@ -2,6 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/providers/budget_change_provider.dart';
+import '../../../../core/utils/app_date_utils.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/usecases/add_expense_use_case.dart';
@@ -135,11 +137,22 @@ class ExpenseAddViewModel extends _$ExpenseAddViewModel {
 
     state = state.copyWith(isSaving: false, saveError: !result.isSuccess);
 
+    // 과거 날짜 지출 변경 시 carryOver 재계산을 위해 홈·캘린더·통계 reload 트리거
+    if (result.isSuccess &&
+        !AppDateUtils.isSameDay(state.saveCreatedAt, DateTime.now())) {
+      ref.read(budgetChangeProvider.notifier).increment();
+    }
+
     return result;
   }
 
   /// 지출 삭제.
   Future<void> delete(int id) async {
     await getIt<DeleteExpenseUseCase>().execute(id);
+
+    // 과거 날짜 지출 삭제 시 동일하게 reload 트리거
+    if (!AppDateUtils.isSameDay(state.recordDate, DateTime.now())) {
+      ref.read(budgetChangeProvider.notifier).increment();
+    }
   }
 }
