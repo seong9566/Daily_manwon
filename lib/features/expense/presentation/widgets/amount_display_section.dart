@@ -34,6 +34,9 @@ class AmountDisplaySection extends StatelessWidget {
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
+        const SizedBox(
+          width: double.infinity,
+        ), // Stack이 전체 너비를 차지하도록 강제하여 즐겨찾기 버튼이 우측 상단에 고정되게 함
         AnimatedBuilder(
           animation: Listenable.merge([shakeAnim, pulseAnim]),
           builder: (context, child) => Transform.translate(
@@ -42,49 +45,52 @@ class AmountDisplaySection extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.amountPadding,
+              // horizontal: AppSpacing.amountPadding,
+              horizontal: 100,
             ),
-            child: Semantics(
-              label: amountString.isEmpty
-                  ? '입력 금액 없음'
-                  : '입력 금액 ${CurrencyFormatter.formatWithWon(amount)}',
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    amountString.isEmpty
-                        ? '0'
-                        : CurrencyFormatter.formatNumberOnly(amount),
-                    style: AppTypography.displayAmount.copyWith(
-                      color: amountString.isEmpty
-                          ? textSubColor
-                          : textMainColor,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Semantics(
+                label: amountString.isEmpty
+                    ? '입력 금액 없음'
+                    : '입력 금액 ${CurrencyFormatter.formatWithWon(amount)}',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      amountString.isEmpty
+                          ? '0'
+                          : CurrencyFormatter.formatNumberOnly(amount),
+                      style: AppTypography.displayAmount.copyWith(
+                        color: amountString.isEmpty
+                            ? textSubColor
+                            : textMainColor,
+                      ),
                     ),
-                  ),
-                  AnimatedSize(
-                    duration: AppDurations.fast,
-                    curve: Curves.easeOut,
-                    child: amountString.isNotEmpty
-                        ? Text(
-                            '원',
-                            style: AppTypography.amountUnit.copyWith(
-                              color: textSubColor,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
+                    AnimatedSize(
+                      duration: AppDurations.fast,
+                      curve: Curves.easeOut,
+                      child: amountString.isNotEmpty
+                          ? Text(
+                              '원',
+                              style: AppTypography.amountUnit.copyWith(
+                                color: textSubColor,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
         Positioned(
-          top: 4,
-          left: 16,
+          top: -16,
+          right: 16,
           child: Align(
-            alignment: Alignment.topLeft,
             child: Semantics(
               button: true,
               label: addToFavorite ? '즐겨찾기 해제' : '즐겨찾기에 추가',
