@@ -8,6 +8,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/providers/budget_change_provider.dart';
 import '../../../../core/utils/app_date_utils.dart';
 import '../../../expense/domain/entities/expense.dart';
+import '../../../home/domain/usecases/get_today_budget_use_case.dart';
 import '../../domain/usecases/get_monthly_calendar_data_use_case.dart';
 import '../models/calendar_expense_item.dart';
 
@@ -164,6 +165,9 @@ class CalendarViewModel extends Notifier<CalendarState> {
   GetMonthlyCalendarDataUseCase get _useCase =>
       getIt<GetMonthlyCalendarDataUseCase>();
 
+  GetTodayBudgetUseCase get _todayBudgetUseCase =>
+      getIt<GetTodayBudgetUseCase>();
+
   /// 월별 지출 캐시: key = "year-month"
   final Map<String, Map<DateTime, List<CalendarExpenseItem>>> _expenseCache = {};
 
@@ -266,6 +270,11 @@ class CalendarViewModel extends Notifier<CalendarState> {
 
     _inFlightLoads.add(key);
     try {
+      // 지출 변경 시 이월(carryOver) 체인을 DB에 먼저 재계산·반영한다.
+      // getMonthlyEffectiveBudgets()는 DB 저장값을 그대로 읽으므로,
+      // 이 호출 없이는 다른 날 지출 수정 후에도 effectiveBudget이 갱신되지 않는다.
+      await _todayBudgetUseCase.getOrCreateTodayBudget();
+
       final (expenses, baseAmounts, effectiveBudgets, streak, successCount) = await (
         _useCase.getMonthlyExpenses(year: year, month: month),
         _useCase.getMonthlyBaseAmounts(year: year, month: month),
