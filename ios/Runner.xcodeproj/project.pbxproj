@@ -16,6 +16,7 @@
 		1C73439F2F88E23200FF4E67 /* ExpenseItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C73438E2F88E23200FF4E67 /* ExpenseItem.swift */; };
 		1C7343A02F88E23200FF4E67 /* SmallWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343982F88E23200FF4E67 /* SmallWidgetView.swift */; };
 		1C7343A12F88E23200FF4E67 /* WidgetHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343932F88E23200FF4E67 /* WidgetHelpers.swift */; };
+		1C7343B42F88E23200FF4E68 /* DailyRolloverLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343B52F88E23200FF4E68 /* DailyRolloverLogic.swift */; };
 		1C7343A22F88E23200FF4E67 /* ExpenseRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343952F88E23200FF4E67 /* ExpenseRowView.swift */; };
 		1C7343A32F88E23200FF4E67 /* FavoriteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343892F88E23200FF4E67 /* FavoriteItem.swift */; };
 		1C7343A42F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7343A52F88E23200FF4E67 /* AddFavoriteExpenseIntent.swift */; };
@@ -92,6 +93,7 @@
 		1C73438F2F88E23200FF4E67 /* SimpleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleEntry.swift; sourceTree = "<group>"; };
 		1C7343912F88E23200FF4E67 /* WidgetColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetColorPalette.swift; sourceTree = "<group>"; };
 		1C7343932F88E23200FF4E67 /* WidgetHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetHelpers.swift; sourceTree = "<group>"; };
+		1C7343B52F88E23200FF4E68 /* DailyRolloverLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRolloverLogic.swift; sourceTree = "<group>"; };
 		1C7343952F88E23200FF4E67 /* ExpenseRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseRowView.swift; sourceTree = "<group>"; };
 		1C7343962F88E23200FF4E67 /* LargeWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeWidgetView.swift; sourceTree = "<group>"; };
 		1C7343972F88E23200FF4E67 /* MediumWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediumWidgetView.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 			isa = PBXGroup;
 			children = (
 				1C7343932F88E23200FF4E67 /* WidgetHelpers.swift */,
+				1C7343B52F88E23200FF4E68 /* DailyRolloverLogic.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -556,6 +559,7 @@
 				1C7343A72F88E23200FF4E67 /* WidgetConstants.swift in Sources */,
 				1C7343A02F88E23200FF4E67 /* SmallWidgetView.swift in Sources */,
 				1C7343A12F88E23200FF4E67 /* WidgetHelpers.swift in Sources */,
+				1C7343B42F88E23200FF4E68 /* DailyRolloverLogic.swift in Sources */,
 				1C7343A22F88E23200FF4E67 /* ExpenseRowView.swift in Sources */,
 				A1B2C3D42F7D000100000023 /* DailyHomeWidgetControl.swift in Sources */,
 			);
