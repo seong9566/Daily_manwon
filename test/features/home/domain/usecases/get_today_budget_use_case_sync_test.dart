@@ -262,10 +262,6 @@ void main() {
       when(() => mockSettingsRepo.getCarryoverEnabled())
           .thenAnswer((_) async => false);
 
-      // getBudgetByDate는 _computeTodayCarryOver에서도 호출되지 않음 (false 조기 반환)
-      when(() => mockBudgetRepo.getBudgetByDate(any()))
-          .thenAnswer((_) async => null);
-
       final useCase = GetTodayBudgetUseCase(mockBudgetRepo, mockSettingsRepo);
 
       // when

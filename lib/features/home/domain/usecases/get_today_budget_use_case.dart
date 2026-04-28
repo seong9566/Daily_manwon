@@ -85,6 +85,8 @@ class GetTodayBudgetUseCase {
       final prevBudget = await _repository.getBudgetByDate(prev);
       if (prevBudget == null) break;
 
+      // prevBudget.carryOver(DB 저장값)가 아닌 runningCarryOver(이 함수가 재계산한
+      // 누적값)를 사용한다. DB 저장값을 신뢰 소스로 삼으면 stale 보정 효과가 없어진다.
       final prevEffective = prevBudget.baseAmount + runningCarryOver;
       final prevSpent = await _repository.getTotalExpensesByDate(prev);
       final newCarryOver = prevEffective - prevSpent;

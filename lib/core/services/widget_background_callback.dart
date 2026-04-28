@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:home_widget/home_widget.dart';
 
 import '../constants/app_constants.dart';
 import '../di/injection.dart';

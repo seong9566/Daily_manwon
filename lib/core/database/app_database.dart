@@ -107,7 +107,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   /// 테스트 전용 생성자 — 인메모리 DB 등 커스텀 연결을 주입할 수 있다
-  AppDatabase.forTesting(DatabaseConnection connection) : super(connection);
+  AppDatabase.forTesting(super.connection);
 
   @override
   int get schemaVersion => 10;
