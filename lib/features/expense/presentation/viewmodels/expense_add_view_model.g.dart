@@ -59,7 +59,7 @@ final class ExpenseAddViewModelProvider
 }
 
 String _$expenseAddViewModelHash() =>
-    r'e398c7c4c17f8aa88d41cc110da00e7e7d964bc6';
+    r'9955fd08831dcabd5dd9c1d4c59a576fbc463f9d';
 
 final class ExpenseAddViewModelFamily extends $Family
     with
