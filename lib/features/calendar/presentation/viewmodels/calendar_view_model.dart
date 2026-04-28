@@ -208,7 +208,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
     );
     ref.onDispose(() => _monthWatchSubscription?.cancel());
 
-    ref.listen(budgetChangeProvider, (_, _) => loadMonthData(forceRefresh: true));
+    ref.listen(budgetChangeProvider, (_, _) => silentRefresh());
     Future.microtask(() async {
       await _restoreViewMode();
       await loadMonthData();
@@ -255,6 +255,54 @@ class CalendarViewModel extends Notifier<CalendarState> {
     return _effectiveBudgetCache[_cacheKey(year, month)] ?? const {};
   }
 
+  /// 스피너 없이 현재 월 데이터를 조용히 갱신한다.
+  /// 지출 추가/삭제 직후 DailyExpenseDetail을 즉시 반영할 때 사용한다.
+  Future<void> silentRefresh() async {
+    final year = state.selectedMonth.year;
+    final month = state.selectedMonth.month;
+    final key = _cacheKey(year, month);
+
+    if (_inFlightLoads.contains(key)) return;
+
+    _inFlightLoads.add(key);
+    try {
+      final (expenses, baseAmounts, effectiveBudgets, streak, successCount) = await (
+        _useCase.getMonthlyExpenses(year: year, month: month),
+        _useCase.getMonthlyBaseAmounts(year: year, month: month),
+        _useCase.getMonthlyEffectiveBudgets(year: year, month: month),
+        _cachedStreak != null
+            ? Future.value(_cachedStreak!)
+            : _useCase.getStreakDays(),
+        _cachedSuccessCount != null
+            ? Future.value(_cachedSuccessCount!)
+            : _useCase.getTotalSuccessCount(),
+      ).wait;
+
+      _expenseCache[key] = _toItemMap(expenses);
+      _baseAmountCache[key] = baseAmounts;
+      _effectiveBudgetCache[key] = effectiveBudgets;
+
+      if (state.selectedMonth.year != year || state.selectedMonth.month != month) {
+        return;
+      }
+
+      _cachedStreak = streak;
+      _cachedSuccessCount = successCount;
+
+      state = state.copyWith(
+        monthlyExpenses: _expenseCache[key]!,
+        monthlyBaseAmounts: baseAmounts,
+        monthlyEffectiveBudgets: effectiveBudgets,
+        streakDays: streak,
+        successCount: successCount,
+      );
+    } catch (_) {
+      // 조용한 갱신 실패 시 UI 변경 없이 무시
+    } finally {
+      _inFlightLoads.remove(key);
+    }
+  }
+
   /// 현재 선택 월의 지출 변동을 구독한다. 월 변경 시 재호출하여 재구독한다.
   void _watchCurrentMonth() {
     _monthWatchSubscription?.cancel();
@@ -264,7 +312,7 @@ class CalendarViewModel extends Notifier<CalendarState> {
         .listen((_) {
           final key = _cacheKey(month.year, month.month);
           if (!_inFlightLoads.contains(key)) {
-            loadMonthData(forceRefresh: true);
+            silentRefresh();
           }
         });
   }

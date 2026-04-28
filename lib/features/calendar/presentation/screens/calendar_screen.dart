@@ -49,7 +49,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             isDark ? AppColors.darkBackground : AppColors.white,
         onPressed: () async {
           final date = state.selectedDate ?? DateTime.now();
-          await showExpenseAddBottomSheet(context, date: date);
+          final saved = await showExpenseAddBottomSheet(context, date: date);
+          if (saved == true && context.mounted) {
+            ref
+                .read(calendarViewModelProvider.notifier)
+                .silentRefresh();
+          }
         },
         child: const Icon(Icons.add_rounded, size: 28),
       ),
@@ -215,7 +220,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                               showExpenseAddBottomSheet(
                                 context,
                                 expense: item.toExpenseEntity(),
-                              );
+                              ).then((saved) {
+                                if (saved == true && context.mounted) {
+                                  ref
+                                      .read(calendarViewModelProvider.notifier)
+                                      .silentRefresh();
+                                }
+                              });
                             },
                             baseAmount: baseAmounts[date],
                             effectiveBudget: effectiveBudgets[date],
