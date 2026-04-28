@@ -51,14 +51,14 @@ struct Provider: TimelineProvider {
         let total             = userDefault?.integer(forKey: "totalKey")             ?? 0
         let baseDailyBudget   = userDefault?.integer(forKey: "baseDailyBudgetKey") ?? total
         let streak            = userDefault?.integer(forKey: "streakKey")            ?? 0
-        let weeklySuccessDays = userDefault?.integer(forKey: "weeklySuccessKey")     ?? 0
+        var weeklySuccessDays = userDefault?.integer(forKey: "weeklySuccessKey")     ?? 0
         let carryOverEnabled  = userDefault?.bool(forKey: "carryOverEnabledKey")     ?? false
         let prevDayRemaining  = userDefault?.integer(forKey: "prevDayRemainingKey")  ?? 0
 
         // 자정 기준 날짜 불일치 감지: Flutter가 마지막으로 데이터를 쓴 날짜와 오늘을 비교
         // locale/calendar 명시 고정 — 비-Gregorian 기기에서도 Dart와 동일한 문자열 생성
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.locale = Locale(identifier: "ko_KR")
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.timeZone = TimeZone.current
         formatter.dateFormat = "yyyy-MM-dd"
@@ -85,12 +85,26 @@ struct Provider: TimelineProvider {
 
             used = 0
             remaining = todayTotal
-            catMood = "comfortable"
+            // remaining/total 비율로 catMood 계산 — 하드코딩 대신 실제 예산 비율 기준 적용
+            // (음수 이월로 todayTotal < 0인 극단 케이스도 올바르게 처리)
+            switch BudgetStatus(remaining: remaining, total: todayTotal) {
+            case .comfortable: catMood = "comfortable"
+            case .normal:      catMood = "normal"
+            case .danger:      catMood = "danger"
+            case .over:        catMood = "over"
+            }
+            // 새 주 시작(일요일)이면 이전 주 성공일 리셋 — Flutter 미실행 상태에서도 stale 값 방지
+            if isSunday {
+                weeklySuccessDays = 0
+                userDefault?.set(0, forKey: "weeklySuccessKey")
+            }
             // lastUpdatedDateKey를 오늘로 즉시 갱신 — 같은 날 내 Intent 낙관적 업데이트가 stale key 기준으로 동작하는 문제 방지
             userDefault?.set(todayStr, forKey: "lastUpdatedDateKey")
             userDefault?.set(0, forKey: "usedKey")
             userDefault?.set(todayTotal, forKey: "remainingKey")
             userDefault?.set(todayTotal, forKey: "totalKey")
+            // cat_mood도 갱신 — 미갱신 시 getTimeline 재호출에서 전날 값을 읽어 색상 불일치 발생
+            userDefault?.set(catMood, forKey: "cat_mood")
             userDefault?.synchronize()
         } else {
             todayTotal = total
