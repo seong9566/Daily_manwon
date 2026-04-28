@@ -45,4 +45,8 @@ class DailyBudgetRepositoryImpl implements DailyBudgetRepository {
   @override
   Future<void> updateTodayBaseAmount(int amount) =>
       _datasource.updateTodayBaseAmount(amount);
+
+  @override
+  Future<void> updateCarryOverForDate(DateTime date, int carryOver) =>
+      _datasource.updateCarryOverForDate(date, carryOver);
 }

@@ -31,4 +31,7 @@ abstract interface class DailyBudgetRepository {
 
   /// 오늘 예산 레코드의 baseAmount를 즉시 업데이트한다 (설정 변경 즉시 반영용)
   Future<void> updateTodayBaseAmount(int amount);
+
+  /// 특정 날짜의 예산 row에 저장된 carryOver 값을 갱신한다 (소급 입력 시 중간 날짜 보정용)
+  Future<void> updateCarryOverForDate(DateTime date, int carryOver);
 }
