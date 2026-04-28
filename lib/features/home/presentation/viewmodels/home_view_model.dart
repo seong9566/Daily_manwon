@@ -217,9 +217,12 @@ class HomeViewModel extends _$HomeViewModel {
     required List<ExpenseEntity> expenses,
     required List<FavoriteExpenseEntity> favorites,
   }) {
+    // 음수 이월 시 기본 예산 기준으로 mood 계산.
+    // effectiveBudget 기준이면 remaining/total = 1.0 → comfortable 오판.
+    final moodRef = total < baseDailyBudget ? baseDailyBudget : total;
     final catMood = isNewWeek
         ? 'new_week'
-        : CharacterMood.fromRemaining(remaining, total).name;
+        : CharacterMood.fromRemaining(remaining, moodRef).name;
     unawaited(
       getIt<WidgetService>().updateWidget(
         total: total,

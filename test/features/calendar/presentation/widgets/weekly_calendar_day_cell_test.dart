@@ -83,5 +83,53 @@ void main() {
       ));
       expect(find.byKey(const Key('mini-split-bar')), findsNothing);
     });
+
+    testWidgets('양수 이월: 미니 스플릿 바 표시, 음수 바 없음', (tester) async {
+      await tester.pumpWidget(wrap(
+        WeeklyCalendarDayCell(
+          date: DateTime(2026, 4, 22),
+          isToday: false,
+          isSelected: false,
+          isFuture: false,
+          mood: CharacterMood.comfortable,
+          totalSpent: 3000,
+          baseAmount: 10000,
+          effectiveBudget: 15000,
+        ),
+      ));
+      expect(find.byKey(const Key('mini-split-bar')), findsOneWidget);
+      expect(find.byKey(const Key('mini-split-bar-negative')), findsNothing);
+    });
+
+    testWidgets('음수 이월: 미니 스플릿 바 + 음수 바 표시', (tester) async {
+      await tester.pumpWidget(wrap(
+        WeeklyCalendarDayCell(
+          date: DateTime(2026, 4, 22),
+          isToday: false,
+          isSelected: false,
+          isFuture: false,
+          mood: CharacterMood.comfortable,
+          totalSpent: 3000,
+          baseAmount: 10000,
+          effectiveBudget: 5000,
+        ),
+      ));
+      expect(find.byKey(const Key('mini-split-bar')), findsOneWidget);
+      expect(find.byKey(const Key('mini-split-bar-negative')), findsOneWidget);
+    });
+
+    testWidgets('미래 날짜: 음수 이월이어도 미니 스플릿 바 미표시', (tester) async {
+      await tester.pumpWidget(wrap(
+        WeeklyCalendarDayCell(
+          date: DateTime(2026, 4, 22),
+          isToday: false,
+          isSelected: false,
+          isFuture: true,
+          baseAmount: 10000,
+          effectiveBudget: 5000,
+        ),
+      ));
+      expect(find.byKey(const Key('mini-split-bar')), findsNothing);
+    });
   });
 }

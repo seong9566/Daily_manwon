@@ -135,18 +135,23 @@ class CalendarDayCell extends StatelessWidget {
               //   comfortable / normal → 녹색 (budgetOK)
               //   danger              → 앰버 (budgetWarning)
               //   over                → 딥레드 (budgetOver)
-              if (isCurrentMonth &&
-                  !isFuture &&
-                  mood != null &&
-                  totalSpent != null &&
-                  totalSpent! > 0)
-                CalendarAmountBadge(
-                  totalSpent: totalSpent!,
-                  mood: mood!,
-                  isDark: isDark,
-                )
-              else
-                const SizedBox(height: 3),
+              SizedBox(
+                height: 14,
+                child: (isCurrentMonth &&
+                        !isFuture &&
+                        mood != null &&
+                        totalSpent != null &&
+                        totalSpent! > 0)
+                    ? Align(
+                        alignment: Alignment.topCenter,
+                        child: CalendarAmountBadge(
+                          totalSpent: totalSpent!,
+                          mood: mood!,
+                          isDark: isDark,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),

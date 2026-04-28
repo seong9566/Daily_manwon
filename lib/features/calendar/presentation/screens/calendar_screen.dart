@@ -201,37 +201,30 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
                       const SizedBox(height: 8),
 
-                      // 선택된 날짜 지출 내역
-                      if (state.selectedDate != null)
-                        Builder(builder: (context) {
-                          final date = state.selectedDate!;
-                          final notifier =
-                              ref.read(calendarViewModelProvider.notifier);
-                          final baseAmounts = notifier
-                              .getCachedBaseAmounts(date.year, date.month);
-                          final effectiveBudgets = notifier
-                              .getCachedEffectiveBudgets(date.year, date.month);
-
-                          return DailyExpenseDetail(
-                            date: date,
-                            expenses: notifier
-                                .getExpensesForDate(state.selectedDate),
-                            onExpenseTap: (item) {
-                              showExpenseAddBottomSheet(
-                                context,
-                                expense: item.toExpenseEntity(),
-                              ).then((saved) {
-                                if (saved == true && context.mounted) {
-                                  ref
-                                      .read(calendarViewModelProvider.notifier)
-                                      .silentRefresh();
-                                }
-                              });
-                            },
-                            baseAmount: baseAmounts[date],
-                            effectiveBudget: effectiveBudgets[date],
-                          );
-                        }),
+                      // 날짜 지출 내역 — 항상 표시, 날짜 미선택 시 오늘 기준
+                      Builder(builder: (context) {
+                        final now = DateTime.now();
+                        final date = state.selectedDate ??
+                            DateTime(now.year, now.month, now.day);
+                        return DailyExpenseDetail(
+                          date: date,
+                          expenses: state.monthlyExpenses[date] ?? const [],
+                          onExpenseTap: (item) {
+                            showExpenseAddBottomSheet(
+                              context,
+                              expense: item.toExpenseEntity(),
+                            ).then((saved) {
+                              if (saved == true && context.mounted) {
+                                ref
+                                    .read(calendarViewModelProvider.notifier)
+                                    .silentRefresh();
+                              }
+                            });
+                          },
+                          baseAmount: state.monthlyBaseAmounts[date],
+                          effectiveBudget: state.monthlyEffectiveBudgets[date],
+                        );
+                      }),
 
                       const SizedBox(height: 24),
                     ],

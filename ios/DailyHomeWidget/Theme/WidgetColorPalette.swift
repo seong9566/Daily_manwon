@@ -29,10 +29,10 @@ struct WidgetColorPalette {
         case .normal:
             return WidgetColorPalette(
                 background:    bg,
-                primaryText:   Color(red: 166/255, green: 98/255,  blue: 0),   // #A66200, 흰 배경 대비 ≈4.8:1
+                primaryText:   Color(red: 245/255, green: 166/255, blue: 35/255),  // #F5A623 (Flutter budgetWarning)
                 secondaryText: secondaryText,
                 accentBg:      accentBg,
-                progressColor: Color(red: 166/255, green: 98/255,  blue: 0)    // #A66200
+                progressColor: Color(red: 245/255, green: 166/255, blue: 35/255)   // #F5A623 (Flutter budgetWarning)
             )
         case .danger:
             return WidgetColorPalette(
@@ -45,10 +45,10 @@ struct WidgetColorPalette {
         case .over:
             return WidgetColorPalette(
                 background:    bg,
-                primaryText:   Color(red: 192/255, green: 57/255,  blue: 43/255), // #C0392B, 흰 배경 대비 ≈5.4:1
+                primaryText:   Color(red: 192/255, green: 57/255,  blue: 43/255), // #C0392B (Flutter budgetOver)
                 secondaryText: secondaryText,
                 accentBg:      accentBg,
-                progressColor: Color(red: 232/255, green: 93/255,  blue: 93/255)  // #E85D5D
+                progressColor: Color(red: 192/255, green: 57/255,  blue: 43/255)  // #C0392B (Flutter budgetOver)
             )
         }
     }

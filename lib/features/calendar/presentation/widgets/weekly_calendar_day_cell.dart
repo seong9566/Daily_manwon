@@ -71,11 +71,11 @@ class WeeklyCalendarDayCell extends StatelessWidget {
             ),
             const SizedBox(height: 4),
 
-            // 이월 예산 미니 스플릿 바 (이월이 있는 과거 날짜만)
+            // 이월 예산 미니 스플릿 바 (이월이 있는 과거 날짜: 양수·음수 모두 표시)
             if (!isFuture &&
                 effectiveBudget != null &&
                 baseAmount != null &&
-                effectiveBudget! > baseAmount!)
+                effectiveBudget! != baseAmount!)
               _MiniSplitBar(
                 key: const Key('mini-split-bar'),
                 carryOver: effectiveBudget! - baseAmount!,
@@ -117,6 +117,23 @@ class _MiniSplitBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // carryOver == 0은 caller의 != baseAmount 가드로 차단됨 (flex: 0 방지)
+    assert(carryOver != 0, '_MiniSplitBar: carryOver must not be 0');
+
+    // 음수 이월: 전폭 빨간 바로 초과이월 표시
+    if (carryOver < 0) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(2),
+        child: Container(
+          key: const Key('mini-split-bar-negative'),
+          width: 28,
+          height: 3,
+          color: AppColors.budgetDanger,
+        ),
+      );
+    }
+
+    // 양수 이월: 파랑(이월) + 초록(기본 예산) 스플릿 바
     final baseAmount = effectiveBudget - carryOver;
     return ClipRRect(
       borderRadius: BorderRadius.circular(2),
