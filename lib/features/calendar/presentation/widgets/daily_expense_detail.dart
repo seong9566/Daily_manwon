@@ -51,10 +51,10 @@ class DailyExpenseDetail extends StatelessWidget {
         Divider(height: 1, thickness: 1, color: dividerColor),
         const SizedBox(height: 16),
 
-        // ── 예산 구성 카드 (이월이 있을 때만) ───────────
+        // ── 예산 구성 카드 (이월이 있을 때: 양수·음수 모두 표시) ───────────
         if (effectiveBudget != null &&
             baseAmount != null &&
-            effectiveBudget! > baseAmount!) ...[
+            effectiveBudget! != baseAmount!) ...[
           _BudgetBreakdownCard(
             baseAmount: baseAmount!,
             effectiveBudget: effectiveBudget!,
@@ -140,6 +140,8 @@ class _BudgetBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final carryOver = effectiveBudget - baseAmount;
+    final isNegative = carryOver < 0;
+    final carryOverColor = isNegative ? AppColors.budgetDanger : AppColors.accent;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
     final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
 
@@ -147,7 +149,9 @@ class _BudgetBreakdownCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.primaryLight,
+        color: isNegative
+            ? AppColors.budgetDanger.withValues(alpha: isDark ? 0.15 : 0.08)
+            : (isDark ? AppColors.darkCard : AppColors.primaryLight),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -161,6 +165,7 @@ class _BudgetBreakdownCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          // 기본 예산: 초록 dot — 기본 예산 구간 비율 표시
           _BudgetRow(
             label: '기본 예산',
             amount: baseAmount,
@@ -169,10 +174,11 @@ class _BudgetBreakdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           _BudgetRow(
-            label: '이월',
-            amount: carryOver,
-            prefix: '+',
-            dotColor: AppColors.accent,
+            label: isNegative ? '초과이월' : '이월',
+            // carryOver.abs() 필수 — prefix와 이중 마이너스 방지
+            amount: carryOver.abs(),
+            prefix: isNegative ? '-' : '+',
+            dotColor: carryOverColor,
             isDark: isDark,
           ),
           Divider(height: 16, thickness: 1, color: dividerColor),
@@ -181,6 +187,8 @@ class _BudgetBreakdownCard extends StatelessWidget {
             amount: effectiveBudget,
             isBold: true,
             isDark: isDark,
+            // 합계가 음수이면 빨간색으로 강조
+            textColor: effectiveBudget < 0 ? AppColors.budgetDanger : null,
           ),
         ],
       ),
@@ -195,6 +203,7 @@ class _BudgetRow extends StatelessWidget {
   final Color? dotColor;
   final bool isBold;
   final bool isDark;
+  final Color? textColor;
 
   const _BudgetRow({
     required this.label,
@@ -203,6 +212,7 @@ class _BudgetRow extends StatelessWidget {
     this.prefix = '',
     this.dotColor,
     this.isBold = false,
+    this.textColor,
   });
 
   @override
@@ -231,7 +241,7 @@ class _BudgetRow extends StatelessWidget {
         Text(
           '$prefix${CurrencyFormatter.formatWithWon(amount)}',
           style: AppTypography.bodySmall.copyWith(
-            color: dotColor ?? textMainColor,
+            color: textColor ?? dotColor ?? textMainColor,
             fontSize: 12,
             fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
           ),

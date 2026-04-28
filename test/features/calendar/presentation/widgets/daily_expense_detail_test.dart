@@ -39,5 +39,46 @@ void main() {
       ));
       expect(find.text('오늘 예산 구성'), findsNothing);
     });
+
+    testWidgets('양수 이월: 이월 라벨 표시, 초과이월 없음', (tester) async {
+      await tester.pumpWidget(wrap(
+        DailyExpenseDetail(
+          date: DateTime(2026, 4, 22),
+          expenses: const [],
+          baseAmount: 10000,
+          effectiveBudget: 15000,
+        ),
+      ));
+      expect(find.text('오늘 예산 구성'), findsOneWidget);
+      expect(find.text('이월'), findsOneWidget);
+      expect(find.text('초과이월'), findsNothing);
+    });
+
+    testWidgets('음수 이월: 카드 표시, 초과이월 라벨, 이월 라벨 없음', (tester) async {
+      await tester.pumpWidget(wrap(
+        DailyExpenseDetail(
+          date: DateTime(2026, 4, 22),
+          expenses: const [],
+          baseAmount: 10000,
+          effectiveBudget: 5000,
+        ),
+      ));
+      expect(find.text('오늘 예산 구성'), findsOneWidget);
+      expect(find.text('초과이월'), findsOneWidget);
+      expect(find.text('이월'), findsNothing);
+    });
+
+    testWidgets('합계가 음수일 때 카드 표시', (tester) async {
+      await tester.pumpWidget(wrap(
+        DailyExpenseDetail(
+          date: DateTime(2026, 4, 22),
+          expenses: const [],
+          baseAmount: 10000,
+          effectiveBudget: -2000,
+        ),
+      ));
+      expect(find.text('오늘 예산 구성'), findsOneWidget);
+      expect(find.text('초과이월'), findsOneWidget);
+    });
   });
 }
