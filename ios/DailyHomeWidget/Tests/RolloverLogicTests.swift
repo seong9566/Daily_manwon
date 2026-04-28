@@ -74,6 +74,10 @@ struct RolloverLogicTests {
         // ── 새 주 시작(일요일): weeklySuccessDays 리셋 검증 ─────────────────────────────
         // isNewDay + isSunday 조건에서 weeklySuccessKey가 0으로 설정되어야 한다
         // 이 테스트는 리셋 조건(isSunday) 분기 로직을 직접 검증한다
+
+        // ── weeklySuccessDays 리셋 명세 문서화 ──────────────────────────────────────────
+        // WidgetKit/UserDefaults 의존으로 getTimeline을 직접 호출 불가.
+        // 아래 테스트는 조건 분기 명세를 문서화한다. 실제 통합 동작은 Xcode 단위 테스트에서 검증한다.
         do {
             let prevWeekSuccessDays = 2
             let isSunday = true  // 일요일 시뮬레이션
