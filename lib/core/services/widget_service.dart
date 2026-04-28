@@ -159,6 +159,7 @@ class WidgetService {
       await HomeWidget.saveWidgetData<int>('baseDailyBudgetKey', baseDailyBudget);
       await HomeWidget.saveWidgetData<int>('usedKey', used);
       await HomeWidget.saveWidgetData<int>('remainingKey', remaining);
+      await HomeWidget.saveWidgetData<int>('prevDayRemainingKey', remaining);
       await HomeWidget.saveWidgetData<int>('streakKey', streak);
       await HomeWidget.saveWidgetData<int>('weeklySuccessKey', weeklySuccessDays);
       await HomeWidget.saveWidgetData<bool>('carryOverEnabledKey', carryOverEnabled);

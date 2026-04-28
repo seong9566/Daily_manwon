@@ -53,6 +53,7 @@ struct Provider: TimelineProvider {
         let streak            = userDefault?.integer(forKey: "streakKey")            ?? 0
         let weeklySuccessDays = userDefault?.integer(forKey: "weeklySuccessKey")     ?? 0
         let carryOverEnabled  = userDefault?.bool(forKey: "carryOverEnabledKey")     ?? false
+        let prevDayRemaining  = userDefault?.integer(forKey: "prevDayRemainingKey")  ?? 0
 
         // 자정 기준 날짜 불일치 감지: Flutter가 마지막으로 데이터를 쓴 날짜와 오늘을 비교
         // locale/calendar 명시 고정 — 비-Gregorian 기기에서도 Dart와 동일한 문자열 생성
@@ -74,11 +75,13 @@ struct Provider: TimelineProvider {
 
         if isNewDay {
             // 자정이 지났으나 Flutter가 아직 갱신하지 않은 상태 → 당일 데이터 리셋
-            // 어제 남은 예산을 읽어 오늘 이월분을 계산한다 (overwrite 전에 읽어야 함)
-            let yesterdayRemaining = userDefault?.integer(forKey: "remainingKey") ?? 0
             let isSunday = Calendar.current.component(.weekday, from: Date()) == 1
-            let todayCarryOver = (carryOverEnabled && !isSunday) ? max(0, yesterdayRemaining) : 0
-            todayTotal = baseDailyBudget + todayCarryOver
+            todayTotal = DailyRolloverLogic.computeTodayTotal(
+                baseDailyBudget: baseDailyBudget,
+                prevDayRemaining: prevDayRemaining,
+                carryOverEnabled: carryOverEnabled,
+                isSunday: isSunday
+            )
 
             used = 0
             remaining = todayTotal
