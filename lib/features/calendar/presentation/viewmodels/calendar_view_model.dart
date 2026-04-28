@@ -118,7 +118,7 @@ class CalendarState {
       final date = DateTime(selectedMonth.year, selectedMonth.month, d);
       if (date.isAfter(today)) continue;
       final dayTotal = (monthlyExpenses[date] ?? []).fold<int>(0, (s, e) => s + e.amount);
-      final budget = monthlyEffectiveBudgets[date] ?? monthlyBaseAmounts[date] ?? AppConstants.dailyBudget;
+      final budget = monthlyBaseAmounts[date] ?? AppConstants.dailyBudget;
       if (dayTotal <= budget) count++;
     }
     return count;
