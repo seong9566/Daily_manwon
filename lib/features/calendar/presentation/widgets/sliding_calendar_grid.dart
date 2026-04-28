@@ -279,7 +279,6 @@ class _CalendarGrid extends StatelessWidget {
           bool? isSuccess;
           int? totalSpent;
           final baseAmount =
-              state.monthlyEffectiveBudgets[cellDate] ??
               state.monthlyBaseAmounts[cellDate] ??
               AppConstants.dailyBudget;
           if (expenses != null && expenses.isNotEmpty) {
