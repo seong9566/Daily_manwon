@@ -69,7 +69,7 @@ class StatsViewModel extends _$StatsViewModel {
         : dailyStats
               .where(
                 (s) =>
-                    s.date.day != DateTime.now().day &&
+                    !AppDateUtils.isSameDay(s.date, DateTime.now()) &&
                     !s.date.isAfter(todayStart) &&
                     s.amount <= dailyBudget,
               )

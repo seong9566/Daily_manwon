@@ -33,7 +33,7 @@ final class StatsViewModelProvider
   StatsViewModel create() => StatsViewModel();
 }
 
-String _$statsViewModelHash() => r'3692612fa8d943c0378918583483dec472d52237';
+String _$statsViewModelHash() => r'edca7f38fd0da1e35e13bcd0eb7adf7647f974d9';
 
 abstract class _$StatsViewModel extends $AsyncNotifier<StatsState> {
   FutureOr<StatsState> build();
