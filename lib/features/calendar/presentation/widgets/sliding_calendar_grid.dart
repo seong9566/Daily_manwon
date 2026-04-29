@@ -304,6 +304,8 @@ class _CalendarGrid extends StatelessWidget {
             isSuccess: isSuccess,
             mood: mood,
             totalSpent: totalSpent,
+            baseAmount: state.monthlyBaseAmounts[cellDate],
+            effectiveBudget: state.monthlyEffectiveBudgets[cellDate],
             onTap: () => onDateSelected(cellDate),
           );
         },

@@ -4,6 +4,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'calendar_amount_badge.dart';
+import 'mini_split_bar.dart';
 
 /// 캘린더 날짜 셀 위젯
 /// 날짜 숫자 + 선택/오늘 강조 표시
@@ -34,6 +35,12 @@ class CalendarDayCell extends StatelessWidget {
   /// 당일 지출 합계 (원) — null이면 뱃지 숨김 (미래 날짜, 데이터 없음)
   final int? totalSpent;
 
+  /// 기본 일일 예산 (이월 제외) — MiniSplitBar 표시용
+  final int? baseAmount;
+
+  /// 이월 포함 실질 예산 — MiniSplitBar 표시용
+  final int? effectiveBudget;
+
   /// 탭 콜백
   final VoidCallback? onTap;
 
@@ -47,6 +54,8 @@ class CalendarDayCell extends StatelessWidget {
     this.isSuccess,
     this.mood,
     this.totalSpent,
+    this.baseAmount,
+    this.effectiveBudget,
     this.onTap,
   });
 
@@ -128,7 +137,20 @@ class CalendarDayCell extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 2),
+              // 이월 미니 스플릿 바 (이월이 있는 과거 날짜: 양수·음수 모두 표시)
+              if (isCurrentMonth &&
+                  !isFuture &&
+                  effectiveBudget != null &&
+                  baseAmount != null &&
+                  effectiveBudget! != baseAmount!)
+                MiniSplitBar(
+                  carryOver: effectiveBudget! - baseAmount!,
+                  effectiveBudget: effectiveBudget!,
+                )
+              else
+                const SizedBox(height: 3),
+              const SizedBox(height: 1),
 
               // ── 예산 상태 색상 바 (과거 날짜 + mood 있을 때만) ──────
               // 월간 개요: 고양이 대신 얇은 색상 바로 한 달 전체 패턴을 캘린더 히트맵처럼 표현
@@ -137,7 +159,8 @@ class CalendarDayCell extends StatelessWidget {
               //   over                → 딥레드 (budgetOver)
               SizedBox(
                 height: 14,
-                child: (isCurrentMonth &&
+                child:
+                    (isCurrentMonth &&
                         !isFuture &&
                         mood != null &&
                         totalSpent != null &&
