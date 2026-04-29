@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/acorn_streak_badge.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../expense/presentation/screens/expense_add_screen.dart';
 import '../viewmodels/calendar_view_model.dart';
 import '../widgets/daily_expense_detail.dart';
@@ -128,18 +128,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       // 성공 통계 배지
                       Center(
                         child: Builder(
-                          builder: (_) {
+                          builder: (context) {
                             final isMonthly = state.viewMode ==
                                 CalendarViewMode.monthly;
                             final successCount = isMonthly
                                 ? state.monthlySuccessCount
                                 : summary.savingDays;
-                            return AcornStreakBadge(
-                              totalAcorns: successCount,
-                              streakDays: state.streakDays,
-                              rewardLabel: isMonthly
-                                  ? '이번달 절약 성공'
-                                  : '이번주 성공',
+                            return _SuccessBadge(
+                              successCount: successCount,
+                              label: isMonthly ? '이번 달 성공' : '이번 주 성공',
                             );
                           },
                         ),
@@ -231,6 +228,52 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                 ),
               ),
+      ),
+    );
+  }
+}
+
+class _SuccessBadge extends StatelessWidget {
+  final int successCount;
+  final String label;
+
+  const _SuccessBadge({required this.successCount, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkSurface : AppColors.background;
+    final mainColor = isDark ? AppColors.darkTextMain : AppColors.textMain;
+    final subColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
+
+    return Semantics(
+      label: '$label $successCount일',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$successCount일',
+              style: AppTypography.bodyMedium.copyWith(
+                color: mainColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(
+                color: subColor,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
