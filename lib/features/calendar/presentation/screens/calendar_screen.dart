@@ -269,7 +269,6 @@ class _SuccessBadge extends StatelessWidget {
               label,
               style: AppTypography.bodySmall.copyWith(
                 color: subColor,
-                fontSize: 10,
               ),
             ),
           ],
