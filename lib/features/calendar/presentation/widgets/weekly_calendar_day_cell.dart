@@ -75,12 +75,12 @@ class WeeklyCalendarDayCell extends StatelessWidget {
             // 이월 예산 미니 스플릿 바 (이월이 있는 과거 날짜: 양수·음수 모두 표시)
             if (!isFuture &&
                 effectiveBudget != null &&
-                baseAmount != null &&
-                effectiveBudget! != baseAmount!)
+                baseAmount != null)
               MiniSplitBar(
                 key: const Key('mini-split-bar'),
                 carryOver: effectiveBudget! - baseAmount!,
                 effectiveBudget: effectiveBudget!,
+                totalSpent: totalSpent ?? 0,
               )
             else
               const SizedBox(height: 3),

@@ -138,11 +138,11 @@ class CalendarDayCell extends StatelessWidget {
               if (isCurrentMonth &&
                   !isFuture &&
                   effectiveBudget != null &&
-                  baseAmount != null &&
-                  effectiveBudget! != baseAmount!)
+                  baseAmount != null)
                 MiniSplitBar(
                   carryOver: effectiveBudget! - baseAmount!,
                   effectiveBudget: effectiveBudget!,
+                  totalSpent: totalSpent ?? 0,
                 )
               else
                 const SizedBox(height: 3),

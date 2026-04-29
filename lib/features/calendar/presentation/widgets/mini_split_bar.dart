@@ -7,11 +7,9 @@ import '../../../../core/theme/app_colors.dart';
 /// - 전체 너비(28px) = effectiveBudget
 /// - 컬러(좌측) = 잔여 예산 비율
 ///   - 양수 이월: 파랑(이월) + 초록(기본 예산) 스플릿
-///   - 음수 이월 + 미초과: 단색 초록
+///   - 이월 없음(일요일) 또는 음수 이월 + 미초과: 단색 초록
 /// - 회색(우측) = 사용한 금액 비율
 /// - 초과 지출 또는 effectiveBudget <= 0: 전체 회색 (컬러 0)
-///
-/// 호출자는 `effectiveBudget != baseAmount` 조건을 확인한 뒤 전달한다.
 class MiniSplitBar extends StatelessWidget {
   final int carryOver;
   final int effectiveBudget;
@@ -22,7 +20,7 @@ class MiniSplitBar extends StatelessWidget {
     required this.carryOver,
     required this.effectiveBudget,
     required this.totalSpent,
-  }) : assert(carryOver != 0, 'MiniSplitBar: carryOver must not be 0');
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +64,7 @@ class _ColorFill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (carryOver < 0) {
+    if (carryOver <= 0) {
       return Container(color: AppColors.statusComfortableStrong);
     }
     final baseAmount = effectiveBudget - carryOver;
