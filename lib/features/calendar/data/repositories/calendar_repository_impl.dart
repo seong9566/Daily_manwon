@@ -25,11 +25,6 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<int> getStreakDays() {
-    return _datasource.getStreakDays();
-  }
-
-  @override
   Future<int> getTotalSuccessCount() {
     return _datasource.getTotalSuccessCount();
   }

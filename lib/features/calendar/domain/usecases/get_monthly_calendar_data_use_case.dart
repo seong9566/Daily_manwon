@@ -18,9 +18,6 @@ class GetMonthlyCalendarDataUseCase {
   }) =>
       _repository.getMonthlyExpenses(year: year, month: month);
 
-  /// 오늘까지의 연속 성공일 수를 반환한다
-  Future<int> getStreakDays() => _repository.getStreakDays();
-
   /// 전체 기간 중 성공한 날의 수를 반환한다
   Future<int> getTotalSuccessCount() => _repository.getTotalSuccessCount();
 

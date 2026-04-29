@@ -151,62 +151,6 @@ class CalendarLocalDatasource {
     return rows.map((r) => r.toEntity()).toList();
   }
 
-  /// 오늘까지 거슬러 올라가며 연속 성공일 수를 계산한다
-  /// 성공 기준: 해당일 총 지출 합계 ≤ DailyBudgets.baseAmount (없으면 AppConstants.dailyBudget)
-  /// 단, 지출이 없는 날은 연속 성공에 포함하지 않는다 (기록이 없으면 집계 대상 아님)
-  Future<int> getStreakDays() async {
-    final allRows = await (_db.select(_db.expenses)
-          ..orderBy([(e) => OrderingTerm.desc(e.createdAt)]))
-        .get();
-
-    if (allRows.isEmpty) return 0;
-
-    // 일별 합계 Map 구성
-    final Map<DateTime, int> dailyTotals = {};
-    for (final row in allRows) {
-      final dayKey = DateTime(
-        row.createdAt.year,
-        row.createdAt.month,
-        row.createdAt.day,
-      );
-      dailyTotals[dayKey] = (dailyTotals[dayKey] ?? 0) + row.amount;
-    }
-
-    // 날짜별 effectiveBudget 조회 (fallback: AppConstants.dailyBudget)
-    final budgetRows = await _db.select(_db.dailyBudgets).get();
-    final Map<DateTime, int> effectiveBudgets = {};
-    for (final row in budgetRows) {
-      final dayKey = DateTime(row.date.year, row.date.month, row.date.day);
-      effectiveBudgets[dayKey] = row.baseAmount + row.carryOver;
-    }
-
-    // 오늘부터 과거로 거슬러 올라가며 연속 성공 계산
-    int streak = 0;
-    DateTime cursor = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
-
-    while (true) {
-      final total = dailyTotals[cursor];
-      if (total == null) {
-        // 지출 기록이 없는 날 — 연속 끊김
-        break;
-      }
-      final budget = effectiveBudgets[cursor] ?? AppConstants.dailyBudget;
-      if (total <= budget) {
-        streak++;
-        cursor = cursor.subtract(const Duration(days: 1));
-      } else {
-        // 예산 초과일 — 연속 끊김
-        break;
-      }
-    }
-
-    return streak;
-  }
-
   /// 전체 기간에서 성공한 날(지출이 있고 예산 이하)의 수를 반환한다
   Future<int> getTotalSuccessCount() async {
     final allRows = await _db.select(_db.expenses).get();

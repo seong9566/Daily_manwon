@@ -13,9 +13,6 @@ abstract interface class CalendarRepository {
   /// 특정 날짜의 지출 목록을 조회한다
   Future<List<ExpenseEntity>> getExpensesByDate(DateTime date);
 
-  /// 오늘까지의 연속 성공일 수를 반환한다
-  Future<int> getStreakDays();
-
   /// 전체 기간 중 성공한 날의 수를 반환한다
   Future<int> getTotalSuccessCount();
 
