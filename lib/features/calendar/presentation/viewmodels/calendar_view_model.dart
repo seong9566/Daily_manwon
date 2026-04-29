@@ -32,9 +32,6 @@ class CalendarState {
   /// 현재 월의 일별 effectiveBudget 데이터 (baseAmount + carryOver)
   final Map<DateTime, int> monthlyEffectiveBudgets;
 
-  /// 오늘까지 연속 성공일 수
-  final int streakDays;
-
   /// 전체 성공 횟수
   final int successCount;
 
@@ -59,7 +56,6 @@ class CalendarState {
     this.monthlyExpenses = const {},
     this.monthlyBaseAmounts = const {},
     this.monthlyEffectiveBudgets = const {},
-    this.streakDays = 0,
     this.successCount = 0,
     this.isLoading = false,
     this.errorMessage,
@@ -131,7 +127,6 @@ class CalendarState {
     Map<DateTime, List<CalendarExpenseItem>>? monthlyExpenses,
     Map<DateTime, int>? monthlyBaseAmounts,
     Map<DateTime, int>? monthlyEffectiveBudgets,
-    int? streakDays,
     int? successCount,
     bool? isLoading,
     String? errorMessage,
@@ -148,7 +143,6 @@ class CalendarState {
       monthlyExpenses: monthlyExpenses ?? this.monthlyExpenses,
       monthlyBaseAmounts: monthlyBaseAmounts ?? this.monthlyBaseAmounts,
       monthlyEffectiveBudgets: monthlyEffectiveBudgets ?? this.monthlyEffectiveBudgets,
-      streakDays: streakDays ?? this.streakDays,
       successCount: successCount ?? this.successCount,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -181,7 +175,6 @@ class CalendarViewModel extends Notifier<CalendarState> {
   final Map<String, DateTime> _selectedDateCache = {};
 
   /// 전체 기간 통계 캐시 — 1회 로드 후 재사용
-  int? _cachedStreak;
   int? _cachedSuccessCount;
 
   /// 현재 fetch 중인 캐시 키 집합 — 중복 요청 방지
@@ -199,7 +192,6 @@ class CalendarViewModel extends Notifier<CalendarState> {
     _baseAmountCache.clear();
     _effectiveBudgetCache.clear();
     _selectedDateCache.clear();
-    _cachedStreak = null;
     _cachedSuccessCount = null;
     _inFlightLoads.clear();
 
@@ -275,13 +267,10 @@ class CalendarViewModel extends Notifier<CalendarState> {
       // 이 호출 없이는 다른 날 지출 수정 후에도 effectiveBudget이 갱신되지 않는다.
       await _todayBudgetUseCase.getOrCreateTodayBudget();
 
-      final (expenses, baseAmounts, effectiveBudgets, streak, successCount) = await (
+      final (expenses, baseAmounts, effectiveBudgets, successCount) = await (
         _useCase.getMonthlyExpenses(year: year, month: month),
         _useCase.getMonthlyBaseAmounts(year: year, month: month),
         _useCase.getMonthlyEffectiveBudgets(year: year, month: month),
-        _cachedStreak != null
-            ? Future.value(_cachedStreak!)
-            : _useCase.getStreakDays(),
         _cachedSuccessCount != null
             ? Future.value(_cachedSuccessCount!)
             : _useCase.getTotalSuccessCount(),
@@ -295,14 +284,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
         return;
       }
 
-      _cachedStreak = streak;
       _cachedSuccessCount = successCount;
 
       state = state.copyWith(
         monthlyExpenses: _expenseCache[key]!,
         monthlyBaseAmounts: baseAmounts,
         monthlyEffectiveBudgets: effectiveBudgets,
-        streakDays: streak,
         successCount: successCount,
       );
     } catch (_) {
@@ -377,7 +364,6 @@ class CalendarViewModel extends Notifier<CalendarState> {
         monthlyExpenses: _expenseCache[key]!,
         monthlyBaseAmounts: _baseAmountCache[key] ?? const {},
         monthlyEffectiveBudgets: _effectiveBudgetCache[key] ?? const {},
-        streakDays: _cachedStreak ?? state.streakDays,
         successCount: _cachedSuccessCount ?? state.successCount,
         isLoading: false,
       );
@@ -390,13 +376,10 @@ class CalendarViewModel extends Notifier<CalendarState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final (expenses, baseAmounts, effectiveBudgets, streak, successCount) = await (
+      final (expenses, baseAmounts, effectiveBudgets, successCount) = await (
         _useCase.getMonthlyExpenses(year: year, month: month),
         _useCase.getMonthlyBaseAmounts(year: year, month: month),
         _useCase.getMonthlyEffectiveBudgets(year: year, month: month),
-        _cachedStreak != null
-            ? Future.value(_cachedStreak!)
-            : _useCase.getStreakDays(),
         _cachedSuccessCount != null
             ? Future.value(_cachedSuccessCount!)
             : _useCase.getTotalSuccessCount(),
@@ -410,14 +393,12 @@ class CalendarViewModel extends Notifier<CalendarState> {
         return;
       }
 
-      _cachedStreak = streak;
       _cachedSuccessCount = successCount;
 
       state = state.copyWith(
         monthlyExpenses: _expenseCache[key]!,
         monthlyBaseAmounts: baseAmounts,
         monthlyEffectiveBudgets: effectiveBudgets,
-        streakDays: streak,
         successCount: successCount,
         isLoading: false,
       );
