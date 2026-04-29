@@ -101,7 +101,7 @@ void main() {
       expect(find.byKey(const Key('mini-split-bar-negative')), findsNothing);
     });
 
-    testWidgets('음수 이월: 미니 스플릿 바 + 음수 바 표시', (tester) async {
+    testWidgets('음수 이월 + 미초과: 음수 바 미표시', (tester) async {
       await tester.pumpWidget(wrap(
         WeeklyCalendarDayCell(
           date: DateTime(2026, 4, 22),
@@ -115,7 +115,24 @@ void main() {
         ),
       ));
       expect(find.byKey(const Key('mini-split-bar')), findsOneWidget);
-      expect(find.byKey(const Key('mini-split-bar-negative')), findsOneWidget);
+      expect(find.byKey(const Key('mini-split-bar-negative')), findsNothing);
+    });
+
+    testWidgets('지출 초과: 미니 스플릿 바 표시, 전체 회색 (음수 바 없음)', (tester) async {
+      await tester.pumpWidget(wrap(
+        WeeklyCalendarDayCell(
+          date: DateTime(2026, 4, 22),
+          isToday: false,
+          isSelected: false,
+          isFuture: false,
+          mood: CharacterMood.comfortable,
+          totalSpent: 7000,
+          baseAmount: 10000,
+          effectiveBudget: 5000,
+        ),
+      ));
+      expect(find.byKey(const Key('mini-split-bar')), findsOneWidget);
+      expect(find.byKey(const Key('mini-split-bar-negative')), findsNothing);
     });
 
     testWidgets('미래 날짜: 음수 이월이어도 미니 스플릿 바 미표시', (tester) async {
