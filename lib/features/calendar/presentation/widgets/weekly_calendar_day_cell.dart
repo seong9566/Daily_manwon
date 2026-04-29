@@ -4,6 +4,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import 'calendar_amount_badge.dart';
+import 'mini_split_bar.dart';
 
 /// 주간 캘린더 셀
 ///
@@ -76,7 +77,7 @@ class WeeklyCalendarDayCell extends StatelessWidget {
                 effectiveBudget != null &&
                 baseAmount != null &&
                 effectiveBudget! != baseAmount!)
-              _MiniSplitBar(
+              MiniSplitBar(
                 key: const Key('mini-split-bar'),
                 carryOver: effectiveBudget! - baseAmount!,
                 effectiveBudget: effectiveBudget!,
@@ -98,59 +99,6 @@ class WeeklyCalendarDayCell extends StatelessWidget {
               )
             else
               const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniSplitBar extends StatelessWidget {
-  final int carryOver;
-  final int effectiveBudget;
-
-  const _MiniSplitBar({
-    super.key,
-    required this.carryOver,
-    required this.effectiveBudget,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // carryOver == 0은 caller의 != baseAmount 가드로 차단됨 (flex: 0 방지)
-    assert(carryOver != 0, '_MiniSplitBar: carryOver must not be 0');
-
-    // 음수 이월: 전폭 빨간 바로 초과이월 표시
-    if (carryOver < 0) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(2),
-        child: Container(
-          key: const Key('mini-split-bar-negative'),
-          width: 28,
-          height: 3,
-          color: AppColors.budgetDanger,
-        ),
-      );
-    }
-
-    // 양수 이월: 파랑(이월) + 초록(기본 예산) 스플릿 바
-    final baseAmount = effectiveBudget - carryOver;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(2),
-      child: SizedBox(
-        width: 28,
-        height: 3,
-        child: Row(
-          children: [
-            Flexible(
-              flex: carryOver,
-              child: Container(color: AppColors.accent),
-            ),
-            if (baseAmount > 0)
-              Flexible(
-                flex: baseAmount,
-                child: Container(color: AppColors.statusComfortableStrong),
-              ),
           ],
         ),
       ),
