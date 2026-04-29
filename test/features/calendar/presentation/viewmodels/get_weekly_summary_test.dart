@@ -26,8 +26,8 @@ void main() {
   final today = DateTime(2026, 4, 29);
 
   group('getWeeklySummary savingDays 계산', () {
-    test('버그 재현: 이월 빚이 있는 0원 지출 날은 성공이 아니어야 한다', () {
-      // 월요일(4/27): 지출 0원, effectiveBudget=-1,800 → 성공 아님
+    test('복합 주간 시나리오: 0원 지출일과 이월 초과 지출일은 성공에서 제외된다', () {
+      // 월요일(4/27): 지출 0원 → 카운트 제외 / 수요일(4/29): 20,000 > 기본 10,000 → 실패
       final result = _countSavingDays(
         expenseTotals: {
           DateTime(2026, 4, 26): 41800, // 일: 초과
@@ -108,6 +108,28 @@ void main() {
       );
 
       expect(result, 0);
+    });
+
+    test('baseAmounts에 없는 날은 AppConstants.dailyBudget을 기준으로 판정한다', () {
+      final result = _countSavingDays(
+        expenseTotals: {DateTime(2026, 4, 28): 5000},
+        baseAmounts: {}, // 폴백 경로 — dailyBudget(10,000) 적용
+        weekDays: [DateTime(2026, 4, 28)],
+        today: today,
+      );
+
+      expect(result, 1); // 5,000 <= 10,000
+    });
+
+    test('지출이 기본 예산과 정확히 같으면 성공이다 (경계값)', () {
+      final result = _countSavingDays(
+        expenseTotals: {DateTime(2026, 4, 28): 10000},
+        baseAmounts: {DateTime(2026, 4, 28): 10000},
+        weekDays: [DateTime(2026, 4, 28)],
+        today: today,
+      );
+
+      expect(result, 1); // 10,000 <= 10,000 → 성공
     });
   });
 }
