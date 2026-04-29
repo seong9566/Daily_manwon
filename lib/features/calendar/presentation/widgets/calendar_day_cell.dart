@@ -108,11 +108,7 @@ class CalendarDayCell extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: isCurrentMonth ? onTap : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-
-          child: Column(
+        child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // ── 날짜 원형 배경 + 숫자 ──────────────────
@@ -176,9 +172,9 @@ class CalendarDayCell extends StatelessWidget {
                     : const SizedBox.shrink(),
               ),
             ],
-          ),
         ),
       ),
     );
   }
 }
+
