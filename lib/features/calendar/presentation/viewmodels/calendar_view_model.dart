@@ -466,11 +466,18 @@ class CalendarViewModel extends Notifier<CalendarState> {
       final expenses = _expenseCache[_cacheKey(day.year, day.month)]?[day] ?? [];
       final dayTotal = expenses.fold<int>(0, (s, e) => s + e.amount);
       totalSpent += dayTotal;
-      final dayBudget = _effectiveBudgetCache[_cacheKey(day.year, day.month)]?[day]
-          ?? _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
-          ?? AppConstants.dailyBudget;
-      if (dayTotal > 0) spentDaysBudget += dayBudget;
-      if (dayTotal == 0 || dayTotal <= dayBudget) savingDays++;
+      // spentDaysBudget은 effectiveBudget 기준 유지 (총지출 비율 계산용)
+      if (dayTotal > 0) {
+        spentDaysBudget += _effectiveBudgetCache[_cacheKey(day.year, day.month)]?[day]
+            ?? _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
+            ?? AppConstants.dailyBudget;
+      }
+      // 성공 판정: 지출 있고 기본 예산(이월 제외) 이하일 때만 성공
+      if (dayTotal > 0) {
+        final baseBudget = _baseAmountCache[_cacheKey(day.year, day.month)]?[day]
+            ?? AppConstants.dailyBudget;
+        if (dayTotal <= baseBudget) savingDays++;
+      }
     }
     return (
       totalSpent: totalSpent,
