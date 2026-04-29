@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -52,12 +51,11 @@ class DailyExpenseDetail extends StatelessWidget {
         const SizedBox(height: 16),
 
         // ── 예산 구성 카드 (이월이 있을 때: 양수·음수 모두 표시) ───────────
-        if (effectiveBudget != null &&
-            baseAmount != null &&
-            effectiveBudget! != baseAmount!) ...[
+        if (effectiveBudget != null && baseAmount != null) ...[
           _BudgetBreakdownCard(
             baseAmount: baseAmount!,
             effectiveBudget: effectiveBudget!,
+            totalSpent: total,
             isDark: isDark,
           ),
           const SizedBox(height: 12),
@@ -129,11 +127,13 @@ class DailyExpenseDetail extends StatelessWidget {
 class _BudgetBreakdownCard extends StatelessWidget {
   final int baseAmount;
   final int effectiveBudget;
+  final int totalSpent;
   final bool isDark;
 
   const _BudgetBreakdownCard({
     required this.baseAmount,
     required this.effectiveBudget,
+    required this.totalSpent,
     required this.isDark,
   });
 
@@ -141,7 +141,11 @@ class _BudgetBreakdownCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final carryOver = effectiveBudget - baseAmount;
     final isNegative = carryOver < 0;
-    final carryOverColor = isNegative ? AppColors.budgetDanger : AppColors.accent;
+    // 일요일(carryOver = 0)은 이월 개념 없으므로 초과 지출이어도 danger 배경 사용 안 함
+    final isOverBudget = carryOver != 0 && totalSpent > effectiveBudget;
+    final carryOverColor = isNegative
+        ? AppColors.budgetDanger
+        : AppColors.accent;
     final textSubColor = isDark ? AppColors.darkTextSub : AppColors.textSub;
     final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
 
@@ -149,7 +153,7 @@ class _BudgetBreakdownCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isNegative
+        color: isOverBudget
             ? AppColors.budgetDanger.withValues(alpha: isDark ? 0.15 : 0.08)
             : (isDark ? AppColors.darkCard : AppColors.primaryLight),
         borderRadius: BorderRadius.circular(12),
@@ -183,7 +187,7 @@ class _BudgetBreakdownCard extends StatelessWidget {
           ),
           Divider(height: 16, thickness: 1, color: dividerColor),
           _BudgetRow(
-            label: '합계',
+            label: '오늘 쓸 수 있는 금액',
             amount: effectiveBudget,
             isBold: true,
             isDark: isDark,
